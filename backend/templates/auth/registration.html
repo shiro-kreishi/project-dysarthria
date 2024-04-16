@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load bootstrap5 %}
+
+{% block content %}
+
+<div class="row justify-content-center" xmlns="http://www.w3.org/1999/html">
+    <div class="col-md-6">
+        <div class="text-center align-content-center">
+            <br><h2 class="text-center mb-4">Регистрация нового пользователя</h2>
+            <img src="{% static "registration.html" %}" width="30%" height="30%" alt="logo">
+        </div>
+        <form action="{% url 'register' %}" method="post">
+            {% bootstrap_form form %}
+            {% csrf_token %}
+            <p>* - обязательные поля</p>
+            <div class="d-grid gap-2"><button type="submit" class="btn btn-success">Отправить</button></div>
+    </form>
+
+    </div>
+</div>
+{% endblock %}

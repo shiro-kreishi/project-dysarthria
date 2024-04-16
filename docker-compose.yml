@@ -1,0 +1,55 @@
+version: "3.9"
+services:
+  django:
+    build: backend
+    command: gunicorn project.wsgi:application --bind 0.0.0.0:8001
+    #restart: always
+    volumes:
+      - ./backend/:/usr/src/app/
+      - static_volume:/usr/src/app/static
+      - media_volume:/usr/src/app/media
+    ports:
+      - 8001:8001
+    env_file:
+      - ./backend/.env.docker
+    depends_on:
+      - postgres
+    networks:
+      - nginx_network
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: "project-db"
+      POSTGRES_USER: "user-db"
+      POSTGRES_PASSWORD: "password-project-db"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - nginx_network
+
+  nginx:
+    image: nginx:latest
+    #restart: always
+    ports:
+      - 80:80
+    volumes:
+      - ./config/docker/nginx/conf.d:/etc/nginx/conf.d
+      - static_volume:/usr/src/app/static  # <-- bind the static volume
+      - media_volume:/usr/src/app/media  # <-- bind the media volume
+    depends_on:
+      - django
+    networks:
+      - nginx_network
+
+volumes:
+  data:
+  static_volume:
+  media_volume:
+
+networks:
+  nginx_network:
+    driver: bridge

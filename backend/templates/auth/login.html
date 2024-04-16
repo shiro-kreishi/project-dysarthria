@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load bootstrap5 %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-6">
+<br>
+<div class="text-center align-content-center">
+    <h2 class="text-center mb-4">Вход</h2>
+    <img src="{% static "" %}" width="30%" height="30%" alt="logo">
+</div>
+    {% if form.error %}
+        <p>{{ form.errors.error }}</p>
+    {% endif %}
+<form action="{% url 'login' %}" method="post">
+{% bootstrap_form form %}
+{% csrf_token %}
+    <div class="d-grid gap-2"><button type="submit" class="btn btn-primary" >Войти</button></div>
+</form>
+</div>
+</div>
+    <a href="{% url 'password_reset' %}" style="display: none">Забыли пароль?</a>
+{% endblock %}

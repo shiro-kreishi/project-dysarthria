@@ -1,0 +1,40 @@
+# Python
+*.pyc
+*~
+__pycache__
+
+# Env
+backend/.env
+.env.docker
+myvenv/
+venv/
+
+# Database
+db.sqlite3
+
+# macOS
+._*
+.DS_Store
+.fseventsd
+.Spotlight-V100
+
+# Windows
+Thumbs.db*
+ehthumbs*.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Visual Studio
+.vscode/
+.history/
+*.code-workspace
+
+migrations/
+migration/
+.idea
+.idea/*
+media/
+
+# docker postgres dev
+docker/dev-db/postgres/pgdata
+docker/dev-db/postgres/2.\ Init\ Database
