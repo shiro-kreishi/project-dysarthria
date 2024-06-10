@@ -19,7 +19,7 @@ logs-django:
 psql:
 	docker-compose exec postgres psql --username=user-db --dbname=project-db
 
-run-postgres:
+postgres-start:
 	docker compose up -d postgres
 
 rm:
