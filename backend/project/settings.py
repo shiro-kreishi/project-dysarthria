@@ -53,7 +53,6 @@ INSTALLED_APPS = [
     'captcha',
     'rest_framework_simplejwt',
     'users',
-    'api_v0',
 ]
 
 MIDDLEWARE = [
