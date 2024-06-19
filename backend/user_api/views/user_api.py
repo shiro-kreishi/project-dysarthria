@@ -8,7 +8,7 @@ from user_api.validations import custom_validation, validate_email, validate_pas
 
 
 class UserRegistrationAPIView(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         clean_data = custom_validation(request.data)

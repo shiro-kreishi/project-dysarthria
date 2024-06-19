@@ -7,14 +7,23 @@ UserModel = get_user_model()
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
-        fields = '__all__'
+        fields = ['email', 'password', 'username']
 
-        def create(self, validated_data):
-            user_obj = UserModel.objects.create_user(email=validated_data['email'],
-                                                     password=validated_data['password'], )
-            user_obj.username = validated_data['username']
-            user_obj.save()
-            return user_obj
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = UserModel(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Password should be at least 8 characters long")
+        if not any(char.isdigit() for char in value):
+            raise serializers.ValidationError("Password should include at least one digit")
+        if not any(char.isalpha() for char in value):
+            raise serializers.ValidationError("Password should include at least one letter")
+        return value
 
 
 class UserLoginSerializer(serializers.Serializer):
