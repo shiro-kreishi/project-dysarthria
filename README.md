@@ -24,6 +24,13 @@ python manage.py migrate
 # run project
 python manage.py runserver 8000 
 ```
+## Frontend dev
+How to run frontend app.
+```bash
+cd frontend/
+yarn install # install project dependencies
+yarn start # start frontend app
+```
 ### .env file:
 #### Ps. Стоит заметить, что имя базы данных, пользователя, пароль пользователя, хост и порт для подключения к базе данных доложны соблюдать с таковыми в из файла конфигурации `docker-compose.yml`
 ```bash
