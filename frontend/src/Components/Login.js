@@ -10,11 +10,18 @@ const Login = ({ client, setCurrentUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await client.post("/api/user/login/", { email, password })
-    .then(() => {
-      setCurrentUser(true);
-      navigate('/');
-    });
+    try {
+      await client.post("/api/user/login/", { email, password })
+      .then(() => {
+        setCurrentUser(true);
+        navigate('/');
+      });
+    }
+    catch (error) {
+      console.error('Error login user: ', error);
+      throw(error);
+    }
+
   };
 
   return (

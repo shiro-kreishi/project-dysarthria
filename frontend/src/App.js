@@ -30,8 +30,15 @@ function App() {
 
   const handleLogout = async (e) => {
     e.preventDefault();
-    await client.post("/api/user/logout/")
-    .then(() => setCurrentUser(false));
+    try {
+      await client.post("/api/user/logout/")
+      .then(() => setCurrentUser(false));
+    }
+    catch (error) {
+      console.error("Error to user logout: ", error);
+      throw(error);
+    }
+
   };
 
   return (

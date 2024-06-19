@@ -11,12 +11,19 @@ const Register = ({ client, setCurrentUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await client.post("/api/user/register/", { email, username, password })
-    .then(() => client.post("/api/user/login/", { email, password })
-    .then(() => {
-      setCurrentUser(true);
-      navigate('/');
-    }));
+    try {
+      await client.post("/api/user/register/", { email, username, password })
+      .then(() => client.post("/api/user/login/", { email, password })
+      .then(() => {
+        setCurrentUser(true);
+        navigate('/');
+      }));
+    }
+    catch (error) {
+      console.error('Error register new user: ', error);
+      throw(error);
+    }
+
   };
 
   return (
