@@ -1,5 +1,5 @@
-# Django project template
-Пустой проект на Django, призванный ускорить разработку веб-приложений.
+# Project dysarthria
+Информационная система для коррекции дизартрии
 ## Dev:
 ```bash
 # git clone repo
