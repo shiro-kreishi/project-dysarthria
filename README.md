@@ -1,6 +1,6 @@
 # Project dysarthria
 Информационная система для коррекции дизартрии
-## Dev:
+## Dev setup:
 ```bash
 # git clone repo
 python -m venv venv
