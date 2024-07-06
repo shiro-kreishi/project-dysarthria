@@ -6,23 +6,28 @@ class ExerciseListAPIView(ListAPIView):
     queryset = Exercise.objects.all()
     serializer_class = ExerciseSerializer
 
+
 class ExerciseDetailAPIView(RetrieveAPIView):
     queryset = Exercise.objects.all()
     serializer_class = ExerciseSerializer
     lookup_field = 'id'
 
+
 class ExerciseToTestListAPIView(ListAPIView):
     queryset = ExerciseToTest.objects.all()
     serializer_class = ExerciseToTestSerializer
+
 
 class ExerciseToTestDetailAPIView(RetrieveAPIView):
     queryset = ExerciseToTest.objects.all()
     serializer_class = ExerciseToTestSerializer
     lookup_field = 'id'
 
+
 class ResponseExerciseListAPIView(ListAPIView):
     queryset = ResponseExercise.objects.all()
     serializer_class = ResponseExerciseSerializer
+
 
 class ResponseExerciseDetailAPIView(RetrieveAPIView):
     queryset = ResponseExercise.objects.all()

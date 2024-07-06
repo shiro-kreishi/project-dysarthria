@@ -1,16 +1,16 @@
-from django.urls import include, path
-from api_v0.views.test import \
+from django.urls import path
+from api_v0.views.list_or_view import \
     TestListAPIView, TestDetailAPIView, \
     PublicTestListAPIView, PublicTestDetailAPIView, \
     ResponseTestListAPIView, ResponseTestDetailAPIView, \
     WhitelistTestListAPIView, WhitelistTestDetailAPIView
-from api_v0.views.exercise import \
+from api_v0.views.list_or_view import \
     ExerciseListAPIView, ExerciseDetailAPIView,\
     ExerciseToTestListAPIView, ExerciseToTestDetailAPIView,\
     ResponseExerciseListAPIView, ResponseExerciseDetailAPIView
-from api_v0.views.user import \
+from api_v0.views.list_or_view import \
     DoctorToTestListAPIView, DoctorToTestDetailAPIView
-from api_v0.views.object import \
+from api_v0.views.list_or_view import \
     PictureOrWordDraggingListAPIView, PictureOrWordDraggingDetailAPIView,\
     ObjectsWeDraggingListAPIView, ObjectsWeDraggingDetailAPIView,\
     ObjectsToDraggingListAPIView, ObjectsToDraggingDetailAPIView,\
