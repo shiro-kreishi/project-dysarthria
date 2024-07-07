@@ -16,6 +16,7 @@ from api_v0.views.list_or_view import \
     ObjectsToDraggingListAPIView, ObjectsToDraggingDetailAPIView,\
     ContentListAPIView, ContentDetailAPIView,\
     StandardFormListAPIView, StandardFormDetailAPIView
+from api_v0.views.create import ExerciseCreateAPIView
 
 urlpatterns = [
     path('tests/', TestListAPIView.as_view(), name='test-list'),
@@ -46,5 +47,8 @@ urlpatterns = [
     path('contents/<int:id>/', ContentDetailAPIView.as_view(), name='content-detail'),
     path('standard-forms/', StandardFormListAPIView.as_view(), name='standard-form-list'),
     path('standardForms/<int:id>/', StandardFormDetailAPIView.as_view(), name='standard-form-detail'),
+
+    # create
+    path('exercise/create/', ExerciseCreateAPIView.as_view(), name='exercise-create'),
 
 ]
