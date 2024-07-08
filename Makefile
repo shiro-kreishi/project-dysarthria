@@ -22,6 +22,10 @@ psql:
 postgres-start:
 	docker compose up -d postgres
 
+drop-db:
+	docker compose rm -sf postgres
+	docker volume rm -f project-dysarthria_data
+
 rm:
-	docker compose down
+	docker compose down -v
 
