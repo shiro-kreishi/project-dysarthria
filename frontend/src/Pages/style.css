@@ -1,0 +1,27 @@
+.color {
+  background-color: #4178bf;
+  height: 400px;
+  width: 100%;
+  display: flex;
+}
+
+body {
+  font-family: Roboto;
+}
+
+.white-text {
+  color: white;
+  font-size: 36px;
+  font-family: "Roboto Black";
+}
+
+.btn{
+  background-color: #d95252;
+  color:white;
+  font-family: "Roboto Black";
+}
+
+.btn:hover{
+  color:white;
+  background-color: #f2b29b;
+}

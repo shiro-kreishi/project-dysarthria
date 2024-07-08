@@ -1,5 +1,4 @@
-// Login.js
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, FormControl, FormLabel, Input } from "@chakra-ui/react";
 
@@ -35,7 +34,7 @@ const Login = ({ client, setCurrentUser }) => {
           <FormLabel>Password</FormLabel>
           <Input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
         </FormControl>
-        <Button type="submit" colorScheme="teal">Submit</Button>
+        <Button type="submit" colorScheme="teal">Войти</Button>
       </form>
     </Box>
   );

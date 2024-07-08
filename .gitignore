@@ -28,6 +28,7 @@ $RECYCLE.BIN/
 .vscode/
 .history/
 *.code-workspace
+*Zone.Identifier
 
 migrations/
 migration/
