@@ -8,7 +8,8 @@ source venv/bin/activate
 pip install -r requirements.txt
 # run dev db into docker
 # docker compose -f docker-compose.yml up -d
-docker compose up -d postgres 
+# docker compose up -d postgres
+make postgres-start 
 # docker postgres logs
 # docker compose -f docker-compose.yml logs
 docker compose logs postgres   
@@ -19,7 +20,8 @@ docker compose stop postgres
 # create .env file
 # ...
 # run migrations
-python manage.py makemigrations
+python manage.py makemigrations users
+python manage.py makemigrations testing
 python manage.py migrate
 # run project
 python manage.py runserver 8000 
