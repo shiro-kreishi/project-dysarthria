@@ -1,6 +1,6 @@
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
-from api_v0.permitions import IsMemberOfGroupOrAdmin
+from api_v0.permissions import IsMemberOfGroupOrAdmin
 from rest_framework.response import Response
 from testing.serializers.testing import ExerciseSerializer
 
