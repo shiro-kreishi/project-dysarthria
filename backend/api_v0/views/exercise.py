@@ -1,8 +1,12 @@
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from rest_framework import generics, mixins, views
+
+from api_v0.permissions import IsMemberOfGroupOrAdmin
+from project.settings import DEBUG as debug_settings
+from rest_framework import generics, mixins, views, permissions
 
 from testing.models.test import Exercise, ExerciseToTest, ResponseExercise
-from testing.serializers.testing import ExerciseSerializer, ExerciseToTestSerializer, ResponseExerciseSerializer
+from testing.serializers.testing import ExerciseSerializer, ResponseExerciseSerializer, \
+    PublicDetailSerializer, ExerciseToTestSerializer
 
 
 class ExerciseModelViewSet(mixins.CreateModelMixin,

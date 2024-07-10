@@ -4,7 +4,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import generics, mixins, views, permissions
 from testing.models.test import Test, PublicTest, ResponseTest, Whitelist
 from testing.serializers.testing import TestSerializer, PublicTestSerializer, ResponseTestSerializer, \
-    WhitelistSerializer, TestDetailSerializer, TestCreateUpdateSerializer
+    WhitelistSerializer, TestDetailSerializer, TestCreateUpdateSerializer, PublicDetailSerializer
 
 
 # class TestModelViewSet(mixins.CreateModelMixin,
@@ -56,7 +56,21 @@ class PublicTestModelViewSet(mixins.CreateModelMixin,
                              mixins.ListModelMixin,
                              GenericViewSet):
     queryset = PublicTest.objects.all()
-    serializer_class = PublicTestSerializer
+
+    def get_serializer_class(self):
+        if debug_settings:
+            print(f'action: {self.action}')
+
+        if self.action in ['list', 'retrieve']:
+            return PublicDetailSerializer
+        return PublicTestSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.AllowAny]
+        else:
+            permission_classes = [IsAdminOrDoctor]
+        return [permission() for permission in permission_classes]
 
 
 class ResponseTestModelViewSet(mixins.CreateModelMixin,

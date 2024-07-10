@@ -82,6 +82,13 @@ class PublicTestSerializer(serializers.ModelSerializer):
         fields = ['id', 'test']
 
 
+class PublicDetailSerializer(serializers.ModelSerializer):
+    test = TestDetailSerializer()
+    class Meta:
+        model = PublicTest
+        fields = ['id', 'test']
+
+
 class ResponseTestSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResponseTest
