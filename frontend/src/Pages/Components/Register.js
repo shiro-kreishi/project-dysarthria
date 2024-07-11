@@ -1,28 +1,39 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, FormControl, FormLabel, Input } from "@chakra-ui/react";
+import { Box, Button, FormControl, FormLabel, Input, Alert, AlertIcon } from "@chakra-ui/react";
 
 const Register = ({ client, setCurrentUser }) => {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      await client.post("/api/user/register/", { email, username, password })
-      .then(() => client.post("/api/user/login/", { email, password })
-      .then(() => {
-        setCurrentUser(true);
-        navigate('/');
-      }));
-    }
-    catch (error) {
-      console.error('Error register new user: ', error);
-      throw(error);
+    setError('');
+
+    if (!email || !username || !password) {
+      setError('Заполните все поля');
+      return;
+    } else if (password.length < 8) {
+      setError('Пароль должен состоять минимум из 8 символов');
+      return;
+    } else if (password === password.toLowerCase()) {
+      setError('В пароле должна быть хотя бы одна заглавная буква');
+      return;
     }
 
+    try {
+      await client.post("/api/user/register/", { email, username, password });
+      await client.post("/api/user/login/", { email, password });
+      console.log('Registration and login successful');
+      setCurrentUser(true);
+      localStorage.setItem('currentUser', JSON.stringify(true));
+      navigate('/');
+    } catch (error) {
+      console.error('Error registering new user: ', error);
+    }
   };
 
   return (
@@ -40,6 +51,12 @@ const Register = ({ client, setCurrentUser }) => {
           <FormLabel>Password</FormLabel>
           <Input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
         </FormControl>
+        {error && (
+          <Alert status="error" mb="4">
+            <AlertIcon />
+            {error}
+          </Alert>
+        )}
         <Button type="submit" colorScheme="teal">Зарегистрироваться</Button>
       </form>
     </Box>
