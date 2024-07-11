@@ -42,7 +42,7 @@ class PublicTest(models.Model):
 
 class ResponseTest(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     json_result = models.JSONField()
 
 

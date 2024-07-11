@@ -4,6 +4,8 @@ from testing.models.test import \
     DoctorToTest, Whitelist, PublicTest, \
     ResponseTest, ResponseExercise, PictureOrWordDragging, \
     ObjectsWeDrag, ObjectsToDragTo, Content, StandardForm
+from testing.serializers.validators import validate_doctor_or_admin
+from users.models import User
 
 
 class ExerciseSerializer(serializers.ModelSerializer):
@@ -70,6 +72,15 @@ class DoctorToTestSerializer(serializers.ModelSerializer):
         fields = ['id', 'doctor', 'test']
 
 
+class DoctorToTestDetailSerializer(serializers.ModelSerializer):
+    doctor = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),
+                                                required=False, allow_null=True,
+                                                validators=[validate_doctor_or_admin])
+    class Meta:
+        model = DoctorToTest
+        fields = ['id', 'doctor', 'test']
+
+
 class WhitelistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Whitelist
@@ -90,6 +101,8 @@ class PublicDetailSerializer(serializers.ModelSerializer):
 
 
 class ResponseTestSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, allow_null=True)
+
     class Meta:
         model = ResponseTest
         fields = ['id', 'test', 'user', 'json_result']

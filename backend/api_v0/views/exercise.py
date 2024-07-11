@@ -37,5 +37,8 @@ class ResponseExerciseModelViewSet(mixins.CreateModelMixin,
                                    GenericViewSet):
     queryset = ResponseExercise.objects.all()
     serializer_class = ResponseExerciseSerializer
+    permission_classes = [
+        permissions.AllowAny
+    ]
 
 
