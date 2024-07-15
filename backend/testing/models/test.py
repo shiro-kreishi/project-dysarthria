@@ -24,6 +24,7 @@ class Exercise(models.Model):
     description = models.TextField(null=True, blank=True)
     type = models.ForeignKey(ExerciseType, on_delete=models.CASCADE)
     king_json = models.JSONField(null=True, blank=True)
+    correct_answers = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return self.name
