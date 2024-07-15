@@ -1,17 +1,22 @@
 from rest_framework import serializers
 from testing.models.test import \
-    Test, Exercise, ExerciseToTest, \
+    Test, Exercise, ExerciseToTest, ExerciseType, \
     DoctorToTest, Whitelist, PublicTest, \
-    ResponseTest, ResponseExercise, PictureOrWordDragging, \
-    ObjectsWeDrag, ObjectsToDragTo, Content, StandardForm
+    ResponseTest, ResponseExercise
 from testing.serializers.validators import validate_doctor_or_admin
 from users.models import User
 
 
+class ExerciseTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExerciseType
+        fields = '__all__'
+
 class ExerciseSerializer(serializers.ModelSerializer):
+    # exercise_type = ExerciseTypeSerializer()
     class Meta:
         model = Exercise
-        fields = ['id', 'name', 'description', 'type_name']
+        fields = ['id', 'name', 'description', 'king_json', 'type']
 
 
 class TestSerializer(serializers.ModelSerializer):
@@ -112,33 +117,3 @@ class ResponseExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResponseExercise
         fields = ['id', 'exercise', 'json_result', 'date', 'response_test']
-
-
-class PictureOrWordDraggingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PictureOrWordDragging
-        fields = ['id', 'exercise', 'text']
-
-
-class ObjectsWeDragSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ObjectsWeDrag
-        fields = ['id', 'content', 'picture_or_word_dragging']
-
-
-class ObjectsToDragToSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ObjectsToDragTo
-        fields = ['id', 'content', 'to_drag_to', 'picture_or_word_dragging']
-
-
-class ContentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Content
-        fields = ['id', 'text']
-
-
-class StandardFormSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StandardForm
-        fields = ['id', 'exercise', 'text']

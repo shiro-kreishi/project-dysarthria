@@ -1,7 +1,6 @@
 from django.contrib import admin
 from testing.models import Test, Exercise, ExerciseToTest, DoctorToTest,\
-    Whitelist, PublicTest, ResponseTest, ResponseExercise,\
-    PictureOrWordDragging, ObjectsWeDrag, ObjectsToDragTo, Content, StandardForm
+    Whitelist, PublicTest, ResponseTest, ResponseExercise
 
 @admin.register(Test)
 class TestAdmin(admin.ModelAdmin):
@@ -9,7 +8,7 @@ class TestAdmin(admin.ModelAdmin):
 
 @admin.register(Exercise)
 class ExerciseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'type_name')
+    list_display = ('name', 'description', 'type')
 
 @admin.register(ExerciseToTest)
 class ExerciseToTestAdmin(admin.ModelAdmin):
@@ -34,23 +33,3 @@ class ResponseTestAdmin(admin.ModelAdmin):
 @admin.register(ResponseExercise)
 class ResponseExerciseAdmin(admin.ModelAdmin):
     list_display = ('exercise', 'json_result', 'date', 'response_test')
-
-@admin.register(PictureOrWordDragging)
-class PictureOrWordDraggingAdmin(admin.ModelAdmin):
-    list_display = ('exercise', 'text')
-
-@admin.register(ObjectsWeDrag)
-class ObjectsWeDragAdmin(admin.ModelAdmin):
-    list_display = ('content', 'picture_or_word_dragging')
-
-@admin.register(ObjectsToDragTo)
-class ObjectsToDragToAdmin(admin.ModelAdmin):
-    list_display = ('content', 'to_drag_to', 'picture_or_word_dragging')
-
-@admin.register(Content)
-class ContentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'text')
-
-@admin.register(StandardForm)
-class StandardFormAdmin(admin.ModelAdmin):
-    list_display = ('exercise', 'text')

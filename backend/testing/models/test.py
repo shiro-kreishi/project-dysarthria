@@ -12,10 +12,18 @@ class Test(models.Model):
         return self.name
 
 
+class ExerciseType(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
 class Exercise(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
-    type_name = models.CharField(max_length=255, null=True, blank=True)
+    type = models.ForeignKey(ExerciseType, on_delete=models.CASCADE)
+    king_json = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -51,28 +59,3 @@ class ResponseExercise(models.Model):
     json_result = models.JSONField()
     date = models.DateTimeField()
     response_test = models.ForeignKey(ResponseTest, on_delete=models.CASCADE)
-
-
-class PictureOrWordDragging(models.Model):
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
-    text = models.TextField()
-
-
-class ObjectsWeDrag(models.Model):
-    content = models.ForeignKey('Content', on_delete=models.CASCADE)
-    picture_or_word_dragging = models.ForeignKey(PictureOrWordDragging, on_delete=models.CASCADE)
-
-
-class ObjectsToDragTo(models.Model):
-    content = models.ForeignKey('Content', on_delete=models.CASCADE)
-    to_drag_to = models.ForeignKey('Content', related_name='drag_targets', on_delete=models.CASCADE)
-    picture_or_word_dragging = models.ForeignKey(PictureOrWordDragging, on_delete=models.CASCADE)
-
-
-class Content(models.Model):
-    text = models.JSONField()
-
-
-class StandardForm(models.Model):
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
-    text = models.JSONField()

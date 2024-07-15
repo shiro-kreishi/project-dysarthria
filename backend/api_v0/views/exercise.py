@@ -2,11 +2,16 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from api_v0.permissions import IsMemberOfGroupOrAdmin
 from project.settings import DEBUG as debug_settings
-from rest_framework import generics, mixins, views, permissions
+from rest_framework import generics, mixins, views, permissions, viewsets
 
-from testing.models.test import Exercise, ExerciseToTest, ResponseExercise
+from testing.models.test import Exercise, ExerciseToTest, ResponseExercise, ExerciseType
 from testing.serializers.testing import ExerciseSerializer, ResponseExerciseSerializer, \
-    PublicDetailSerializer, ExerciseToTestSerializer
+    PublicDetailSerializer, ExerciseToTestSerializer, ExerciseTypeSerializer
+
+
+class ExerciseTypeViewSet(viewsets.ModelViewSet):
+    queryset = ExerciseType.objects.all()
+    serializer_class = ExerciseTypeSerializer
 
 
 class ExerciseModelViewSet(mixins.CreateModelMixin,
