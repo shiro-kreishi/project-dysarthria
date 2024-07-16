@@ -1,6 +1,6 @@
 from django.contrib import admin
 from testing.models import Test, Exercise, ExerciseToTest, DoctorToTest,\
-    Whitelist, PublicTest, ResponseTest, ResponseExercise
+    Whitelist, PublicTest, ResponseTest, ResponseExercise, ExerciseType
 
 @admin.register(Test)
 class TestAdmin(admin.ModelAdmin):
@@ -33,3 +33,7 @@ class ResponseTestAdmin(admin.ModelAdmin):
 @admin.register(ResponseExercise)
 class ResponseExerciseAdmin(admin.ModelAdmin):
     list_display = ('exercise', 'json_result', 'date', 'response_test')
+
+@admin.register(ExerciseType)
+class ResponseExerciseAdmin(admin.ModelAdmin):
+    list_display = ('name',)
