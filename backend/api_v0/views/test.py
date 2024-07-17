@@ -3,7 +3,7 @@ from project.settings import DEBUG as debug_settings
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import generics, mixins, views, permissions
 from testing.models.test import Test, PublicTest, ResponseTest, Whitelist
-from testing.serializers.testing import TestSerializer, PublicTestSerializer, ResponseTestSerializer, \
+from api_v0.serializers.test import TestSerializer, PublicTestSerializer, ResponseTestSerializer, \
     WhitelistSerializer, TestDetailSerializer, TestCreateUpdateSerializer, PublicDetailSerializer
 
 
@@ -17,8 +17,12 @@ from testing.serializers.testing import TestSerializer, PublicTestSerializer, Re
 #     serializer_class = TestSerializer
 
 
-class IsAdminOrDoctor(IsMemberOfGroupOrAdmin):
+class IsSuperUserOrDoctor(IsMemberOfGroupOrAdmin):
     group_name = 'Doctors'
+
+
+class IsSuperUserOrAdmin(IsMemberOfGroupOrAdmin):
+    group_name = 'Administrators'
 
 
 class TestModelViewSet(mixins.CreateModelMixin,
@@ -43,7 +47,7 @@ class TestModelViewSet(mixins.CreateModelMixin,
         if self.action in ['list', 'retrieve']:
             permission_classes = [permissions.AllowAny]
         elif self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [IsAdminOrDoctor]
+            permission_classes = [IsSuperUserOrDoctor, IsSuperUserOrAdmin]
         else:
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -69,7 +73,7 @@ class PublicTestModelViewSet(mixins.CreateModelMixin,
         if self.action in ['list', 'retrieve']:
             permission_classes = [permissions.AllowAny]
         else:
-            permission_classes = [IsAdminOrDoctor]
+            permission_classes = [IsSuperUserOrDoctor, IsSuperUserOrAdmin]
         return [permission() for permission in permission_classes]
 
 
@@ -94,3 +98,10 @@ class WhitelistModelViewSet(mixins.CreateModelMixin,
                             GenericViewSet):
     queryset = Whitelist.objects.all()
     serializer_class = WhitelistSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.AllowAny]
+        else:
+            permission_classes = [IsSuperUserOrDoctor, IsSuperUserOrAdmin]
+        return [permission() for permission in permission_classes]
