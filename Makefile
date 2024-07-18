@@ -22,6 +22,18 @@ psql:
 postgres-start:
 	docker compose up -d postgres
 
+drop-db:
+	docker compose rm -sf postgres
+	docker volume rm -f project-dysarthria_data
+
 rm:
-	docker compose down
+	docker compose down -v
+
+migrate:
+	backend/venv/bin/python3 backend/manage.py makemigrations users testing
+	backend/venv/bin/python3 backend/manage.py migrate
+
+usergroups:
+	backend/venv/bin/python3 backend/create_user_groups.py
+
 
