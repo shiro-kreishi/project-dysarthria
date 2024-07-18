@@ -12,3 +12,16 @@ class IsMemberOfGroupOrAdmin(permissions.BasePermission):
         is_group_member = request.user.groups.filter(name=group_name).exists()
         is_admin = request.user.is_superuser and request.user.is_staff
         return is_group_member or is_admin
+
+
+class IsMemberOfGroupsOrAdmin(permissions.BasePermission):
+    """
+    Пользователь должен быть членом одной из определенных групп или администратором.
+    """
+    group_names = []
+
+    def has_permission(self, request, view):
+        group_names = self.group_names
+        is_group_member = any(request.user.groups.filter(name=group_name).exists() for group_name in group_names)
+        is_admin = request.user.is_superuser and request.user.is_staff
+        return is_group_member or is_admin
