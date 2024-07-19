@@ -5,7 +5,8 @@ from rest_framework import generics, mixins, views, permissions
 from testing.models.test import Test, PublicTest, ResponseTest, Whitelist
 from api_v0.serializers.test import TestSerializer, PublicTestSerializer, ResponseTestSerializer, \
     WhitelistSerializer, TestDetailSerializer, TestCreateUpdateSerializer, PublicDetailSerializer
-from api_v0.views.base import BaseModelViewSet, AllowDoctorsOrAdminsBaseModelViewSet
+from api_v0.views.base import BaseModelViewSet, AllowDoctorsOrAdminsBaseModelViewSet, \
+    ListAndRetrieveForAnyUserModelViewSet
 
 
 class IsSuperUserOrDoctorOrAdmin(IsMemberOfGroupsOrAdmin):
@@ -18,28 +19,10 @@ class TestModelViewSet(AllowDoctorsOrAdminsBaseModelViewSet):
     BaseDetailSerializer = TestDetailSerializer
 
 
-class PublicTestModelViewSet(mixins.CreateModelMixin,
-                             mixins.RetrieveModelMixin,
-                             mixins.UpdateModelMixin,
-                             mixins.DestroyModelMixin,
-                             mixins.ListModelMixin,
-                             GenericViewSet):
+class PublicTestModelViewSet(AllowDoctorsOrAdminsBaseModelViewSet):
     queryset = PublicTest.objects.all()
-
-    def get_serializer_class(self):
-        if debug_settings:
-            print(f'action: {self.action}')
-
-        if self.action in ['list', 'retrieve']:
-            return PublicDetailSerializer
-        return PublicTestSerializer
-
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            permission_classes = [permissions.AllowAny]
-        else:
-            permission_classes = [IsSuperUserOrDoctorOrAdmin]
-        return [permission() for permission in permission_classes]
+    BaseSerializer = PublicTestSerializer
+    BaseDetailSerializer = PublicDetailSerializer
 
 
 class ResponseTestModelViewSet(BaseModelViewSet):
@@ -47,18 +30,6 @@ class ResponseTestModelViewSet(BaseModelViewSet):
     BaseSerializer = ResponseTestSerializer
 
 
-class WhitelistModelViewSet(mixins.CreateModelMixin,
-                            mixins.RetrieveModelMixin,
-                            mixins.UpdateModelMixin,
-                            mixins.DestroyModelMixin,
-                            mixins.ListModelMixin,
-                            GenericViewSet):
+class WhitelistModelViewSet(ListAndRetrieveForAnyUserModelViewSet):
     queryset = Whitelist.objects.all()
-    serializer_class = WhitelistSerializer
-
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            permission_classes = [permissions.AllowAny]
-        else:
-            permission_classes = [IsSuperUserOrDoctorOrAdmin]
-        return [permission() for permission in permission_classes]
+    BaseSerializer = WhitelistSerializer

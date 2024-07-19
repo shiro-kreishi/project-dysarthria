@@ -1,18 +1,14 @@
 from django.db.models import Model
 
-from api_v0.permissions import IsMemberOfGroupOrAdmin
+from api_v0.permissions import IsMemberOfGroupOrAdmin, IsMemberOfGroupsOrAdmin
 from rest_framework import serializers
 from project.settings import DEBUG as debug_settings
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import generics, mixins, views, permissions, viewsets
 
 
-class IsSuperUserOrDoctor(IsMemberOfGroupOrAdmin):
-    group_name = 'Doctors'
-
-
-class IsSuperUserOrAdmin(IsMemberOfGroupOrAdmin):
-    group_name = 'Administrators'
+class IsSuperUserOrDoctorOrAdminPermission(IsMemberOfGroupsOrAdmin):
+    group_names = ['Doctors', 'Administrators']
 
 
 class BaseModelViewSet(mixins.CreateModelMixin,
@@ -31,6 +27,14 @@ class BaseModelViewSet(mixins.CreateModelMixin,
         permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]
 
+
+class ListAndRetrieveForAnyUserModelViewSet(BaseModelViewSet):
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.AllowAny]
+        else:
+            permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
+        return [permission() for permission in permission_classes]
 
 
 class AllowDoctorsOrAdminsBaseModelViewSet(BaseModelViewSet):
@@ -52,8 +56,6 @@ class AllowDoctorsOrAdminsBaseModelViewSet(BaseModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             permission_classes = [permissions.AllowAny]
-        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [IsSuperUserOrDoctor, IsSuperUserOrAdmin]
         else:
-            permission_classes = [permissions.IsAuthenticated]
+            permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
         return [permission() for permission in permission_classes]
