@@ -25,6 +25,7 @@ const Register = ({ client, setCurrentUser }) => {
     }
 
     try {
+      console.log(client.baseURL);
       await client.post("/api/user/register/", { email, username, password });
       await client.post("/api/user/login/", { email, password });
       console.log('Registration and login successful');

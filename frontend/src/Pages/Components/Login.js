@@ -18,6 +18,7 @@ const Login = ({ client, setCurrentUser }) => {
     }
 
     try {
+      console.log(client.baseURL);
       const response = await client.post("/api/user/login/", { email, password });
       if (response.status === 200) {
         console.log('Login successful');
