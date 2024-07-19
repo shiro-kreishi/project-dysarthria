@@ -37,7 +37,7 @@ class ListAndRetrieveForAnyUserModelViewSet(BaseModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-class AllowDoctorsOrAdminsBaseModelViewSet(BaseModelViewSet):
+class AllowDoctorsOrAdminsBaseModelViewSet(ListAndRetrieveForAnyUserModelViewSet):
     queryset = []
     BaseSerializer = serializers.BaseSerializer
     BaseDetailSerializer = serializers.BaseSerializer
@@ -52,10 +52,3 @@ class AllowDoctorsOrAdminsBaseModelViewSet(BaseModelViewSet):
         if self.action in ['retrieve', ]:
             return self.BaseDetailSerializer
         return self.BaseSerializer
-
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            permission_classes = [permissions.AllowAny]
-        else:
-            permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
-        return [permission() for permission in permission_classes]
