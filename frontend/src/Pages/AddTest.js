@@ -19,16 +19,6 @@ const AddTest = () => {
   const [showWordButtons, setShowWordButtons] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
   
-  const saveJSONToFile = (data, filename) => {
-    const file = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(file);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
-
   const compressionExercise = (exercises) => {
     return exercises.map(exercise => {
       let king_json = {};
@@ -90,31 +80,97 @@ const AddTest = () => {
     });
   };
 
-
-  const SaveTest = async () => {
-    const test = {
-      name: document.querySelector('.title-test').value,
-      // description: 'test',
-    };
-  
+  //Отправка запроса на сервер для создания теста
+  const createTest = async (test) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/v0/exercise-types/', test, {
+      const response = await client.post('api/v0/tests/', test, {
         headers: {
           'X-CSRFToken': csrftoken,
-          'Content-Type': 'application/json', // Убедитесь, что заголовок Content-Type установлен
+          'Content-Type': 'application/json',
         },
         withCredentials: true,
       });
-      console.log('Тест успешно сохранен', response.data);
-      navigate('/my-tests');
-      submitData();
+      return response.data;
+
     } catch (error) {
-      console.error('Ошибка при сохранении теста', error);
-      console.log(test);
-      console.log(csrftoken);
-      console.log(client.baseURL);
+      console.error('Ошибка при создании теста', error);
+      throw error;
     }
-  };
+  }
+
+  //Отправка запроса на сервер для создания упражнения 
+  const createExercise = async (exercise) => {
+    try {
+      const response = await client.post('/api/v0/exercises/', exercise, {
+        header: {
+          'X-CSRFToken': csrftoken,
+          'Conten-Type': 'application/json',
+        },
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error){
+      console.error('Ошибка при создании упраженния', error);
+      throw error;
+    }
+  }
+
+  //Отправка запроса на сервер для линка упражнения и теста
+  const linkExerciseToTest = async (exerciseId, testId) => {
+    try {
+      const response = await client.post('/api/v0/exercises-to-test/', {
+        exercise:exerciseId,
+        test: testId
+      },{
+        headers: {
+          'X-CSRFToken': csrftoken,
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error){
+      console.error('Не удалось связать тест и упражения', error);
+      throw error;
+    }
+  }
+
+  const SaveTest = async () => {
+    const test = {
+        name: document.querySelector('.title-test').value,
+        description: 'test'
+    };
+
+    try {
+        // Создаем тест и получаем его ID
+        const createdTest = await createTest(test);
+        const testId = createdTest.id;
+
+        // Создаем упражнения и привязываем их к тесту
+        for (const exercise of exercises) {
+            const exerciseData = {
+                name: exercise.name || '',
+                type: exercise.type,
+                king_json: exercise.type === 'text' ? {
+                    content: exercise.content,
+                    missing_words: exercise.missingWords
+                } : {
+                    content: exercise.content,
+                    answers: exercise.answers,
+                    correct_answer: exercise.correctAnswer
+                }
+            };
+            const createdExercise = await createExercise(exerciseData);
+            await linkExerciseToTest(createdExercise.id, testId);
+        }
+
+        console.log('Тест и упражнения успешно сохранены');
+        navigate('/my-tests');
+    } catch (error) {
+        console.error('Ошибка при сохранении теста и упражнений', error);
+    }
+};
+
   
   const addExercise = (type) => {
     let newExercise;
