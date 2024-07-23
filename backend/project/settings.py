@@ -31,7 +31,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECRET_KEY = 'django-insecure-+$=v)vk@z3#=nde1bny2w@60t&^(1bw=8!^doyav&t)@b+0-l_'
 SECRET_KEY = SECRET_KEY_CONFIG
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = DEBUG_CONFIG
+DEBUG = True
 
 # ALLOWED_HOSTS = []
 ALLOWED_HOSTS = DJANGO_ALLOWED_HOSTS_CONFIG
@@ -66,7 +66,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
 ]
 
 REST_FRAMEWORK = {

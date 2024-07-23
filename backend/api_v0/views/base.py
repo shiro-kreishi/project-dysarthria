@@ -20,6 +20,25 @@ class BaseModelViewSet(mixins.CreateModelMixin,
     queryset = []
     BaseSerializer = serializers.BaseSerializer
 
+    def log_request(self, request, *args, **kwargs):
+        print(f"Request received: {request.method} {request.path}")
+        print(f"Request headers: {request.headers}")
+
+    def create(self, request, *args, **kwargs):
+        self.log_request(request)
+        return super().create(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        self.log_request(request)
+        return super().list(request, *args, **kwargs)
+
+    def dispatch(self, request, *args, **kwargs):
+        self.log_request(request)
+        response = super().dispatch(request, *args, **kwargs)
+        if response.status_code == 403:
+            print(f"Forbidden request: {request.method} {request.path}")
+        return response
+
     def get_serializer_class(self):
         return self.BaseSerializer
 
