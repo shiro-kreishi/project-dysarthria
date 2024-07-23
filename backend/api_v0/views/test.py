@@ -7,7 +7,8 @@ from api_v0.serializers.test import TestSerializer, PublicTestSerializer, Respon
     WhitelistSerializer, TestDetailSerializer, TestCreateUpdateSerializer, PublicDetailSerializer
 from api_v0.views.base import BaseModelViewSet, AllowDoctorsOrAdminsBaseModelViewSet, \
     ListAndRetrieveForAnyUserModelViewSet
-
+from rest_framework.response import Response
+from rest_framework import status
 
 class IsSuperUserOrDoctorOrAdmin(IsMemberOfGroupsOrAdmin):
     group_names = ['Doctors', 'Administrators']
