@@ -52,3 +52,22 @@ class AllowDoctorsOrAdminsBaseModelViewSet(ListAndRetrieveForAnyUserModelViewSet
         if self.action in ['retrieve', ]:
             return self.BaseDetailSerializer
         return self.BaseSerializer
+
+
+class CloseForAnyUserModelViewSet(BaseModelViewSet):
+    BaseDetailSerializer = serializers.BaseSerializer
+
+    def get_permissions(self):
+        permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
+        return [permission() for permission in permission_classes]
+
+    def get_serializer_class(self):
+        if debug_settings:
+            print(f'action: {self.action}')
+            print(f'get: {self.request.query_params}')
+        # if self.action in ['create', 'update', 'partial_update']:
+        #     return TestCreateUpdateSerializer
+
+        if self.action in ['retrieve', ]:
+            return self.BaseDetailSerializer
+        return self.BaseSerializer

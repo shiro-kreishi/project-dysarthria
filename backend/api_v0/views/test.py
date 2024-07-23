@@ -6,14 +6,14 @@ from testing.models.test import Test, PublicTest, ResponseTest, Whitelist
 from api_v0.serializers.test import TestSerializer, PublicTestSerializer, ResponseTestSerializer, \
     WhitelistSerializer, TestDetailSerializer, TestCreateUpdateSerializer, PublicDetailSerializer
 from api_v0.views.base import BaseModelViewSet, AllowDoctorsOrAdminsBaseModelViewSet, \
-    ListAndRetrieveForAnyUserModelViewSet
+    ListAndRetrieveForAnyUserModelViewSet, CloseForAnyUserModelViewSet
 
 
 class IsSuperUserOrDoctorOrAdmin(IsMemberOfGroupsOrAdmin):
     group_names = ['Doctors', 'Administrators']
 
 
-class TestModelViewSet(AllowDoctorsOrAdminsBaseModelViewSet):
+class TestModelViewSet(CloseForAnyUserModelViewSet):
     queryset = Test.objects.all()
     BaseSerializer = TestSerializer
     BaseDetailSerializer = TestDetailSerializer
