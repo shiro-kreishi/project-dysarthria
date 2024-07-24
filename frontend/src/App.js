@@ -9,6 +9,9 @@ import MyTests from './Pages/MyTests';
 import Profile from './Pages/Profile';
 import AddTest from './Pages/AddTest';
 import { DataProvider } from './Pages/Components/DataContext';
+import axios from './Pages/axiosConfig';
+
+axios.defaults.baseURL = "http://127.0.0.1:8000";
 
 function App() {
   return (
