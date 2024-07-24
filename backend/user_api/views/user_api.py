@@ -22,22 +22,6 @@ class UserRegistrationAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class UserLoginAPIView(APIView):
-#     permission_classes = (permissions.AllowAny,)
-#     authentication_classes = (SessionAuthentication,)
-#
-#     def post(self, request):
-#         data = request.data
-#         assert validate_email(data)
-#         assert validate_password(data)
-#         serializer = UserLoginSerializer(data=data)
-#         if serializer.is_valid():
-#             user = serializer.check_user(data)
-#             if user is not None:
-#                 login(request, user)
-#                 return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 class UserLogoutAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     def post(self, request):

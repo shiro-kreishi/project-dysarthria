@@ -5,7 +5,7 @@ from rest_framework import generics, mixins, views, permissions
 from testing.models.test import Test, PublicTest, ResponseTest, Whitelist
 from api_v0.serializers.test import TestSerializer, PublicTestSerializer, ResponseTestSerializer, \
     WhitelistSerializer, TestDetailSerializer, TestCreateUpdateSerializer, PublicDetailSerializer
-from api_v0.views.base import BaseModelViewSet, AllowDoctorsOrAdminsBaseModelViewSet, \
+from api_v0.views.base import BaseModelViewSet, \
     ListAndRetrieveForAnyUserModelViewSet, CloseForAnyUserModelViewSet
 
 
@@ -19,7 +19,7 @@ class TestModelViewSet(CloseForAnyUserModelViewSet):
     BaseDetailSerializer = TestDetailSerializer
 
 
-class PublicTestModelViewSet(AllowDoctorsOrAdminsBaseModelViewSet):
+class PublicTestModelViewSet(ListAndRetrieveForAnyUserModelViewSet):
     queryset = PublicTest.objects.all()
     BaseSerializer = PublicTestSerializer
     BaseDetailSerializer = PublicDetailSerializer
