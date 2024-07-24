@@ -1,55 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Route, Routes, Link, useNavigate } from 'react-router-dom';
 import { ChakraProvider, Box, Button, Flex, Heading } from "@chakra-ui/react";
+import axios from './axiosConfig';
 import Home from './Components/Home';
 import Login from './Components/Login';
 import Register from './Components/Register';
-
-axios.defaults.xsrfCookieName = 'csrftoken';
-axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-axios.defaults.withCredentials = true;
-
-const client = axios.create({
-  baseURL: "http://127.0.0.1:8000"
-});
 
 function Profile() {
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const user = localStorage.getItem('currentUser');
-    if (user) {
-      setCurrentUser(JSON.parse(user));
+    const tokenAccess = localStorage.getItem('tokenAccess');
+    if (tokenAccess) {
+      setCurrentUser(true);
     } else {
-      client.get("/api/user/user/")
-        .then(res => {
-          console.log('User is authenticated');
-          setCurrentUser(true);
-          localStorage.setItem('currentUser', JSON.stringify(true));
-        })
-        .catch(error => {
-          console.error("Error fetching user:", error);
-          setCurrentUser(false);
-          localStorage.setItem('currentUser', JSON.stringify(false));
-        });
+      setCurrentUser(false);
     }
   }, []);
 
   const handleLogout = async (e) => {
     e.preventDefault();
+
+    const tokenAccess = localStorage.getItem('tokenAccess');
+    if (!tokenAccess) {
+      console.error("No token found");
+      return;
+    }
+
     try {
-      await client.post("/api/user/logout/")
-        .then(() => {
-          console.log('User logged out');
-          setCurrentUser(false);
-          localStorage.removeItem('currentUser');
-          navigate('/profile');
+      const response = await axios.post("/api/token/verify/", { token: tokenAccess });
+      let values = document.cookie.split(';');
+      for (let i = 0; i < values.length; i++) {
+        if (values[i].split('=')[0] === 'tokenRefresh') {
+          var tokenRefresh = values[i].split('=')[1];
+          break;
+        }
+      }
+      if (Object.keys(response.data).length === 0) {
+        await axios.post("/api/user/logout/", {
+          refresh_token: tokenRefresh
+        }, {
+          headers: {
+            'Authorization': `Bearer ${tokenAccess}`
+          }
         });
+        console.log('User logged out');
+        setCurrentUser(false);
+        localStorage.removeItem('tokenAccess');
+        navigate('/profile');
+      }
     } catch (error) {
-      console.error("Error to user logout: ", error);
-      throw error;
+      console.error("Error logging out: ", error.response ? error.response.data : error.message);
     }
   };
 
@@ -77,8 +79,8 @@ function Profile() {
         </Flex>
         <Routes>
           <Route path="/" element={<Home currentUser={currentUser} />} />
-          <Route path="/login" element={<Login client={client} setCurrentUser={setCurrentUser} />} />
-          <Route path="/register" element={<Register client={client} setCurrentUser={setCurrentUser} />} />
+          <Route path="/login" element={<Login setCurrentUser={setCurrentUser} />} />
+          <Route path="/register" element={<Register setCurrentUser={setCurrentUser} />} />
         </Routes>
       </Box>
     </ChakraProvider>

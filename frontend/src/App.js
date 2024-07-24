@@ -7,6 +7,11 @@ import Tests from './Pages/Tests';
 import Library from './Pages/Library';
 import MyTests from './Pages/MyTests';
 import Profile from './Pages/Profile';
+import AddTest from './Pages/AddTest';
+import { DataProvider } from './Pages/Components/DataContext';
+import axios from './Pages/axiosConfig';
+
+axios.defaults.baseURL = "http://127.0.0.1:8000";
 
 function App() {
   return (
@@ -25,15 +30,18 @@ function App() {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <BrowserRouter>
-        <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/tests' element={<Tests />} />
-          <Route path='/library' element={<Library />} />
-          <Route path='/my-tests' element={<MyTests />} />
-          <Route path='/profile/*' element={<Profile />} />
-        </Routes>
-      </BrowserRouter>
+        <DataProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path='/' element={<Home />} />
+              <Route path='/tests' element={<Tests />} />
+              <Route path='/library' element={<Library />} />
+              <Route path='/my-tests' element={<MyTests />} />
+              <Route path='/my-tests/add-test' element={<AddTest />} />
+              <Route path='/profile/*' element={<Profile />} />
+            </Routes>
+          </BrowserRouter>
+        </DataProvider>
     </>
   );
 }

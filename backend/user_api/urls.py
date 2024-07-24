@@ -1,11 +1,11 @@
 from django.urls import path
 from user_api.views.user_api import \
-    UserRegistrationAPIView, UserLoginAPIView, UserLogoutAPIView, UserAPIView, UserChangePasswordView, \
+    UserRegistrationAPIView, UserLogoutAPIView, UserAPIView, UserChangePasswordView, \
     AssignDoctorGroupUpdateAPIView
 
 urlpatterns = [
     path('register/', UserRegistrationAPIView.as_view(), name='register'),
-    path('login/', UserLoginAPIView.as_view(), name='login'),
+    # path('login/', UserLoginAPIView.as_view(), name='login'),
     path('logout/', UserLogoutAPIView.as_view(), name='logout'),
     path('user/', UserAPIView.as_view(), name='user'),
     path('change_password/', UserChangePasswordView.as_view(), name='change_password'),
