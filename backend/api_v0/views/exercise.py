@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from api_v0.permissions import IsMemberOfGroupOrAdmin
-from api_v0.views.base import ListAndRetrieveForAnyUserModelViewSet, AllowDoctorsOrAdminsBaseModelViewSet, \
+from api_v0.views.base import ListAndRetrieveForAnyUserModelViewSet, \
     IsSuperUserOrDoctorOrAdminPermission, BaseModelViewSet
 from project.settings import DEBUG as debug_settings
 from rest_framework import generics, mixins, views, permissions, viewsets

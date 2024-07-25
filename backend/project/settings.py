@@ -31,7 +31,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECRET_KEY = 'django-insecure-+$=v)vk@z3#=nde1bny2w@60t&^(1bw=8!^doyav&t)@b+0-l_'
 SECRET_KEY = SECRET_KEY_CONFIG
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = DEBUG_CONFIG
+DEBUG = True
 
 # ALLOWED_HOSTS = []
 ALLOWED_HOSTS = DJANGO_ALLOWED_HOSTS_CONFIG
@@ -66,7 +66,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -86,13 +85,21 @@ REST_FRAMEWORK = {
     ],
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS_CONFIG
 CORS_ALLOW_CREDENTIALS = True
 # CORS_ALLOWED_ORIGINS = [
 #     'http://localhost:3030',
 #     'http://tpbook2.shgpi'
 # ]
-CORS_ALLOWED_METHODS = CORS_ALLOWED_ORIGINS_CONFIG
+# CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS_CONFIG
+
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = True
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:3000']
+
 
 ROOT_URLCONF = 'project.urls'
 

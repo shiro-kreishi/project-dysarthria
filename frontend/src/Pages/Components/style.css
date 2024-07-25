@@ -1,0 +1,39 @@
+.custom-nav-link {
+    font-family: "Roboto Black";
+    display: inline-block;
+    width: 200px;
+    padding: 10px;
+    margin: 10px;
+    color: white;
+    background-color: #4178bf;
+    border-radius: 15px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    max-width: 200px ;
+    text-align: center;
+    font-size:17px;
+}
+
+.custom-nav-link:hover {
+    background-color: #f2b29b;
+    color:white;
+}
+
+.custom-nav-toggle{
+    background-color: #4178bf;
+    border: 1px solid white;
+}
+
+.custom-container{
+    justify-content: center;
+}
+
+.test-item{
+    background-color: #4178bf;
+    width: 200px;
+    height: 100px;
+    margin: 10px;
+    border-radius: 10px;
+    text-align: center;
+    color:white;    
+}
