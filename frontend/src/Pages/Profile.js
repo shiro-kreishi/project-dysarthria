@@ -22,34 +22,38 @@ function Profile() {
   const handleLogout = async (e) => {
     e.preventDefault();
 
-    const tokenAccess = localStorage.getItem('tokenAccess');
+    let tokenAccess = localStorage.getItem('tokenAccess');
     if (!tokenAccess) {
       console.error("No token found");
       return;
     }
 
     try {
-      const response = await axios.post("/api/token/verify/", { token: tokenAccess });
-      let values = document.cookie.split(';');
+      let values = document.cookie.split('; ');
       for (let i = 0; i < values.length; i++) {
         if (values[i].split('=')[0] === 'tokenRefresh') {
           var tokenRefresh = values[i].split('=')[1];
           break;
         }
       }
-      if (Object.keys(response.data).length === 0) {
-        await axios.post("/api/user/logout/", {
-          refresh_token: tokenRefresh
-        }, {
-          headers: {
-            'Authorization': `Bearer ${tokenAccess}`
-          }
-        });
-        console.log('User logged out');
-        setCurrentUser(false);
-        localStorage.removeItem('tokenAccess');
-        navigate('/profile');
+      try {
+        await axios.post("/api/token/verify/", { token: tokenAccess });
+      } catch {
+        const response = await axios.post("/api/token/refresh/", { refresh: tokenRefresh });
+        tokenAccess = response.data.access;
       }
+      await axios.post("/api/user/logout/", {
+        refresh_token: tokenRefresh
+      }, {
+        headers: {
+          'Authorization': `Bearer ${tokenAccess}`
+        }
+      });
+      console.log('User logged out');
+      setCurrentUser(false);
+      document.cookie = 'tokenRefresh=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      localStorage.removeItem('tokenAccess');
+      navigate('/profile');
     } catch (error) {
       console.error("Error logging out: ", error.response ? error.response.data : error.message);
     }
