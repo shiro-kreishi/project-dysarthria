@@ -48,37 +48,21 @@ const AddTest = () => {
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Проверяем, начинается ли cookie с искомого имени
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
         }
-      }
     }
     return cookieValue;
-  }
+}
   
   const csrftoken = getCookie('csrftoken');
-  
 
-  const submitData = () => {
-    client.post('/api/endpoint/', {
-      key: 'value'
-    }, {
-      headers: {
-        'X-CSRFToken': csrftoken
-      },
-      withCredentials: true
-    })
-    .then(response => { 
-      console.log(response.data);
-    })
-    .catch(error => {
-      console.error('There was an error!', error);
-    });
-  };
 
   //Отправка запроса на сервер для создания теста
   const createTest = async (test) => {
