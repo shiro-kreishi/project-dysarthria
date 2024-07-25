@@ -1,6 +1,6 @@
-from django.contrib.auth import get_user_model, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.generics import UpdateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -8,11 +8,12 @@ from rest_framework.response import Response
 from api_v0.views import IsAdminOrDoctor
 from user_api.serializers.user import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, \
     ChangePasswordSerializer, ChangeNameSerializer
-from rest_framework import permissions, status
+from rest_framework import permissions, status, viewsets
 from user_api.validations import custom_validation, validate_email, validate_password
 from users.models import User
-from users.serializers import AssignDoctorSerializer
+from user_api.serializers.doctor_serializers import AssignDoctorSerializer
 from django.contrib.auth.models import Group
+
 
 class UserRegistrationAPIView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -23,19 +24,39 @@ class UserRegistrationAPIView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             if user is not None:
+                response_data = {
+                    "email": user.email,
+                    "username": user.username,
+                }
+                return Response(response_data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserRegistrationModelViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UserRegistrationSerializer
+    http_method_names = ['post']
+
+    def create(self, request, *args, **kwargs):
+        clean_data = custom_validation(request.data)
+        serializer = self.get_serializer(data=clean_data)
+        if serializer.is_valid():
+            user = serializer.save()
+            if user is not None:
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserLoginAPIView(APIView):
+class UserLoginModelViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.AllowAny,)
-    authentication_classes = (SessionAuthentication,)
+    serializer_class = UserLoginSerializer
+    http_method_names = ['post']
 
-    def post(self, request):
+    def create(self, request, *args, **kwargs):
         data = request.data
         assert validate_email(data)
         assert validate_password(data)
-        serializer = UserLoginSerializer(data=data)
+        serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             user = serializer.check_user(data)
             if user is not None:
@@ -43,38 +64,38 @@ class UserLoginAPIView(APIView):
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UserLogoutAPIView(APIView):
-    permission_classes = (permissions.AllowAny,)
-    authentication_classes = ()
+class UserLogoutViewSet(viewsets.ViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    http_method_names = ['post']
 
-    def post(self, request):
+    def create(self, request):
         logout(request)
         return Response(status=status.HTTP_200_OK)
 
 
-class UserAPIView(APIView):
+class CurrentUserViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     authentication_classes = (SessionAuthentication,)
+    serializer_class = UserSerializer
+    http_method_names = ['get']
+    queryset = User.objects.all()
 
-    def get(self, request):
-        serializer = UserSerializer(request.user)
+    def list(self, request, pk=None, **kwargs):
+        serializer = self.serializer_class(request.user)
         return Response(
-            {'user': serializer.data},
+            serializer.data,
             status=status.HTTP_200_OK
         )
 
-class UserChangeFirstLastName(APIView):
-    permissions_classes = [permissions.IsAuthenticated]
 
-    def post(self, request):
-        user = self.request.user
-
-class UserChangePasswordView(APIView):
+class UserChangePasswordModelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['post']
+    serializer_class = ChangePasswordSerializer
 
-    def post(self, request, *args, **kwargs):
-        user = self.request.user  # Убедитесь, что пользователь аутентифицирован
-        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+    def create(self, request, *args, **kwargs):
+        user = self.request.user
+        serializer = self.serializer_class(data=request.data, context={'request': request})
 
         if serializer.is_valid():
             # Check old password
@@ -89,35 +110,38 @@ class UserChangePasswordView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AssignDoctorGroupUpdateAPIView(UpdateAPIView):
+class AssignDoctorGroupModelViewSet(viewsets.ModelViewSet):
     serializer_class = AssignDoctorSerializer
     permission_classes = [IsAdminOrDoctor]
+    http_method_names = ['post']
 
-    def update(self, request, *args, **kwargs):
-        user_id = request.data.get('user_id')
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_id = serializer.validated_data['user_id']
 
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "Пользователь не найден."}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             doctor_group, created = Group.objects.get_or_create(name='Doctors')
             user.groups.add(doctor_group)
             user.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response({"detail": "Группа назначена."}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
-class UpdateNameView(APIView):
+class UpdateNameModelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ChangeNameSerializer
+    http_method_names = ['post', 'get']
 
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         user = request.user
-        serializer = ChangeNameSerializer(user, data=request.data, partial=True)
+        serializer = self.serializer_class(user, data=request.data, partial=True)
 
         if serializer.is_valid():
             if not request.data.get('first_name') and not request.data.get('last_name'):
@@ -127,3 +151,10 @@ class UpdateNameView(APIView):
             return Response({"detail": "Имя изменено."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def list(self, request, *args, **kwargs):
+        serializer = self.serializer_class(request.user)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
