@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.validators import UniqueValidator
 
+from user_api.validations import validate_password_change
+
 UserModel = get_user_model()
 
 
@@ -61,4 +63,30 @@ class UserLoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
-        fields = ('email', 'username',)
+        fields = ('email', 'username')
+
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+
+    class Meta:
+        model = UserModel
+        fields = ['old_password', 'new_password']
+
+    def validate(self, data):
+        user = self.instance
+
+        if not user.check_password(data['old_password']):
+            raise serializers.ValidationError({'old_password': 'Wrong password.'})
+
+        validate_password_change(data)
+
+        return data
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return instance
+
+

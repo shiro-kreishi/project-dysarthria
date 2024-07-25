@@ -39,3 +39,13 @@ def validate_password(data):
     if not password:
         raise ValidationError('a password is needed')
     return True
+
+def validate_password_change(data):
+    old_password = data.get('old_password', '').strip()
+    new_password = data.get('new_password', '').strip()
+
+    if not old_password or not new_password:
+        raise ValidationError('Нужно заполнить все поля')
+
+    if len(new_password) < 8:
+        raise ValidationError('Выберете пароль больше 8 символов')

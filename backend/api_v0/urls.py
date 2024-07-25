@@ -4,7 +4,7 @@ from api_v0.views import \
     ExerciseModelViewSet, ExerciseToTestModelViewSet, ResponseExerciseModelViewSet, \
     TestModelViewSet, PublicTestModelViewSet, \
     ResponseTestModelViewSet, WhitelistModelViewSet, \
-    DoctorToTestModelViewSet, ExerciseTypeViewSet, AssignDoctorGroupUpdateAPIView
+    DoctorToTestModelViewSet, ExerciseTypeViewSet, UserModelViewSet
 
 
 router = routers.DefaultRouter()
@@ -17,11 +17,11 @@ router.register(r'public-tests', PublicTestModelViewSet)
 router.register(r'response-tests', ResponseTestModelViewSet)
 router.register(r'whitelists', WhitelistModelViewSet)
 router.register(r'doctors-test', DoctorToTestModelViewSet)
+router.register(r'users', UserModelViewSet)
 
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('assign_doctor_group/', AssignDoctorGroupUpdateAPIView.as_view(), name='assign_doctor_group'),
 
     # create
     # path('exercise/create/', ExerciseCreateAPIView.as_view(), name='exercise-create'),
