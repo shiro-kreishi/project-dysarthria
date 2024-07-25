@@ -62,3 +62,10 @@ DB_PASSWORD=password-project-db
 DB_HOST=postgres # name docker container with PostgreSQL
 DB_PORT=5432
 ```
+## .env file for frontend
+file location: frontend/
+```bash
+# .env
+HOST=127.0.0.1
+PORT=3000
+```
