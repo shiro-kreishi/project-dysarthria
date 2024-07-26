@@ -5,6 +5,8 @@ import { ChakraProvider, Box, Button, Flex, Heading } from "@chakra-ui/react";
 import Home from './Components/Home';
 import Login from './Components/Login';
 import Register from './Components/Register';
+import AssignDoctorGroup from './Components/AssignDoctorGroups';
+
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -71,9 +73,11 @@ function Profile() {
                 <Link to="/profile/register">
                   <Button colorScheme="teal">Регистрация</Button>
                 </Link>
+                
               </>
             )}
           </Flex>
+          <AssignDoctorGroup />
         </Flex>
         <Routes>
           <Route path="/" element={<Home currentUser={currentUser} />} />

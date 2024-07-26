@@ -1,11 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useCon1 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Dropdown, DropdownButton } from 'react-bootstrap';
 import './style.css';
 import Modal from './Components/Modal';
 import axios from 'axios';
-import { DataContext } from './Components/DataContext';
-
+import { DataCon1 } from './Components/DataContext';
 
 const AddTest = () => {
   const client = axios.create({
@@ -15,56 +14,27 @@ const AddTest = () => {
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [modalActive, setModalActive] = useState(false);
-  const [selectedType, setSelectedType] = useState('text');   
+  const [selectedType, setSelectedType] = useState('1');   
   const [showWordButtons, setShowWordButtons] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
-  
-  const compressionExercise = (exercises) => {
-    return exercises.map(exercise => {
-      let king_json = {};
-  
-      if (exercise.type === 'text') {
-        king_json = {
-          content: exercise.content,
-          missing_words: exercise.missingWords
-        };
-      } else if (exercise.type === 'image') {
-        king_json = {
-          content: exercise.content,
-          answers: exercise.answers,
-          correct_answer: exercise.correctAnswer
-        };
-      }
-  
-      return {
-        id: exercise.id,
-        name: exercise.name || '',
-        type: exercise.type,
-        king_json: king_json
-      };
-    });
-  };
-  
+
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Проверяем, начинается ли cookie с искомого имени
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
         }
+      }
     }
     return cookieValue;
-}
-  
+  }
+
   const csrftoken = getCookie('csrftoken');
 
-
-  //Отправка запроса на сервер для создания теста
   const createTest = async (test) => {
     try {
       const response = await client.post('api/v0/tests/', test, {
@@ -75,37 +45,15 @@ const AddTest = () => {
         withCredentials: true,
       });
       return response.data;
-
     } catch (error) {
       console.error('Ошибка при создании теста', error);
       throw error;
     }
-  }
+  };
 
-  //Отправка запроса на сервер для создания упражнения 
   const createExercise = async (exercise) => {
     try {
       const response = await client.post('/api/v0/exercises/', exercise, {
-        header: {
-          'X-CSRFToken': csrftoken,
-          'Conten-Type': 'application/json',
-        },
-        withCredentials: true,
-      });
-      return response.data;
-    } catch (error){
-      console.error('Ошибка при создании упраженния', error);
-      throw error;
-    }
-  }
-
-  //Отправка запроса на сервер для линка упражнения и теста
-  const linkExerciseToTest = async (exerciseId, testId) => {
-    try {
-      const response = await client.post('/api/v0/exercises-to-test/', {
-        exercise:exerciseId,
-        test: testId
-      },{
         headers: {
           'X-CSRFToken': csrftoken,
           'Content-Type': 'application/json',
@@ -113,62 +61,76 @@ const AddTest = () => {
         withCredentials: true,
       });
       return response.data;
-    } catch (error){
-      console.error('Не удалось связать тест и упражения', error);
+    } catch (error) {
+      console.error('Ошибка при создании упражнения', error);
       throw error;
     }
-  }
+  };
+
+  const linkExerciseToTest = async (exerciseId, testId) => {
+    try {
+      const response = await client.post('/api/v0/exercises-to-test/', {
+        exercise: exerciseId,
+        test: testId
+      }, {
+        headers: {
+          'X-CSRFToken': csrftoken,
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Не удалось связать тест и упражнения', error);
+      throw error;
+    }
+  };
 
   const SaveTest = async () => {
     const test = {
-        name: document.querySelector('.title-test').value,
-        description: 'test'
+      name: document.querySelector('.title-test').value,
+      description: 'test'
     };
 
     try {
-        // Создаем тест и получаем его ID
-        const createdTest = await createTest(test);
-        const testId = createdTest.id;
+      const createdTest = await createTest(test);
+      const testId = createdTest.id;
 
-        // Создаем упражнения и привязываем их к тесту
-        for (const exercise of exercises) {
-            const exerciseData = {
-                name: exercise.name || '',
-                type: exercise.type,
-                king_json: exercise.type === 'text' ? {
-                    content: exercise.content,
-                    missing_words: exercise.missingWords
-                } : {
-                    content: exercise.content,
-                    answers: exercise.answers,
-                    correct_answer: exercise.correctAnswer
-                }
-            };
-            const createdExercise = await createExercise(exerciseData);
-            await linkExerciseToTest(createdExercise.id, testId);
-        }
+      for (const exercise of exercises) {
+        const exerciseData = {
+          name: exercise.name || 'bebrochka',
+          type: exercise.type,
+          king_json: exercise.type === '1' ? {
+            content: exercise.content,
+            missing_words: exercise.missingWords
+          } : {
+            content: exercise.content,
+            answers: exercise.answers,
+            correct_answer: exercise.correctAnswer
+          }
+        };
+        const createdExercise = await createExercise(exerciseData);
+        await linkExerciseToTest(createdExercise.id, testId);
+      }
 
-        console.log('Тест и упражнения успешно сохранены');
-        navigate('/my-tests');
+      console.log('Тест и упражнения успешно сохранены');
+      navigate('/my-tests');
     } catch (error) {
-        console.error('Ошибка при сохранении теста и упражнений', error);
+      console.error('Ошибка при сохранении теста и упражнений', error);
     }
-};
+  };
 
-  
   const addExercise = (type) => {
     let newExercise;
-    if (type === 'text') {
-      newExercise = { id: exercises.length + 1, type: type, content: '', missingWords: [] };
-    } else if (type === 'image') {
-      newExercise = { id: exercises.length + 1, type: type, content: '', answers: [], correctAnswer: '' };
+    if (type === '1') {
+      newExercise = { id: exercises.length + 1, type: type, content: '', missingWords: [] , name: 'bebrochka'};
+    } else if (type === '2') {
+      newExercise = { id: exercises.length + 1, type: type, content: '', answers: [], correctAnswer: '', name: 'bebrochka' };
     }
     setExercises([...exercises, newExercise]);
     setSelectedExercise(newExercise);
     setModalActive(false);
   };
-  
-
 
   const selectExercise = (exercise) => {
     setSelectedExercise(exercise);
@@ -202,14 +164,14 @@ const AddTest = () => {
     ));
   };
 
-  const addAnswer = () =>{
+  const addAnswer = () => {
     const updatedExercise = { 
       ...selectedExercise, 
       answers: [...selectedExercise.answers, '']
     };
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise);
-  }
+  };
 
   const setCorrectAnswer = (answer) => {
     const updatedExercise = { ...selectedExercise, correctAnswer: answer };
@@ -217,15 +179,13 @@ const AddTest = () => {
     setSelectedExercise(updatedExercise);
   };
 
-  
-
-  const AnswerChange = (index, value) =>{
+  const AnswerChange = (index, value) => {
     const updatedAnswers = [...selectedExercise.answers];
     updatedAnswers[index] = value;
     const updatedExercise = { ...selectedExercise, answers: updatedAnswers };
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise); 
-  }
+  };
   return (
     <div>
       <div className='color-2'>
@@ -259,11 +219,11 @@ const AddTest = () => {
       <div className='exercise-editor'>
         <Container>
         {selectedExercise ? (
-          selectedExercise.type === 'text' ? (
+          selectedExercise.type === '1' ? (
             <div>
               <h3>Редактор упражнения {selectedExercise.id}</h3>
               <textarea
-                className='textarea'
+                className='1area'
                 value={selectedExercise.content}
                 onChange={(e) => {
                   const updatedExercise = { ...selectedExercise, content: e.target.value };
@@ -280,7 +240,7 @@ const AddTest = () => {
                 </div>
               )}
             </div>
-          ) : selectedExercise.type === 'image' ? (
+          ) : selectedExercise.type === '2' ? (
             <div>
               <h3>Редактор изображения {selectedExercise.id}</h3>
               <Row className="align-items-center">
@@ -338,8 +298,8 @@ const AddTest = () => {
     <Modal active={modalActive} setActive={setModalActive}>
       <h1>Выберите тип упражнения</h1>
       <DropdownButton id="dropdown-basic-button" title="Тип">
-        <Dropdown.Item onClick={() => handleSelectType('text')}>Пропущенные слова</Dropdown.Item>
-        <Dropdown.Item onClick={() => handleSelectType('image')}>Что на изображении</Dropdown.Item>
+        <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
+        <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
         <Dropdown.Item onClick={() => handleSelectType('other')}>Something else</Dropdown.Item>
       </DropdownButton>
     </Modal>
