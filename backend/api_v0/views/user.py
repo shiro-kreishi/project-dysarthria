@@ -5,7 +5,7 @@ from api_v0.permissions import IsMemberOfGroupOrAdmin
 from testing.models import DoctorToTest
 from testing.serializers.testing import DoctorToTestDetailSerializer
 
-from user_api.serializers.user import UserSerializer
+from user_api.serializers.user import UserSerializer, UserWithIdSerializer
 from users.models import User
 
 
@@ -31,7 +31,7 @@ class UserModelViewSet(mixins.CreateModelMixin,
                        mixins.ListModelMixin,
                        GenericViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserWithIdSerializer
     permission_classes = [IsAdminOrDoctor]
 
 
