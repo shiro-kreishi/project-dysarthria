@@ -30,10 +30,10 @@ rm:
 	docker compose down -v
 
 migrate:
-	backend/venv/bin/python3 backend/manage.py makemigrations users testing
-	backend/venv/bin/python3 backend/manage.py migrate
+	venv/bin/python3 backend/manage.py makemigrations users testing
+	venv/bin/python3 backend/manage.py migrate
 
 usergroups:
-	backend/venv/bin/python3 backend/create_user_groups.py
+	venv/bin/python3 backend/create_user_groups.py
 
 
