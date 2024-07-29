@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
-
+import axiosConfig from './AxiosConfig';
 export const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
@@ -11,7 +11,7 @@ export const DataProvider = ({ children }) => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/v0/tests/");
+        const response = await axiosConfig.get("/api/v0/tests/");
         setTests(response.data);
         setLoading(false);
       } catch (error) {
@@ -25,8 +25,17 @@ export const DataProvider = ({ children }) => {
 
   const addTest = async (test) => {
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/v0/tests/", test);
+      const response = await axiosConfig.post("/api/v0/tests/", test);
       setTests([...tests, response.data]);
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const deleteTest = async (testId) => {
+    try {
+      await axiosConfig.delete(`/api/v0/tests/${testId}/`);
+      setTests(tests.filter(test => test.id !== testId));
     } catch (error) {
       setError(error.message);
     }
@@ -35,7 +44,7 @@ export const DataProvider = ({ children }) => {
 
 
   return (
-    <DataContext.Provider value={{ tests, loading, error, addTest }}>
+    <DataContext.Provider value={{ tests, loading, error, addTest, deleteTest }}>
       {children}
     </DataContext.Provider>
   );

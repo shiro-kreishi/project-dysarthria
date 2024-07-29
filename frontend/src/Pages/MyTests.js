@@ -1,18 +1,32 @@
-//Страница вывода собственных тестов
-//Только для докторов
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Container, Row, Col, Form, Button, FormControl } from 'react-bootstrap';
 import './style.css';
 import { Link } from "react-router-dom";
 import Test from './Components/TestItem';
 import { DataContext } from './Components/DataContext';
+import Modal from './Components/Modal';
+import useModal from '../hooks/useModal';
 
 const MyTests = () => {
-   const {tests, loading, error} = useContext(DataContext);
+   const { tests, loading, error, deleteTest } = useContext(DataContext);
+   const { isActive, openModal, closeModal } = useModal();
+   const [testToDelete, setTestToDelete] = useState(null);
 
-   if (loading) return <p>Загрузка...</p>
-   if (error) return <p>Ошибка: {error}</p>
-    return (
+   const handleDeleteTest = (testId) => {
+     setTestToDelete(testId);
+     openModal();
+   };
+
+   const confirmDeleteTest = () => {
+     deleteTest(testToDelete);
+     setTestToDelete(null);
+     closeModal();
+   };
+
+   if (loading) return <p>Загрузка...</p>;
+   if (error) return <p>Ошибка: {error}</p>;
+   
+   return (
         <div>
             <div className='color'>
                 <Container className="h-100">
@@ -38,13 +52,23 @@ const MyTests = () => {
                 <Row>
                   {tests.length > 0 ? (
                         tests.map((test, index) => (
-                            <Col key={index}><Test name={test.name} description={test.description} /></Col>
+                            <Col key={index}>
+                                <Button className='btn-delete' onClick={() => handleDeleteTest(test.id)}>X</Button>
+                                <Test name={test.name} description={test.description} />
+                            </Col>
                         ))
                     ) : (
                         <p>Тестов нет. Добавьте новые тесты!</p>
                   )}
                 </Row>
             </Container>
+            <Modal isActive={isActive} closeModal={closeModal}>
+                <h1>Удалить выбранное упражнение?</h1>
+                <p>
+                  <Button onClick={confirmDeleteTest}>Да</Button>
+                  <Button onClick={closeModal}>Нет</Button>
+                </p>
+            </Modal>
         </div>
     );
 };

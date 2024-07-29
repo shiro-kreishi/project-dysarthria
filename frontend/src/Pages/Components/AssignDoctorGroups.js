@@ -33,7 +33,7 @@ const AssignDoctorGroup = () => {
         const csrftoken = getCookie('csrftoken');
     
         try {
-          await axios.put('http://127.0.0.1:8000/api/user/assign_doctor_group/', { user_id: userId }, {
+          await axios.post('http://127.0.0.1:8000/api/user/assign-doctor-group/', { user_id: userId }, {
             headers: {
               'X-CSRFToken': csrftoken,
               'Content-Type': 'application/json',

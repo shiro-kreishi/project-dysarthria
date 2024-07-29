@@ -96,4 +96,8 @@ body {
     color: white;
   }
   
-  
+.btn-delete{
+    position: absolute;
+    border-radius: 50px;
+    border: none;
+}

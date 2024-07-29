@@ -1,19 +1,21 @@
-import React, { useState, useCon1 } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Dropdown, DropdownButton } from 'react-bootstrap';
 import './style.css';
 import Modal from './Components/Modal';
 import axios from 'axios';
-import { DataCon1 } from './Components/DataContext';
+import { DataContext} from './Components/DataContext';
+import useModal from '../hooks/useModal';
 
 const AddTest = () => {
+
   const client = axios.create({
     baseURL: "http://127.0.0.1:8000"
   });
   const navigate = useNavigate();
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
-  const [modalActive, setModalActive] = useState(false);
+  const { isActive, openModal, closeModal } = useModal();
   const [selectedType, setSelectedType] = useState('1');   
   const [showWordButtons, setShowWordButtons] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
@@ -129,7 +131,7 @@ const AddTest = () => {
     }
     setExercises([...exercises, newExercise]);
     setSelectedExercise(newExercise);
-    setModalActive(false);
+    closeModal();
   };
 
   const selectExercise = (exercise) => {
@@ -209,7 +211,7 @@ const AddTest = () => {
                     {index + 1}
                   </Button>
                 ))}
-                <Button className='add-btn' onClick={() => setModalActive(true)}>Добавить</Button>
+                <Button className='add-btn' onClick={openModal}>Добавить</Button>
               </div>
             </Col>
           </Row>
@@ -295,7 +297,7 @@ const AddTest = () => {
     </Container>
     </div>
 
-    <Modal active={modalActive} setActive={setModalActive}>
+    <Modal isActive={isActive} closeModal={closeModal}>
       <h1>Выберите тип упражнения</h1>
       <DropdownButton id="dropdown-basic-button" title="Тип">
         <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
