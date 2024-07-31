@@ -9,6 +9,7 @@ import MyTests from './Pages/MyTests';
 import Profile from './Pages/Profile';
 import AddTest from './Pages/AddTest';
 import { DataProvider } from './Pages/Components/DataContext';
+import TestPassing from './Pages/TestPassing';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
               <Route path='/library' element={<Library />} />
               <Route path='/my-tests' element={<MyTests />} />
               <Route path='/my-tests/add-test' element={<AddTest />} />
+              <Route path='/my-tests/test/:id' element={<TestPassing />} />
               <Route path='/profile/*' element={<Profile />} />
             </Routes>
           </BrowserRouter>

@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
 import axiosConfig from './AxiosConfig';
+
 export const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
@@ -12,7 +12,17 @@ export const DataProvider = ({ children }) => {
     const fetchTests = async () => {
       try {
         const response = await axiosConfig.get("/api/v0/tests/");
-        setTests(response.data);
+        const testIds = response.data.map(test => test.id);
+
+        // Fetch full test objects including exercises
+        const fullTests = await Promise.all(
+          testIds.map(async id => {
+            const testResponse = await axiosConfig.get(`/api/v0/tests/${id}/`);
+            return testResponse.data;
+          })
+        );
+
+        setTests(fullTests);
         setLoading(false);
       } catch (error) {
         setError(error.message);
@@ -26,7 +36,8 @@ export const DataProvider = ({ children }) => {
   const addTest = async (test) => {
     try {
       const response = await axiosConfig.post("/api/v0/tests/", test);
-      setTests([...tests, response.data]);
+      const newTest = await axiosConfig.get(`/api/v0/tests/${response.data.id}/`);
+      setTests([...tests, newTest.data]);
     } catch (error) {
       setError(error.message);
     }
@@ -40,13 +51,14 @@ export const DataProvider = ({ children }) => {
       setError(error.message);
     }
   };
-  
 
+  const getTestById = (id) => {
+    return tests.find(test => test.id === parseInt(id));
+  }
 
   return (
-    <DataContext.Provider value={{ tests, loading, error, addTest, deleteTest }}>
+    <DataContext.Provider value={{ tests, loading, error, addTest, deleteTest, getTestById }}>
       {children}
     </DataContext.Provider>
   );
-  
 };

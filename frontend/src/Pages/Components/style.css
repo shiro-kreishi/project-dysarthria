@@ -37,3 +37,8 @@
     text-align: center;
     color:white;    
 }
+
+.test-button{
+    border:none;
+    background: none;
+}

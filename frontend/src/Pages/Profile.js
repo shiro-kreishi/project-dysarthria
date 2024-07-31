@@ -6,15 +6,12 @@ import Home from './Components/Home';
 import Login from './Components/Login';
 import Register from './Components/Register';
 import AssignDoctorGroup from './Components/AssignDoctorGroups';
-
+import axiosConfig from './Components/AxiosConfig';
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 axios.defaults.withCredentials = true;
 
-const client = axios.create({
-  baseURL: "http://127.0.0.1:8000"
-});
 
 function Profile() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -25,7 +22,7 @@ function Profile() {
     if (user) {
       setCurrentUser(JSON.parse(user));
     } else {
-      client.get("/api/user/user/")
+      axiosConfig.get("/api/user/user/")
         .then(res => {
           console.log('User is authenticated');
           setCurrentUser(true);
@@ -42,7 +39,7 @@ function Profile() {
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
-      await client.post("/api/user/logout/")
+      await axiosConfig.post("/api/user/logout/")
         .then(() => {
           console.log('User logged out');
           setCurrentUser(false);
@@ -81,8 +78,8 @@ function Profile() {
         </Flex>
         <Routes>
           <Route path="/" element={<Home currentUser={currentUser} />} />
-          <Route path="/login" element={<Login client={client} setCurrentUser={setCurrentUser} />} />
-          <Route path="/register" element={<Register client={client} setCurrentUser={setCurrentUser} />} />
+          <Route path="/login" element={<Login client={axiosConfig} setCurrentUser={setCurrentUser} />} />
+          <Route path="/register" element={<Register axiosConfig={axiosConfig} setCurrentUser={setCurrentUser} />} />
         </Routes>
       </Box>
     </ChakraProvider>

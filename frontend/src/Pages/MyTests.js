@@ -15,6 +15,7 @@ const MyTests = () => {
    const handleDeleteTest = (testId) => {
      setTestToDelete(testId);
      openModal();
+     console.log(tests);
    };
 
    const confirmDeleteTest = () => {
@@ -25,7 +26,6 @@ const MyTests = () => {
 
    if (loading) return <p>Загрузка...</p>;
    if (error) return <p>Ошибка: {error}</p>;
-   
    return (
         <div>
             <div className='color'>
@@ -54,7 +54,7 @@ const MyTests = () => {
                         tests.map((test, index) => (
                             <Col key={index}>
                                 <Button className='btn-delete' onClick={() => handleDeleteTest(test.id)}>X</Button>
-                                <Test name={test.name} description={test.description} />
+                                <Test name={test.name} description={test.description} id={test.id} />
                             </Col>
                         ))
                     ) : (
@@ -63,7 +63,7 @@ const MyTests = () => {
                 </Row>
             </Container>
             <Modal isActive={isActive} closeModal={closeModal}>
-                <h1>Удалить выбранное упражнение?</h1>
+                <h1>Удалить выбранный тест?</h1>
                 <p>
                   <Button onClick={confirmDeleteTest}>Да</Button>
                   <Button onClick={closeModal}>Нет</Button>
