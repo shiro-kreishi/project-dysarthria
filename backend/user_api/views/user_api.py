@@ -1,7 +1,10 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.tokens import default_token_generator
+from django.core.signing import Signer, BadSignature
+from django.utils.http import urlsafe_base64_decode
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.generics import UpdateAPIView
+from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -13,6 +16,21 @@ from user_api.validations import custom_validation, validate_email, validate_pas
 from users.models import User
 from user_api.serializers.doctor_serializers import AssignDoctorSerializer
 from django.contrib.auth.models import Group
+
+class ConfirmEmailView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, user_id, token, *args, **kwargs):
+        try:
+            user = User.objects.get(pk=user_id)
+            signer = Signer()
+            email = signer.unsign(token)
+            if email == user.email:
+                user.is_active = True
+                user.save()
+                return Response({"message": "Email confirmed successfully"}, status=status.HTTP_200_OK)
+        except (User.DoesNotExist, BadSignature):
+            return Response({"error": "Invalid confirmation link"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserRegistrationAPIView(APIView):

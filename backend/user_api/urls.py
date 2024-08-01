@@ -3,7 +3,7 @@ from rest_framework import routers
 from user_api.views.user_api import \
     UserRegistrationAPIView, UserRegistrationModelViewSet, UserLoginModelViewSet, \
     UserLogoutViewSet, CurrentUserViewSet, UserChangePasswordModelViewSet, AssignDoctorGroupModelViewSet, \
-    UpdateNameModelViewSet
+    UpdateNameModelViewSet, ConfirmEmailView
 
 router = routers.DefaultRouter()
 router.register(r'register', UserRegistrationModelViewSet, basename='register')
@@ -16,4 +16,5 @@ router.register(r'update-name', UpdateNameModelViewSet, basename='update-name')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('confirm-email/<int:user_id>/<str:token>/', ConfirmEmailView.as_view(), name='user_confirm_email'),
 ]

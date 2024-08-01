@@ -1,9 +1,16 @@
-import re
+from django.core.signing import Signer
+from django.urls import reverse
 
 from django.contrib.auth.hashers import make_password
-from rest_framework import serializers
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from rest_framework import serializers, status
 from django.contrib.auth import get_user_model, authenticate
+from django.core.mail import send_mail
+from rest_framework.response import Response
 
+from project import settings
 from user_api.validations import validate_password_change
 
 UserModel = get_user_model()
@@ -17,9 +24,22 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = UserModel(**validated_data)
+        user.is_active = False
         user.set_password(password)
         user.save()
+        self.send_confirmation_email(user)
         return user
+
+    def send_confirmation_email(self, user):
+        confirmation_token = self.generate_a_token_for_user(user)
+        confirmation_url = f"{settings.SITE_URL}/api/user/confirm-email/{user.id}/{confirmation_token}/"
+        email_subject = "Подтверждение почты"
+        email_message = f"Пожалуйста подтвердите свою почту кликнув по следующей ссылке: {confirmation_url}"
+        send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [user.email])
+
+    def generate_a_token_for_user(self, user):
+        signer = Signer()
+        return signer.sign(user.email)
 
     def validate_password(self, value):
         if len(value) < 8:
