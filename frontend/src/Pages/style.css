@@ -109,5 +109,26 @@ body {
 
 .input-answer{
     border-radius: 10px;
+    width: 100px;
     border-style: dashed;   
+}
+
+
+.input-answer {
+  display: inline-block;
+  width: 100px;
+  margin: 0 5px;
+}
+.selected {
+  background-color: #007bff;
+  color: white;
+}
+.half-size {
+  width: 50%;
+  display: block;
+  margin: 0 auto;
+}
+
+.selected{
+    background-color: #28a745;
 }

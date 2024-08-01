@@ -4,11 +4,10 @@ import { Container, Row, Col, Button, Dropdown, DropdownButton } from 'react-boo
 import './style.css';
 import Modal from './Components/Modal';
 import axios from 'axios';
-import { DataContext} from './Components/DataContext';
+import { DataContext } from './Components/DataContext';
 import useModal from '../hooks/useModal';
 
 const AddTest = () => {
-
   const client = axios.create({
     baseURL: "http://127.0.0.1:8000"
   });
@@ -100,7 +99,7 @@ const AddTest = () => {
 
       for (const exercise of exercises) {
         const exerciseData = {
-          name: exercise.name || 'bebrochka',
+          name: exercise.name,
           type: exercise.type,
           king_json: exercise.type === '1' ? {
             content: exercise.content,
@@ -125,9 +124,9 @@ const AddTest = () => {
   const addExercise = (type) => {
     let newExercise;
     if (type === '1') {
-      newExercise = { id: exercises.length + 1, type: type, content: '', missingWords: [] , name: 'bebrochka'};
+      newExercise = { id: exercises.length + 1, type: type, content: '', missingWords: [], name: '', description: '' };
     } else if (type === '2') {
-      newExercise = { id: exercises.length + 1, type: type, content: '', answers: [], correctAnswer: '', name: 'bebrochka' };
+      newExercise = { id: exercises.length + 1, type: type, content: '', answers: [], correctAnswer: '', name: '', description: '' };
     }
     setExercises([...exercises, newExercise]);
     setSelectedExercise(newExercise);
@@ -188,6 +187,14 @@ const AddTest = () => {
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise); 
   };
+
+  const handleExerciseFieldChange = (e, field) => {
+    const updatedExercise = { ...selectedExercise, [field]: e.target.value };
+    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
+  };
+  
+
   return (
     <div>
       <div className='color-2'>
@@ -195,7 +202,7 @@ const AddTest = () => {
           <Row>
             <Col></Col>
             <Col>
-              <input className='title-test' placeholder={'введите название теста'} ></input>
+              <input className='title-test' placeholder={'введите название теста'}></input>
               <p><Button className='btn-blue' onClick={SaveTest}>Сохранить</Button></p>
             </Col>
           </Row>
@@ -220,92 +227,94 @@ const AddTest = () => {
 
       <div className='exercise-editor'>
         <Container>
-        {selectedExercise ? (
-          selectedExercise.type === '1' ? (
-            <div>
-              <h3>Редактор упражнения {selectedExercise.id}</h3>
-              <textarea
-                className='1area'
-                value={selectedExercise.content}
-                onChange={(e) => {
-                  const updatedExercise = { ...selectedExercise, content: e.target.value };
-                  setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-                  setSelectedExercise(updatedExercise);
-                }}
-              />
-              <Button onClick={() => setShowWordButtons(!showWordButtons)}>
-                {showWordButtons ? 'Скрыть' : 'Выбрать пропущенные'}
-              </Button>
-              {showWordButtons && (
-                <div>
-                  {renderContentWithButtons(selectedExercise.content)}
-                </div>
-              )}
-            </div>
-          ) : selectedExercise.type === '2' ? (
-            <div>
-              <h3>Редактор изображения {selectedExercise.id}</h3>
-              <Row className="align-items-center">
-                <Col>
-                {selectedExercise.content && (
-                  <img src={selectedExercise.content} alt="Загруженное изображение" className="half-size" />
-                )}
-                <input
-                  type="file"
+          {selectedExercise ? (
+            selectedExercise.type === '1' ? (
+              <div>
+                <h3>Редактор упражнения {selectedExercise.id}</h3>
+                <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
+                <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
+                <textarea
+                  className='1area'
+                  value={selectedExercise.content}
                   onChange={(e) => {
-                    const file = e.target.files[0];
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      const updatedExercise = { ...selectedExercise, content: reader.result };
-                      setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-                      setSelectedExercise(updatedExercise);
-                    };
-                    reader.readAsDataURL(file);
+                    const updatedExercise = { ...selectedExercise, content: e.target.value };
+                    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+                    setSelectedExercise(updatedExercise);
                   }}
                 />
-                <p>
-                  <Button onClick={addAnswer} >Добавить вариант ответа</Button>
-                </p>
-                <h3>Варианты ответа</h3>
-                {selectedExercise.answers.map((answer, index) => (
-                <div key={index} className="answer-option">
-                  <input
-                    className='input-style'
-                    value={answer}
-                    onChange={(e) => AnswerChange(index, e.target.value)}
-                  />
-                  <Button 
-                    onClick={() => setCorrectAnswer(answer)} 
-                    className={selectedExercise.correctAnswer === answer ? 'correct-answer' : ''}
-                  >
-                    {selectedExercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
-                  </Button>
-                </div>
-              ))}
+                <Button onClick={() => setShowWordButtons(!showWordButtons)}>
+                  {showWordButtons ? 'Скрыть' : 'Выбрать пропущенные'}
+                </Button>
+                {showWordButtons && (
+                  <div>
+                    {renderContentWithButtons(selectedExercise.content)}
+                  </div>
+                )}
+              </div>
+            ) : selectedExercise.type === '2' ? (
+              <div>
+                <h3>Редактор изображения {selectedExercise.id}</h3>
+                <p>Название упражнения <input value={selectedExercise.name} onChange={e => handleExerciseFieldChange(e, "name")} /></p>
+                <p>Описание упражнения <input value={selectedExercise.description} onChange={e => handleExerciseFieldChange(e, "description")} /></p>
+                <Row className="align-items-center">
+                  <Col>
+                    {selectedExercise.content && (
+                      <img src={selectedExercise.content} alt="Загруженное изображение" className="half-size" />
+                    )}
+                    <input
+                      type="file"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const updatedExercise = { ...selectedExercise, content: reader.result };
+                          setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+                          setSelectedExercise(updatedExercise);
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                    <p>
+                      <Button onClick={addAnswer}>Добавить вариант ответа</Button>
+                    </p>
+                    <h3>Варианты ответа</h3>
+                    {selectedExercise.answers.map((answer, index) => (
+                      <div key={index} className="answer-option">
+                        <input
+                          className='input-style'
+                          value={answer}
+                          onChange={(e) => AnswerChange(index, e.target.value)}
+                        />
+                        <Button 
+                          onClick={() => setCorrectAnswer(answer)} 
+                          className={selectedExercise.correctAnswer === answer ? 'correct-answer' : ''}
+                        >
+                          {selectedExercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
+                        </Button>
+                      </div>
+                    ))}
+                  </Col>
+                  <Col>
+                    
+                  </Col>
+                </Row>
+              </div>
+            ) : null
+          ) : (
+            <p>Выберите упражнение для редактирования</p>
+          )}
+        </Container>
+      </div>
 
-
-              </Col>
-              <Col>
-                  
-              </Col>
-            </Row>
-          </div>
-        ) : null
-      ) : (
-        <p>Выберите упражнение для редактирования</p>
-      )}
-    </Container>
+      <Modal isActive={isActive} closeModal={closeModal}>
+        <h1>Выберите тип упражнения</h1>
+        <DropdownButton id="dropdown-basic-button" title="Тип">
+          <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
+          <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
+          <Dropdown.Item onClick={() => handleSelectType('other')}>Something else</Dropdown.Item>
+        </DropdownButton>
+      </Modal>
     </div>
-
-    <Modal isActive={isActive} closeModal={closeModal}>
-      <h1>Выберите тип упражнения</h1>
-      <DropdownButton id="dropdown-basic-button" title="Тип">
-        <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
-        <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
-        <Dropdown.Item onClick={() => handleSelectType('other')}>Something else</Dropdown.Item>
-      </DropdownButton>
-    </Modal>
-  </div>
   );
 };
 

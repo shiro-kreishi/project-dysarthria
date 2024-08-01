@@ -15,7 +15,6 @@ const MyTests = () => {
    const handleDeleteTest = (testId) => {
      setTestToDelete(testId);
      openModal();
-     console.log(tests);
    };
 
    const confirmDeleteTest = () => {

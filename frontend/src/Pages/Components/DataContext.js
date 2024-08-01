@@ -45,12 +45,26 @@ export const DataProvider = ({ children }) => {
 
   const deleteTest = async (testId) => {
     try {
+      // Fetch the test object
+      const test = tests.find(t => t.id === testId);
+      if (test && test.exercises && test.exercises.length > 0) {
+        // Delete each exercise associated with the test
+        await Promise.all(test.exercises.map(async (exercise) => {
+          await axiosConfig.delete(`/api/v0/exercises/${exercise.id}/`);
+        }));
+      }
+      
+      // Delete the test
       await axiosConfig.delete(`/api/v0/tests/${testId}/`);
+      
+      // Update the state
       setTests(tests.filter(test => test.id !== testId));
     } catch (error) {
       setError(error.message);
     }
   };
+  
+  
 
   const getTestById = (id) => {
     return tests.find(test => test.id === parseInt(id));

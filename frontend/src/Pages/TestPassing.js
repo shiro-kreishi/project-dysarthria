@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { DataContext } from './Components/DataContext';
 import './style.css';
 import { Container, Button, Row, Col } from 'react-bootstrap';
 import { Input } from '@chakra-ui/react';
-import axios from 'axios';
 import axiosConfig from './Components/AxiosConfig';
+
 
 const TestPassing = () => {
   const { id } = useParams();
@@ -14,6 +14,7 @@ const TestPassing = () => {
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [answers, setAnswers] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const test = getTestById(id);
@@ -54,6 +55,7 @@ const TestPassing = () => {
     try {
       const response = await axiosConfig.post('/api/v0/response-tests/', responseTest);
       console.log('Ответы успешно отправлены', response.data);
+      navigate('/my-tests')
     } catch (error) {
       console.error('Ошибка при отправке ответов', error);
     }
@@ -67,24 +69,28 @@ const TestPassing = () => {
     <div>
       <div className='color-2'>
         <Container>
-          <div className='white-text'>
+          <div className='white-text text-center'>
             <h1>{test.name}</h1>
-            {exercises.map((exercise, index) => (
-              <Button
-                className='btn-exercise'
-                key={exercise.id}
-                onClick={() => selectExercise(exercise)}
-              >
-                {index + 1}
-              </Button>
-            ))}
+            <div className="d-flex justify-content-center">
+              {exercises.map((exercise, index) => (
+                <Button
+                  size="lg"
+                  className='btn-blue'
+                  variant="primary"
+                  key={exercise.id}
+                  onClick={() => selectExercise(exercise)}
+                >
+                  {index + 1}
+                </Button>
+              ))}
+            </div>
           </div>
         </Container>
       </div>
       <div>
-        <Container>
+        <Container className='d-flex justify-content-center align-items-center flex-column container-exercise'>
           {selectedExercise ? (
-            <div>
+            <div className='text-center'>
               <h1>{selectedExercise.name}</h1>
               {selectedExercise.type === 1 ? (
                 <div>
@@ -103,9 +109,7 @@ const TestPassing = () => {
                       </span>
                     ))}
                   </h2>
-                  <Button>
-                    Ответить
-                  </Button>
+
                 </div>
               ) : selectedExercise.type === 2 ? (
                 <div>
@@ -116,12 +120,12 @@ const TestPassing = () => {
                         alt="Изображение упражнения"
                         className="half-size"
                       />
-                      <div>
+                      <div className='d-flex justify-content-center mt-3'>
                         {selectedExercise.king_json.answers.map((answ, index) => (
                           <Button
                             key={index}
                             onClick={() => handleOptionSelect(index)}
-                            className={answers.find(a => a.id === selectedExercise.id)?.answer === index ? 'selected' : ''}
+                            className={`mx-2 ${answers.find(a => a.id === selectedExercise.id)?.answer === index ? 'selected' : ''}`}
                           >
                             {answ}
                           </Button>
@@ -131,9 +135,11 @@ const TestPassing = () => {
                   ) : null}
                 </div>
               ) : null}
-              <Button onClick={submitAnswers}>
-                Отправить ответы
-              </Button>
+              {selectedExercise.id === exercises[exercises.length - 1].id && (
+                <Button onClick={submitAnswers} className='mt-4'>
+                  Отправить ответы
+                </Button>
+              )}
             </div>
           ) : null}
         </Container>
@@ -141,4 +147,5 @@ const TestPassing = () => {
     </div>
   );
 }
+
 export default TestPassing;
