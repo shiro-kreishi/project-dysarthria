@@ -41,7 +41,8 @@ const MyTests = () => {
                                     className='mr-sm-2'
                                 />
                                 <Button variant='outline-info'>Поиск</Button>
-                                <Link to='/my-tests/add-test' className='btn btn-red'>Добавить тест</Link>
+                                <Link to='/my-tests/add-test' className='btn btn-red m-4'>Добавить тест</Link>
+                                <Link to='/my-tests/add-exercise' className='btn btn-red m-4'>Добавить упражнение</Link>
                             </Form>
                         </Col>
                     </Row>
@@ -51,6 +52,7 @@ const MyTests = () => {
                 <Row>
                   {tests.length > 0 ? (
                         tests.map((test, index) => (
+                            
                             <Col key={index}>
                                 <Button className='btn-delete' onClick={() => handleDeleteTest(test.id)}>X</Button>
                                 <Test name={test.name} description={test.description} id={test.id} />

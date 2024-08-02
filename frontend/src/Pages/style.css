@@ -132,3 +132,8 @@ body {
 .selected{
     background-color: #28a745;
 }
+
+.area-1{
+    width: 50%;
+    height: 200px;
+}

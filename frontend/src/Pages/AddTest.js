@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Button, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Container, Row, Col, Button, Dropdown, DropdownButton, Alert } from 'react-bootstrap';
 import './style.css';
 import Modal from './Components/Modal';
 import axios from 'axios';
@@ -18,81 +18,15 @@ const AddTest = () => {
   const [selectedType, setSelectedType] = useState('1');   
   const [showWordButtons, setShowWordButtons] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
+  const {createTest, createExercise, linkExerciseToTest} = useContext(DataContext);
 
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-
-  const csrftoken = getCookie('csrftoken');
-
-  const createTest = async (test) => {
-    try {
-      const response = await client.post('api/v0/tests/', test, {
-        headers: {
-          'X-CSRFToken': csrftoken,
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Ошибка при создании теста', error);
-      throw error;
-    }
-  };
-
-  const createExercise = async (exercise) => {
-    try {
-      const response = await client.post('/api/v0/exercises/', exercise, {
-        headers: {
-          'X-CSRFToken': csrftoken,
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Ошибка при создании упражнения', error);
-      throw error;
-    }
-  };
-
-  const linkExerciseToTest = async (exerciseId, testId) => {
-    try {
-      const response = await client.post('/api/v0/exercises-to-test/', {
-        exercise: exerciseId,
-        test: testId
-      }, {
-        headers: {
-          'X-CSRFToken': csrftoken,
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Не удалось связать тест и упражнения', error);
-      throw error;
-    }
-  };
+  
 
   const SaveTest = async () => {
     const test = {
       name: document.querySelector('.title-test').value,
       description: 'test'
     };
-
     try {
       const createdTest = await createTest(test);
       const testId = createdTest.id;
@@ -115,7 +49,9 @@ const AddTest = () => {
       }
 
       console.log('Тест и упражнения успешно сохранены');
+      
       navigate('/my-tests');
+      
     } catch (error) {
       console.error('Ошибка при сохранении теста и упражнений', error);
     }
@@ -234,7 +170,7 @@ const AddTest = () => {
                 <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
                 <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
                 <textarea
-                  className='1area'
+                  className=' input-style area-1'
                   value={selectedExercise.content}
                   onChange={(e) => {
                     const updatedExercise = { ...selectedExercise, content: e.target.value };
@@ -250,6 +186,14 @@ const AddTest = () => {
                     {renderContentWithButtons(selectedExercise.content)}
                   </div>
                 )}
+                <Row>
+                  <Col>
+                    
+                  </Col>
+                  <Col>
+                    <Button>Сохранить упражнение в библиотеке</Button>
+                  </Col>
+                </Row>
               </div>
             ) : selectedExercise.type === '2' ? (
               <div>
@@ -291,13 +235,14 @@ const AddTest = () => {
                         >
                           {selectedExercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
                         </Button>
+                        <Button>Сохранить упражнение в библиотеке</Button>
                       </div>
                     ))}
                   </Col>
                   <Col>
-                    
                   </Col>
                 </Row>
+               
               </div>
             ) : null
           ) : (

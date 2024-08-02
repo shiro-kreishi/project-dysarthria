@@ -5,6 +5,7 @@ export const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
   const [tests, setTests] = useState([]);
+  const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -13,8 +14,6 @@ export const DataProvider = ({ children }) => {
       try {
         const response = await axiosConfig.get("/api/v0/tests/");
         const testIds = response.data.map(test => test.id);
-
-        // Fetch full test objects including exercises
         const fullTests = await Promise.all(
           testIds.map(async id => {
             const testResponse = await axiosConfig.get(`/api/v0/tests/${id}/`);
@@ -29,17 +28,52 @@ export const DataProvider = ({ children }) => {
         setLoading(false);
       }
     };
-
     fetchTests();
   }, []);
 
-  const addTest = async (test) => {
+
+
+  // const addTest = async (test) => {
+  //   try {
+  //     const response = await axiosConfig.post("/api/v0/tests/", test);
+  //     const newTest = await axiosConfig.get(`/api/v0/tests/${response.data.id}/`);
+  //     setTests([...tests, newTest.data]);
+  //   } catch (error) {
+  //     setError(error.message);
+  //   }
+  // };
+
+  const createTest = async (test) => {
     try {
-      const response = await axiosConfig.post("/api/v0/tests/", test);
-      const newTest = await axiosConfig.get(`/api/v0/tests/${response.data.id}/`);
-      setTests([...tests, newTest.data]);
+      const response = await axiosConfig.post('api/v0/tests/', test);
+      setTests([...tests, response.data]);
+      return response.data;
     } catch (error) {
-      setError(error.message);
+      console.error('Ошибка при создании теста', error);
+      throw error;
+    }
+  };
+  
+  const createExercise = async (exercise) => {
+    try {
+      const response = await axiosConfig.post('/api/v0/exercises/', exercise);
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при создании упражнения', error);
+      throw error;
+    }
+  };
+
+  const linkExerciseToTest = async (exerciseId, testId) => {
+    try {
+      const response = await axiosConfig.post('/api/v0/exercises-to-test/', {
+        exercise: exerciseId,
+        test: testId
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Не удалось связать тест и упражнения', error);
+      throw error;
     }
   };
 
@@ -54,16 +88,15 @@ export const DataProvider = ({ children }) => {
         }));
       }
       
-      // Delete the test
       await axiosConfig.delete(`/api/v0/tests/${testId}/`);
       
-      // Update the state
       setTests(tests.filter(test => test.id !== testId));
     } catch (error) {
       setError(error.message);
     }
   };
   
+
   
 
   const getTestById = (id) => {
@@ -71,7 +104,7 @@ export const DataProvider = ({ children }) => {
   }
 
   return (
-    <DataContext.Provider value={{ tests, loading, error, addTest, deleteTest, getTestById }}>
+    <DataContext.Provider value={{ tests, loading, error, deleteTest, getTestById, createTest, createExercise, linkExerciseToTest }}>
       {children}
     </DataContext.Provider>
   );
