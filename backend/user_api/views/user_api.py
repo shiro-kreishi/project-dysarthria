@@ -69,6 +69,7 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserLoginSerializer
     http_method_names = ['post']
+    queryset = ''
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -77,9 +78,15 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             user = serializer.check_user(data)
-            if user is not None:
-                login(request, user)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+            if user is None:
+                return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
+            login(request, user)
+            response_data = {
+                'email': user.email,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserLogoutViewSet(viewsets.ViewSet):

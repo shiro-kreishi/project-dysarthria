@@ -58,7 +58,7 @@ class UserLoginSerializer(serializers.Serializer):
     def check_user(self, clean_data):
         user = authenticate(email=clean_data['email'], password=clean_data['password'])
         if not user:
-            raise serializers.ValidationError('Username or password is incorrect')
+            raise serializers.ValidationError('Email or password is incorrect')
         return user
 
 
