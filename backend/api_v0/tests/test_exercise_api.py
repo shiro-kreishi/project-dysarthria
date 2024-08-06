@@ -1,16 +1,10 @@
-import email
 from datetime import datetime
-
 from django.contrib.auth.models import Group
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from testing.models import Exercise, ExerciseType, ExerciseToTest, ResponseExercise
-from api_v0.serializers import (
-    ExerciseSerializer, ExerciseTypeSerializer, ExerciseToTestSerializer,
-    ResponseExerciseSerializer, ExerciseUpdateOrCreateSerializer
-)
 from users.models import User
 from testing.models import Test, ResponseTest, ResponseExercise
 
@@ -19,7 +13,7 @@ class ExerciseTypeViewSetTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.exercise_type = ExerciseType.objects.create(name='Test Type')
-        self.url = reverse('exercisetype-list')
+        self.url = reverse('exercise-types-list')
 
     def user_authenticate(self,
                           type='user',
@@ -66,7 +60,7 @@ class ExerciseTypeViewSetTest(TestCase):
         self.assertEqual(len(response.data), 1)
 
     def test_retrieve_exercise_type(self):
-        detail_url = reverse('exercisetype-detail', args=[self.exercise_type.id])
+        detail_url = reverse('exercise-types-detail', args=[self.exercise_type.id])
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], self.exercise_type.name)
@@ -164,7 +158,7 @@ class ExerciseModelViewSetTest(TestCase):
             king_json='',
             correct_answers=''
         )
-        self.url = reverse('exercise-list')
+        self.url = reverse('exercises-list')
 
     def user_authenticate(self, type='user',
                           email='testadmin@example.com',
@@ -211,7 +205,7 @@ class ExerciseModelViewSetTest(TestCase):
         self.assertEqual(len(response.data), 1)
 
     def test_retrieve_exercise(self):
-        detail_url = reverse('exercise-detail', args=[self.exercise.id])
+        detail_url = reverse('exercises-detail', args=[self.exercise.id])
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], self.exercise.name)
@@ -303,7 +297,7 @@ class ExerciseToTestModelViewSetTest(TestCase):
             exercise=self.exercise,
             test=self.test
         )
-        self.url = reverse('exercisetotest-list')
+        self.url = reverse('exercises-to-test-list')
 
     def create_and_authenticate_superuser(self):
         user = User.objects.create_superuser(
@@ -338,7 +332,7 @@ class ExerciseToTestModelViewSetTest(TestCase):
         self.assertEqual(len(response.data), 1)
 
     def test_retrieve_exercise_to_test(self):
-        detail_url = reverse('exercisetotest-detail', args=[self.exercise_to_test.id])
+        detail_url = reverse('exercises-to-test-detail', args=[self.exercise_to_test.id])
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['exercise'], self.exercise_to_test.exercise.id)
@@ -414,7 +408,7 @@ class ResponseExerciseModelViewSetTest(TestCase):
             response_test=self.response_test,
 
         )
-        self.url = reverse('responseexercise-list')
+        self.url = reverse('response-exercises-list')
 
     def test_list_response_exercises(self):
         response = self.client.get(self.url)
@@ -422,7 +416,7 @@ class ResponseExerciseModelViewSetTest(TestCase):
         self.assertEqual(len(response.data), 1)
 
     def test_retrieve_response_exercise(self):
-        detail_url = reverse('responseexercise-detail', args=[self.response_exercise.id])
+        detail_url = reverse('response-exercises-detail', args=[self.response_exercise.id])
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['exercise'], self.response_exercise.exercise.id)

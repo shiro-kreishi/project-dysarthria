@@ -10,6 +10,7 @@ from api_v0.views.base import BaseModelViewSet, \
 from rest_framework.response import Response
 from rest_framework import status
 
+
 class IsSuperUserOrDoctorOrAdmin(IsMemberOfGroupsOrAdmin):
     group_names = ['Doctors', 'Administrators']
 
