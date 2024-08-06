@@ -50,5 +50,4 @@ class UserModelTest(TestCase):
 
     def test_email_user(self):
         user = User.objects.create_user(email='emailuser@example.com', password='testpass123', username='emailuser')
-        # This test only checks if the method can be called without errors
         user.email_user(subject='Test Subject', message='Test Message')

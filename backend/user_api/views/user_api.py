@@ -1,13 +1,11 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.tokens import default_token_generator
 from django.core.signing import Signer, BadSignature
-from django.utils.http import urlsafe_base64_decode
 from rest_framework.authentication import SessionAuthentication
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
 from api_v0.views import IsAdminOrDoctor
 from user_api.serializers.user import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, \
     ChangePasswordSerializer, ChangeNameSerializer
@@ -16,6 +14,7 @@ from user_api.validations import custom_validation, validate_email, validate_pas
 from users.models import User
 from user_api.serializers.doctor_serializers import AssignDoctorSerializer
 from django.contrib.auth.models import Group
+
 
 class ConfirmEmailView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -56,12 +55,19 @@ class UserRegistrationModelViewSet(viewsets.ModelViewSet):
     http_method_names = ['post']
 
     def create(self, request, *args, **kwargs):
-        clean_data = custom_validation(request.data)
+        try:
+            clean_data = custom_validation(request.data)
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data=clean_data)
         if serializer.is_valid():
             user = serializer.save()
             if user is not None:
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                response_data = {
+                    "email": user.email,
+                    "username": user.username,
+                }
+                return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -77,7 +83,10 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
         assert validate_password(data)
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
-            user = serializer.check_user(data)
+            try:
+                user = serializer.check_user(data)
+            except ValidationError as e:
+                return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
             if user is None:
                 return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
             login(request, user)
@@ -86,6 +95,7 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
             }
             return Response(response_data, status=status.HTTP_200_OK)
         else:
+            print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

@@ -1,17 +1,12 @@
 from django.core.signing import Signer
-from django.urls import reverse
-
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from rest_framework import serializers, status
 from django.contrib.auth import get_user_model, authenticate
 from django.core.mail import send_mail
 from rest_framework.response import Response
-
 from project import settings
 from user_api.validations import validate_password_change
+
 
 UserModel = get_user_model()
 
