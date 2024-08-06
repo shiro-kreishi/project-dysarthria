@@ -19,10 +19,11 @@ class ExerciseTypeViewSet(ListAndRetrieveForAnyUserModelViewSet):
 class ExerciseModelViewSet(ListAndRetrieveForAnyUserModelViewSet):
     queryset = Exercise.objects.all()
     # serializer_class = ExerciseSerializer
+
     def get_serializer_class(self):
         if debug_settings:
             print(f'action: {self.action}')
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ['create', 'update', 'partial_update', 'delete']:
             return ExerciseUpdateOrCreateSerializer
         return ExerciseSerializer
 
