@@ -28,7 +28,18 @@ export const DataProvider = ({ children }) => {
         setLoading(false);
       }
     };
+    const fetchExercises = async () => {
+      try {
+        const response = await axiosConfig.get("/api/v0/exercises/");
+        setExercises(response.data);
+      } catch (error) {
+        console.error("Ошибка при загрузке упражнений:", error);
+      }
+    };
+
+    
     fetchTests();
+    fetchExercises();
   }, []);
 
 
@@ -53,9 +64,21 @@ export const DataProvider = ({ children }) => {
       throw error;
     }
   };
-  
+
+  const findExerciseByName = async (name) => {
+    try {
+      const response = await axiosConfig.get('/api/v0/exercises/');
+      const exercises = response.data;
+      return exercises.find(exercise => exercise.name === name);
+    } catch (error) {
+      console.error('Ошибка при поиске упражнения по имени', error);
+      return null;
+    }
+  };
+
   const createExercise = async (exercise) => {
     try {
+
       const response = await axiosConfig.post('/api/v0/exercises/', exercise);
       return response.data;
     } catch (error) {
@@ -84,7 +107,7 @@ export const DataProvider = ({ children }) => {
       if (test && test.exercises && test.exercises.length > 0) {
         // Delete each exercise associated with the test
         await Promise.all(test.exercises.map(async (exercise) => {
-          await axiosConfig.delete(`/api/v0/exercises/${exercise.id}/`);
+          await deleteExercise(exercise.id)
         }));
       }
       
@@ -97,6 +120,16 @@ export const DataProvider = ({ children }) => {
   };
   
 
+
+  const deleteExercise = async (exerciseId) => {
+    try{
+      await axiosConfig.delete(`api/v0/exercises/${exerciseId}/`);
+      setExercises(exercises.filter(ex => ex.id !== exerciseId));
+    }catch(error){
+      setError(error.message);
+    }
+  }
+
   
 
   const getTestById = (id) => {
@@ -104,7 +137,7 @@ export const DataProvider = ({ children }) => {
   }
 
   return (
-    <DataContext.Provider value={{ tests, loading, error, deleteTest, getTestById, createTest, createExercise, linkExerciseToTest }}>
+    <DataContext.Provider value={{ tests, exercises, loading,  error, deleteTest, deleteExercise,  getTestById, createTest, createExercise, linkExerciseToTest, findExerciseByName }}>
       {children}
     </DataContext.Provider>
   );

@@ -3,26 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Dropdown, DropdownButton, Alert } from 'react-bootstrap';
 import './style.css';
 import Modal from './Components/Modal';
-import axios from 'axios';
 import { DataContext } from './Components/DataContext';
 import useModal from '../hooks/useModal';
 
 const AddTest = () => {
-  const client = axios.create({
-    baseURL: "http://127.0.0.1:8000"
-  });
   const navigate = useNavigate();
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const { isActive, openModal, closeModal } = useModal();
-  const [selectedType, setSelectedType] = useState('1');   
+  const [selectedType, setSelectedType] = useState('1');
   const [showWordButtons, setShowWordButtons] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
-  const {createTest, createExercise, linkExerciseToTest} = useContext(DataContext);
-
-  
+  const { createTest, createExercise, linkExerciseToTest, exercises: libraryExercises, findExerciseByName } = useContext(DataContext); // Получаем exercises из контекста
+  const [loading, setLoading] = useState(false);
 
   const SaveTest = async () => {
+    setLoading(true);
     const test = {
       name: document.querySelector('.title-test').value,
       description: 'test'
@@ -30,32 +26,44 @@ const AddTest = () => {
     try {
       const createdTest = await createTest(test);
       const testId = createdTest.id;
-
-      for (const exercise of exercises) {
-        const exerciseData = {
-          name: exercise.name,
-          type: exercise.type,
-          king_json: exercise.type === '1' ? {
-            content: exercise.content,
-            missing_words: exercise.missingWords
-          } : {
-            content: exercise.content,
-            answers: exercise.answers,
-            correct_answer: exercise.correctAnswer
-          }
-        };
-        const createdExercise = await createExercise(exerciseData);
-        await linkExerciseToTest(createdExercise.id, testId);
-      }
-
+  
+      const exercisePromise = exercises.map(async (exercise) => {
+        const existingExercise = await findExerciseByName(exercise.name);
+        if (existingExercise) {
+          await linkExerciseToTest(existingExercise.id, testId);
+        } else {
+          const exerciseData = {
+            name: exercise.name,
+            type: exercise.type,
+            king_json: exercise.type === '1' ? {
+              content: exercise.content,
+              missing_words: exercise.missingWords
+            } : {
+              content: exercise.content,
+              answers: exercise.answers,
+              correct_answer: exercise.correctAnswer
+            }
+          };
+          const createdExercise = await createExercise(exerciseData);
+          await linkExerciseToTest(createdExercise.id, testId);
+        }
+      });
+      await Promise.all(exercisePromise);
+  
       console.log('Тест и упражнения успешно сохранены');
-      
-      navigate('/my-tests');
-      
+      setLoading(false);
+  
+      // Сохраняем данные в localStorage
+      localStorage.setItem(`test_${testId}`, JSON.stringify({ test, exercises }));
+  
+      navigate(`/my-tests/`);
+  
     } catch (error) {
       console.error('Ошибка при сохранении теста и упражнений', error);
     }
   };
+  
+  
 
   const addExercise = (type) => {
     let newExercise;
@@ -71,6 +79,7 @@ const AddTest = () => {
 
   const selectExercise = (exercise) => {
     setSelectedExercise(exercise);
+    console.log(exercise);
   };
 
   const handleSelectType = (type) => {
@@ -80,8 +89,8 @@ const AddTest = () => {
 
   const handleWordClick = (word, index) => {
     const updatedContent = selectedExercise.content.replace(word, '_'.repeat(word.length));
-    const updatedExercise = { 
-      ...selectedExercise, 
+    const updatedExercise = {
+      ...selectedExercise,
       content: updatedContent,
       missingWords: [...selectedExercise.missingWords, { word, index }]
     };
@@ -91,9 +100,9 @@ const AddTest = () => {
 
   const renderContentWithButtons = (content) => {
     return content.split(' ').map((word, index) => (
-      <Button 
-        key={index} 
-        onClick={() => handleWordClick(word, index)} 
+      <Button
+        key={index}
+        onClick={() => handleWordClick(word, index)}
         style={{ margin: '5px' }}
       >
         {word}
@@ -102,8 +111,8 @@ const AddTest = () => {
   };
 
   const addAnswer = () => {
-    const updatedExercise = { 
-      ...selectedExercise, 
+    const updatedExercise = {
+      ...selectedExercise,
       answers: [...selectedExercise.answers, '']
     };
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
@@ -121,7 +130,7 @@ const AddTest = () => {
     updatedAnswers[index] = value;
     const updatedExercise = { ...selectedExercise, answers: updatedAnswers };
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-    setSelectedExercise(updatedExercise); 
+    setSelectedExercise(updatedExercise);
   };
 
   const handleExerciseFieldChange = (e, field) => {
@@ -129,7 +138,27 @@ const AddTest = () => {
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise);
   };
-  
+
+  const convertLibraryExercise = (exercise) => {
+    return {
+      id: exercise.id,
+      type: exercise.type,
+      content: exercise.king_json.content,
+      missingWords: exercise.king_json.missing_words || [],
+      answers: exercise.king_json.answers || [],
+      correctAnswer: exercise.king_json.correct_answer || '',
+      name: exercise.name,
+      description: exercise.description
+    };
+  };
+
+  const addExerciseFromLibrary = (exercise) => {
+    const convertedExercise = convertLibraryExercise(exercise);
+    setExercises([...exercises, convertedExercise]);
+    setSelectedExercise(convertedExercise);
+    
+    closeModal();
+  };
 
   return (
     <div>
@@ -252,12 +281,27 @@ const AddTest = () => {
       </div>
 
       <Modal isActive={isActive} closeModal={closeModal}>
-        <h1>Выберите тип упражнения</h1>
-        <DropdownButton id="dropdown-basic-button" title="Тип">
-          <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
-          <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
-          <Dropdown.Item onClick={() => handleSelectType('other')}>Something else</Dropdown.Item>
-        </DropdownButton>
+        <Container className='text-center'>
+          <h1>Выберите тип упражнения</h1>
+          <Row>
+            <Col>
+              <DropdownButton id="dropdown-basic-button" title="Создать">
+                <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('other')}>Something else</Dropdown.Item>
+              </DropdownButton>
+            </Col>
+            <Col>
+              <DropdownButton id="dropdown-basic-button" title="Выбрать из библиотеки">
+                {libraryExercises.map((exercise, index) => (
+                  <Dropdown.Item key={index} onClick={() => addExerciseFromLibrary(exercise)}>
+                    {exercise.name}
+                  </Dropdown.Item>
+                ))}
+              </DropdownButton>
+            </Col>
+          </Row>
+        </Container>
       </Modal>
     </div>
   );

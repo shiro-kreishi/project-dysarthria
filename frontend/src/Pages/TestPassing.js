@@ -17,16 +17,39 @@ const TestPassing = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const test = getTestById(id);
-    if (test) {
-      setTest(test);
-      setExercises(test.exercises);
-      setAnswers(test.exercises.map(ex => ({
-        id: ex.id,
-        type: ex.type,
-        answer: ex.type === 1 ? [] : null
-      })));
-    }
+    const loadTest = async () => {
+      // Попытка загрузить данные из localStorage
+      const localData = localStorage.getItem(`test_${id}`);
+      if (localData) {
+        const { test, exercises } = JSON.parse(localData);
+        setTest(test);
+        setExercises(exercises);
+        setAnswers(exercises.map(ex => ({
+          id: ex.id,
+          type: ex.type,
+          answer: ex.type === 1 ? [] : null
+        })));
+        // Удаляем данные из localStorage после загрузки
+        localStorage.removeItem(`test_${id}`);
+      } else {
+        const test = await getTestById(id);
+        if (test) { 
+          setTest(test);
+          if (test.exercises) {
+            setExercises(test.exercises);
+            setAnswers(test.exercises.map(ex => ({
+              id: ex.id,
+              type: ex.type,
+              answer: ex.type === 1 ? [] : null
+            })));
+          } else {
+            console.error('Test exercises are undefined');
+          }
+        }
+      }
+    };
+  
+    loadTest();
   }, [id, getTestById]);
 
   const selectExercise = (exercise) => {
@@ -48,7 +71,7 @@ const TestPassing = () => {
   const submitAnswers = async () => {
     const responseTest = {
       test: id,
-      user: null,  
+      user: null,
       json_result: JSON.stringify(answers)
     };
 
@@ -64,6 +87,7 @@ const TestPassing = () => {
   if (loading) return <h1>Загрузка</h1>;
   if (error) return <h1>Ошибка {error}</h1>;
   if (!test) return <h1>Тест не найден</h1>;
+  if (!exercises || exercises.length === 0) return <h1>Упражнения не найдены</h1>;
 
   return (
     <div>
