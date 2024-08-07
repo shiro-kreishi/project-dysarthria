@@ -5,8 +5,9 @@ from api_v0.permissions import IsMemberOfGroupOrAdmin
 from testing.models import DoctorToTest
 from testing.serializers.testing import DoctorToTestDetailSerializer
 
-from user_api.serializers.user import UserSerializer
+from user_api.serializers.user import UserSerializer, UserWithIdSerializer
 from users.models import User
+from api_v0.views.base import IsSuperUserOrDoctorOrAdminPermission
 
 
 class IsAdminOrDoctor(IsMemberOfGroupOrAdmin):
@@ -20,7 +21,7 @@ class DoctorToTestModelViewSet(mixins.CreateModelMixin,
                                GenericViewSet):
     queryset = DoctorToTest.objects.all()
     serializer_class = DoctorToTestDetailSerializer
-    permission_classes = [IsAdminOrDoctor]
+    permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
 
 
 # TODO: Проверить доступы
@@ -31,8 +32,9 @@ class UserModelViewSet(mixins.CreateModelMixin,
                        mixins.ListModelMixin,
                        GenericViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsAdminOrDoctor]
+    serializer_class = UserWithIdSerializer
+    permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
+    http_method_names = ['get',]
 
 
 

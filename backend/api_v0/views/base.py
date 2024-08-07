@@ -43,7 +43,10 @@ class BaseModelViewSet(mixins.CreateModelMixin,
         return self.BaseSerializer
 
     def get_permissions(self):
-        permission_classes = [permissions.AllowAny]
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.AllowAny]
+        else:
+            permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
         return [permission() for permission in permission_classes]
 
 

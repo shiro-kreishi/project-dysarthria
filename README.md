@@ -33,7 +33,25 @@ cd frontend/
 yarn install # install project dependencies
 yarn start # start frontend app
 ```
-### .env file:
+# Testing
+## Backend
+### Test all backend
+```bash
+make test-backend-all  
+```
+### Test backend users app
+```bash
+make test-backend-users
+```
+### Test backend user-api app
+```bash
+make test-backend-user-api
+```
+### Test backend api-v0 app
+```bash
+make test-backend-api-v0
+```
+# Environment:
 #### Ps. Стоит заметить, что имя базы данных, пользователя, пароль пользователя, хост и порт для подключения к базе данных доложны соблюдать с таковыми в из файла конфигурации `docker-compose.yml`
 ```bash
 # .env
