@@ -5,14 +5,19 @@ from rest_framework import generics, mixins, views, status, permissions, viewset
 from api_v0.permissions import IsMemberOfGroupOrAdmin
 from testing.models import DoctorToTest
 from testing.serializers.testing import DoctorToTestDetailSerializer
+from user_api.permissions.is_member_group_or_admin import CheckUserInGroupsOrAdmin
 
 from user_api.serializers.user import UserSerializer, UserWithIdSerializer, GroupSerializer
 from users.models import User
 from api_v0.views.base import IsSuperUserOrDoctorOrAdminPermission
+from rest_framework.decorators import action
 
 
 class IsAdminOrDoctor(IsMemberOfGroupOrAdmin):
     group_name = 'Doctors'
+
+class UserIsMemberOfGroupOrSuperuser(CheckUserInGroupsOrAdmin):
+    group_name = ['Doctors', 'Administrators']
 
 class DoctorToTestModelViewSet(mixins.CreateModelMixin,
                                mixins.RetrieveModelMixin,
@@ -35,7 +40,36 @@ class UserModelViewSet(mixins.CreateModelMixin,
     queryset = User.objects.all()
     serializer_class = UserWithIdSerializer
     permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
-    http_method_names = ['get',]
+    http_method_names = ['get','post']
+
+    def create(self, request, *args, **kwargs):
+        return Response({"detail": "Creation of users is not allowed"},
+                        status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    @action(detail=True, methods=['post'], name='ban')
+    def ban(self, request, pk=None):
+        user = request.user
+        is_group_member_or_superuser = CheckUserInGroupsOrAdmin(request).check()
+        if not user and is_group_member_or_superuser:
+            return Response({'detail': 'You do not have permission to perform this action.'},
+                            status=status.HTTP_403_FORBIDDEN)
+        banned_user = User.objects.filter(pk=pk).first()
+        banned_user.is_active = False
+        banned_user.save()
+        return Response({'detail': f'User: {banned_user.email} has been banned.'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], name='unban')
+    def unban(self, request, pk=None):
+        user = request.user
+        is_group_member_or_superuser = CheckUserInGroupsOrAdmin(request).check()
+        if not user and is_group_member_or_superuser:
+            return Response({'detail': 'You do not have permission to perform this action.'},
+                            status=status.HTTP_403_FORBIDDEN)
+        banned_user = User.objects.filter(pk=pk).first()
+        banned_user.is_active = True
+        banned_user.save()
+        return Response({'detail': f'User: {banned_user.email} has been unbanned.'}, status=status.HTTP_200_OK)
+
 
 
 class CheckUserPermissions(viewsets.ViewSet):

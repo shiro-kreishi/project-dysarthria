@@ -46,7 +46,7 @@ test-backend-api-v0:
 	backend/venv/bin/python3 backend/manage.py test api_v0
 
 test-backend-all:
-	backend/venv/bin/python3 backend/manage.py test users --parallel
-	backend/venv/bin/python3 backend/manage.py test user_api --parallel
+	backend/venv/bin/python3 backend/manage.py test users --parallel && \
+	backend/venv/bin/python3 backend/manage.py test user_api --parallel && \
 	backend/venv/bin/python3 backend/manage.py test api_v0 --parallel
 
