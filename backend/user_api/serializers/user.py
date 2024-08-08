@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group
 from django.core.signing import Signer
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers, status
@@ -135,3 +136,8 @@ class ChangeNameSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['id', 'name']
