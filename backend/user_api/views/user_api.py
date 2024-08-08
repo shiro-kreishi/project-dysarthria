@@ -6,7 +6,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from api_v0.views import IsAdminOrDoctor
 from user_api.serializers.user import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, \
     ChangePasswordSerializer, ChangeNameSerializer
 from rest_framework import permissions, status, viewsets
@@ -14,6 +13,10 @@ from user_api.validations import custom_validation, validate_email, validate_pas
 from users.models import User
 from user_api.serializers.doctor_serializers import AssignDoctorSerializer
 from django.contrib.auth.models import Group
+from user_api.permissions import IsMemberOfGroupsOrAdmin
+
+class IsSuperUserOrDoctorOrAdminPermission(IsMemberOfGroupsOrAdmin):
+    group_names = ['Doctors', 'Administrators']
 
 
 class ConfirmEmailView(APIView):
@@ -147,7 +150,7 @@ class UserChangePasswordModelViewSet(viewsets.ModelViewSet):
 
 class AssignDoctorGroupModelViewSet(viewsets.ModelViewSet):
     serializer_class = AssignDoctorSerializer
-    permission_classes = [IsAdminOrDoctor]
+    permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
     http_method_names = ['post']
 
     def create(self, request, *args, **kwargs):

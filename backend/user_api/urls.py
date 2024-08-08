@@ -1,5 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
+
+from user_api.views.user import DoctorToTestModelViewSet, UserModelViewSet, CheckUserPermissions
 from user_api.views.user_api import \
     UserRegistrationAPIView, UserRegistrationModelViewSet, UserLoginModelViewSet, \
     UserLogoutViewSet, CurrentUserViewSet, UserChangePasswordModelViewSet, AssignDoctorGroupModelViewSet, \
@@ -13,6 +15,9 @@ router.register(r'current-user', CurrentUserViewSet, basename='current-user')
 router.register(r'change-password', UserChangePasswordModelViewSet, basename='change-password')
 router.register(r'assign-doctor-group', AssignDoctorGroupModelViewSet, basename='assign-doctor-group')
 router.register(r'update-name', UpdateNameModelViewSet, basename='update-name')
+router.register(r'doctors-test', DoctorToTestModelViewSet, basename='doctors-test')
+router.register(r'users', UserModelViewSet, basename='users')
+router.register(r'check-user-permissions', CheckUserPermissions, basename='check-user-permissions')
 
 urlpatterns = [
     path('', include(router.urls)),

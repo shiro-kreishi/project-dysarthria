@@ -1,6 +1,6 @@
 from django.db.models import Model
 
-from api_v0.permissions import IsMemberOfGroupOrAdmin, IsMemberOfGroupsOrAdmin
+from api_v0.permissions import IsMemberOfGroupsOrAdmin
 from rest_framework import serializers
 from project.settings import DEBUG as debug_settings
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
