@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model, authenticate
 from django.core.mail import send_mail
 from rest_framework.response import Response
 from project import settings
+from user_api.utils.token_generator import create_confirmation_token
 from user_api.validations import validate_password_change
 
 
@@ -27,15 +28,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
     def send_confirmation_email(self, user):
-        confirmation_token = self.generate_a_token_for_user(user)
-        confirmation_url = f"{settings.SITE_URL}/api/user/confirm-email/{user.id}/{confirmation_token}/"
+        confirmation_token = create_confirmation_token(user)
+        confirmation_url = f"{settings.SITE_URL}/api/user/confirm-email/{confirmation_token}/"
         email_subject = "Подтверждение почты"
         email_message = f"Пожалуйста подтвердите свою почту кликнув по следующей ссылке: {confirmation_url}"
         send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [user.email])
-
-    def generate_a_token_for_user(self, user):
-        signer = Signer()
-        return signer.sign(user.email)
 
     def validate_password(self, value):
         if len(value) < 8:
