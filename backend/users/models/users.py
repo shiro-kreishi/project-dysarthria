@@ -1,4 +1,7 @@
 from __future__ import unicode_literals
+
+from datetime import timedelta
+
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin, AbstractUser
@@ -96,4 +99,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+class EmailConfirmationToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def has_expired(self):
+        expiration_time = timedelta(minutes=15)
+        return timezone.now() > self.created_at + expiration_time
+
+    def __str__(self):
+        return f"Token for {self.user.email}"
 
