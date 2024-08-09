@@ -1,177 +1,85 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Button, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Container, Row, Col, Button, Dropdown, DropdownButton, Alert } from 'react-bootstrap';
 import './style.css';
 import Modal from './Components/Modal';
-import axios from 'axios';
 import { DataContext } from './Components/DataContext';
-
+import useModal from '../hooks/useModal';
 
 const AddTest = () => {
-  const client = axios.create({
-    baseURL: "http://127.0.0.1:8000"
-  });
   const navigate = useNavigate();
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
-  const [modalActive, setModalActive] = useState(false);
-  const [selectedType, setSelectedType] = useState('text');   
+  const { isActive, openModal, closeModal } = useModal();
+  const [selectedType, setSelectedType] = useState('1');
   const [showWordButtons, setShowWordButtons] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
-  
-  const compressionExercise = (exercises) => {
-    return exercises.map(exercise => {
-      let king_json = {};
-  
-      if (exercise.type === 'text') {
-        king_json = {
-          content: exercise.content,
-          missing_words: exercise.missingWords
-        };
-      } else if (exercise.type === 'image') {
-        king_json = {
-          content: exercise.content,
-          answers: exercise.answers,
-          correct_answer: exercise.correctAnswer
-        };
-      }
-  
-      return {
-        id: exercise.id,
-        name: exercise.name || '',
-        type: exercise.type,
-        king_json: king_json
-      };
-    });
-  };
-  
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Проверяем, начинается ли cookie с искомого имени
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-  
-  const csrftoken = getCookie('csrftoken');
-
-
-  //Отправка запроса на сервер для создания теста
-  const createTest = async (test) => {
-    try {
-      const response = await client.post('api/v0/tests/', test, {
-        headers: {
-          'X-CSRFToken': csrftoken,
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      });
-      return response.data;
-
-    } catch (error) {
-      console.error('Ошибка при создании теста', error);
-      throw error;
-    }
-  }
-
-  //Отправка запроса на сервер для создания упражнения 
-  const createExercise = async (exercise) => {
-    try {
-      const response = await client.post('/api/v0/exercises/', exercise, {
-        header: {
-          'X-CSRFToken': csrftoken,
-          'Conten-Type': 'application/json',
-        },
-        withCredentials: true,
-      });
-      return response.data;
-    } catch (error){
-      console.error('Ошибка при создании упраженния', error);
-      throw error;
-    }
-  }
-
-  //Отправка запроса на сервер для линка упражнения и теста
-  const linkExerciseToTest = async (exerciseId, testId) => {
-    try {
-      const response = await client.post('/api/v0/exercises-to-test/', {
-        exercise:exerciseId,
-        test: testId
-      },{
-        headers: {
-          'X-CSRFToken': csrftoken,
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      });
-      return response.data;
-    } catch (error){
-      console.error('Не удалось связать тест и упражения', error);
-      throw error;
-    }
-  }
+  const { createTest, createExercise, linkExerciseToTest, exercises: libraryExercises, findExerciseByName } = useContext(DataContext); // Получаем exercises из контекста
+  const [loading, setLoading] = useState(false);
 
   const SaveTest = async () => {
+    setLoading(true);
     const test = {
-        name: document.querySelector('.title-test').value,
-        description: 'test'
+      name: document.querySelector('.title-test').value,
+      description: 'test'
     };
-
     try {
-        // Создаем тест и получаем его ID
-        const createdTest = await createTest(test);
-        const testId = createdTest.id;
-
-        // Создаем упражнения и привязываем их к тесту
-        for (const exercise of exercises) {
-            const exerciseData = {
-                name: exercise.name || '',
-                type: exercise.type,
-                king_json: exercise.type === 'text' ? {
-                    content: exercise.content,
-                    missing_words: exercise.missingWords
-                } : {
-                    content: exercise.content,
-                    answers: exercise.answers,
-                    correct_answer: exercise.correctAnswer
-                }
-            };
-            const createdExercise = await createExercise(exerciseData);
-            await linkExerciseToTest(createdExercise.id, testId);
-        }
-
-        console.log('Тест и упражнения успешно сохранены');
-        navigate('/my-tests');
-    } catch (error) {
-        console.error('Ошибка при сохранении теста и упражнений', error);
-    }
-};
-
+      const createdTest = await createTest(test);
+      const testId = createdTest.id;
   
+      const exercisePromise = exercises.map(async (exercise) => {
+        const existingExercise = await findExerciseByName(exercise.name);
+        if (existingExercise) {
+          await linkExerciseToTest(existingExercise.id, testId);
+        } else {
+          const exerciseData = {
+            name: exercise.name,
+            type: exercise.type,
+            king_json: exercise.type === '1' ? {
+              content: exercise.content,
+              missing_words: exercise.missingWords
+            } : {
+              content: exercise.content,
+              answers: exercise.answers,
+              correct_answer: exercise.correctAnswer
+            }
+          };
+          const createdExercise = await createExercise(exerciseData);
+          await linkExerciseToTest(createdExercise.id, testId);
+        }
+      });
+      await Promise.all(exercisePromise);
+  
+      console.log('Тест и упражнения успешно сохранены');
+      setLoading(false);
+  
+      // Сохраняем данные в localStorage
+      localStorage.setItem(`test_${testId}`, JSON.stringify({ test, exercises }));
+  
+      navigate(`/my-tests/`);
+  
+    } catch (error) {
+      console.error('Ошибка при сохранении теста и упражнений', error);
+    }
+  };
+  
+  
+
   const addExercise = (type) => {
     let newExercise;
-    if (type === 'text') {
-      newExercise = { id: exercises.length + 1, type: type, content: '', missingWords: [] };
-    } else if (type === 'image') {
-      newExercise = { id: exercises.length + 1, type: type, content: '', answers: [], correctAnswer: '' };
+    if (type === '1') {
+      newExercise = { id: exercises.length + 1, type: type, content: '', missingWords: [], name: '', description: '' };
+    } else if (type === '2') {
+      newExercise = { id: exercises.length + 1, type: type, content: '', answers: [], correctAnswer: '', name: '', description: '' };
     }
     setExercises([...exercises, newExercise]);
     setSelectedExercise(newExercise);
-    setModalActive(false);
+    closeModal();
   };
-  
-
 
   const selectExercise = (exercise) => {
     setSelectedExercise(exercise);
+    console.log(exercise);
   };
 
   const handleSelectType = (type) => {
@@ -181,8 +89,8 @@ const AddTest = () => {
 
   const handleWordClick = (word, index) => {
     const updatedContent = selectedExercise.content.replace(word, '_'.repeat(word.length));
-    const updatedExercise = { 
-      ...selectedExercise, 
+    const updatedExercise = {
+      ...selectedExercise,
       content: updatedContent,
       missingWords: [...selectedExercise.missingWords, { word, index }]
     };
@@ -192,9 +100,9 @@ const AddTest = () => {
 
   const renderContentWithButtons = (content) => {
     return content.split(' ').map((word, index) => (
-      <Button 
-        key={index} 
-        onClick={() => handleWordClick(word, index)} 
+      <Button
+        key={index}
+        onClick={() => handleWordClick(word, index)}
         style={{ margin: '5px' }}
       >
         {word}
@@ -202,14 +110,14 @@ const AddTest = () => {
     ));
   };
 
-  const addAnswer = () =>{
-    const updatedExercise = { 
-      ...selectedExercise, 
+  const addAnswer = () => {
+    const updatedExercise = {
+      ...selectedExercise,
       answers: [...selectedExercise.answers, '']
     };
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise);
-  }
+  };
 
   const setCorrectAnswer = (answer) => {
     const updatedExercise = { ...selectedExercise, correctAnswer: answer };
@@ -217,15 +125,41 @@ const AddTest = () => {
     setSelectedExercise(updatedExercise);
   };
 
-  
-
-  const AnswerChange = (index, value) =>{
+  const AnswerChange = (index, value) => {
     const updatedAnswers = [...selectedExercise.answers];
     updatedAnswers[index] = value;
     const updatedExercise = { ...selectedExercise, answers: updatedAnswers };
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-    setSelectedExercise(updatedExercise); 
-  }
+    setSelectedExercise(updatedExercise);
+  };
+
+  const handleExerciseFieldChange = (e, field) => {
+    const updatedExercise = { ...selectedExercise, [field]: e.target.value };
+    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
+  };
+
+  const convertLibraryExercise = (exercise) => {
+    return {
+      id: exercise.id,
+      type: exercise.type,
+      content: exercise.king_json.content,
+      missingWords: exercise.king_json.missing_words || [],
+      answers: exercise.king_json.answers || [],
+      correctAnswer: exercise.king_json.correct_answer || '',
+      name: exercise.name,
+      description: exercise.description
+    };
+  };
+
+  const addExerciseFromLibrary = (exercise) => {
+    const convertedExercise = convertLibraryExercise(exercise);
+    setExercises([...exercises, convertedExercise]);
+    setSelectedExercise(convertedExercise);
+    
+    closeModal();
+  };
+
   return (
     <div>
       <div className='color-2'>
@@ -233,7 +167,7 @@ const AddTest = () => {
           <Row>
             <Col></Col>
             <Col>
-              <input className='title-test' placeholder={'введите название теста'} ></input>
+              <input className='title-test' placeholder={'введите название теста'}></input>
               <p><Button className='btn-blue' onClick={SaveTest}>Сохранить</Button></p>
             </Col>
           </Row>
@@ -249,7 +183,7 @@ const AddTest = () => {
                     {index + 1}
                   </Button>
                 ))}
-                <Button className='add-btn' onClick={() => setModalActive(true)}>Добавить</Button>
+                <Button className='add-btn' onClick={openModal}>Добавить</Button>
               </div>
             </Col>
           </Row>
@@ -258,92 +192,118 @@ const AddTest = () => {
 
       <div className='exercise-editor'>
         <Container>
-        {selectedExercise ? (
-          selectedExercise.type === 'text' ? (
-            <div>
-              <h3>Редактор упражнения {selectedExercise.id}</h3>
-              <textarea
-                className='textarea'
-                value={selectedExercise.content}
-                onChange={(e) => {
-                  const updatedExercise = { ...selectedExercise, content: e.target.value };
-                  setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-                  setSelectedExercise(updatedExercise);
-                }}
-              />
-              <Button onClick={() => setShowWordButtons(!showWordButtons)}>
-                {showWordButtons ? 'Скрыть' : 'Выбрать пропущенные'}
-              </Button>
-              {showWordButtons && (
-                <div>
-                  {renderContentWithButtons(selectedExercise.content)}
-                </div>
-              )}
-            </div>
-          ) : selectedExercise.type === 'image' ? (
-            <div>
-              <h3>Редактор изображения {selectedExercise.id}</h3>
-              <Row className="align-items-center">
-                <Col>
-                {selectedExercise.content && (
-                  <img src={selectedExercise.content} alt="Загруженное изображение" className="half-size" />
-                )}
-                <input
-                  type="file"
+          {selectedExercise ? (
+            selectedExercise.type === '1' ? (
+              <div>
+                <h3>Редактор упражнения {selectedExercise.id}</h3>
+                <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
+                <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
+                <textarea
+                  className=' input-style area-1'
+                  value={selectedExercise.content}
                   onChange={(e) => {
-                    const file = e.target.files[0];
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      const updatedExercise = { ...selectedExercise, content: reader.result };
-                      setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-                      setSelectedExercise(updatedExercise);
-                    };
-                    reader.readAsDataURL(file);
+                    const updatedExercise = { ...selectedExercise, content: e.target.value };
+                    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+                    setSelectedExercise(updatedExercise);
                   }}
                 />
-                <p>
-                  <Button onClick={addAnswer} >Добавить вариант ответа</Button>
-                </p>
-                <h3>Варианты ответа</h3>
-                {selectedExercise.answers.map((answer, index) => (
-                <div key={index} className="answer-option">
-                  <input
-                    className='input-style'
-                    value={answer}
-                    onChange={(e) => AnswerChange(index, e.target.value)}
-                  />
-                  <Button 
-                    onClick={() => setCorrectAnswer(answer)} 
-                    className={selectedExercise.correctAnswer === answer ? 'correct-answer' : ''}
-                  >
-                    {selectedExercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
-                  </Button>
-                </div>
-              ))}
+                <Button onClick={() => setShowWordButtons(!showWordButtons)}>
+                  {showWordButtons ? 'Скрыть' : 'Выбрать пропущенные'}
+                </Button>
+                {showWordButtons && (
+                  <div>
+                    {renderContentWithButtons(selectedExercise.content)}
+                  </div>
+                )}
+                <Row>
+                  <Col>
+                    
+                  </Col>
+                  <Col>
+                    <Button>Сохранить упражнение в библиотеке</Button>
+                  </Col>
+                </Row>
+              </div>
+            ) : selectedExercise.type === '2' ? (
+              <div>
+                <h3>Редактор изображения {selectedExercise.id}</h3>
+                <p>Название упражнения <input value={selectedExercise.name} onChange={e => handleExerciseFieldChange(e, "name")} /></p>
+                <p>Описание упражнения <input value={selectedExercise.description} onChange={e => handleExerciseFieldChange(e, "description")} /></p>
+                <Row className="align-items-center">
+                  <Col>
+                    {selectedExercise.content && (
+                      <img src={selectedExercise.content} alt="Загруженное изображение" className="half-size" />
+                    )}
+                    <input
+                      type="file"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const updatedExercise = { ...selectedExercise, content: reader.result };
+                          setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+                          setSelectedExercise(updatedExercise);
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                    <p>
+                      <Button onClick={addAnswer}>Добавить вариант ответа</Button>
+                    </p>
+                    <h3>Варианты ответа</h3>
+                    {selectedExercise.answers.map((answer, index) => (
+                      <div key={index} className="answer-option">
+                        <input
+                          className='input-style'
+                          value={answer}
+                          onChange={(e) => AnswerChange(index, e.target.value)}
+                        />
+                        <Button 
+                          onClick={() => setCorrectAnswer(answer)} 
+                          className={selectedExercise.correctAnswer === answer ? 'correct-answer' : ''}
+                        >
+                          {selectedExercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
+                        </Button>
+                        <Button>Сохранить упражнение в библиотеке</Button>
+                      </div>
+                    ))}
+                  </Col>
+                  <Col>
+                  </Col>
+                </Row>
+               
+              </div>
+            ) : null
+          ) : (
+            <p>Выберите упражнение для редактирования</p>
+          )}
+        </Container>
+      </div>
 
-
-              </Col>
-              <Col>
-                  
-              </Col>
-            </Row>
-          </div>
-        ) : null
-      ) : (
-        <p>Выберите упражнение для редактирования</p>
-      )}
-    </Container>
+      <Modal isActive={isActive} closeModal={closeModal}>
+        <Container className='text-center'>
+          <h1>Выберите тип упражнения</h1>
+          <Row>
+            <Col>
+              <DropdownButton id="dropdown-basic-button" title="Создать">
+                <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('other')}>Something else</Dropdown.Item>
+              </DropdownButton>
+            </Col>
+            <Col>
+              <DropdownButton id="dropdown-basic-button" title="Выбрать из библиотеки">
+                {libraryExercises.map((exercise, index) => (
+                  <Dropdown.Item key={index} onClick={() => addExerciseFromLibrary(exercise)}>
+                    {exercise.name}
+                  </Dropdown.Item>
+                ))}
+              </DropdownButton>
+            </Col>
+          </Row>
+        </Container>
+      </Modal>
     </div>
-
-    <Modal active={modalActive} setActive={setModalActive}>
-      <h1>Выберите тип упражнения</h1>
-      <DropdownButton id="dropdown-basic-button" title="Тип">
-        <Dropdown.Item onClick={() => handleSelectType('text')}>Пропущенные слова</Dropdown.Item>
-        <Dropdown.Item onClick={() => handleSelectType('image')}>Что на изображении</Dropdown.Item>
-        <Dropdown.Item onClick={() => handleSelectType('other')}>Something else</Dropdown.Item>
-      </DropdownButton>
-    </Modal>
-  </div>
   );
 };
 

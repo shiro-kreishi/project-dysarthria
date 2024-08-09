@@ -37,3 +37,19 @@
     text-align: center;
     color:white;    
 }
+
+.exercise-item{
+    background-color:#f2b29b;
+    width: 200px;
+    height: 100px;
+    margin: 10px;
+    border-radius: 10px;
+    text-align: center;
+    color:white;    
+}
+
+
+.test-button{
+    border:none;
+    background: none;
+}

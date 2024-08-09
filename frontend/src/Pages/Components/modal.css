@@ -1,28 +1,19 @@
-.modal{
+.modal {
     height: 100%;
-    width:100%;
+    width: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     position: fixed;
-    top:0;
-    left:0;
+    top: 0;
+    left: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: 0.5s;
 }
 
-.modal.active{
-    opacity: 1;
-    pointer-events: all;
-}
-
-.modal-content{
-    padding:20px;
+.modal-content {
+    padding: 20px;
     border-radius: 10px;
     background-color: white;
     height: 480px;
-    width:640px;
-
+    width: 640px;
 }
