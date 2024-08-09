@@ -8,7 +8,7 @@ urlpatterns = [
         "login/", auth.LoginView.as_view(
             template_name="auth/login.html",
             success_url="homepage",
-        ), name="login"
+        ), name="user-login"
     ),
     path("logout/", auth.LogoutView.as_view(), name="logout"),
     path(
@@ -46,5 +46,5 @@ urlpatterns = [
         auth.PasswordResetCompleteView.as_view(),
         name="password_reset_complete",
     ),
-    path('register/', Register.as_view(), name='register'),
+    path('register/', Register.as_view(), name='user-register'),
 ]

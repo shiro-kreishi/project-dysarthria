@@ -41,7 +41,7 @@ class DoctorToTest(models.Model):
 
 
 class Whitelist(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'groups__name': 'Users'})
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
 
 

@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
+from django.contrib.auth.password_validation import validate_password
 
 
 class UserManager(BaseUserManager):
@@ -18,6 +19,10 @@ class UserManager(BaseUserManager):
         """
         if not email:
             raise ValueError('The given email must be set')
+        if not password:
+            raise ValueError('The password must be set')
+        if not validate_password(password, user=None):
+            raise ValueError('The given password must be at least 8 characters long')
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -30,6 +35,8 @@ class UserManager(BaseUserManager):
         """
         if not email:
             raise ValueError('The mail id must be set')
+        if not password:
+            raise ValueError('The password must be set')
 
         user = self.model(email=email, **extra_fields)
         user.password = make_password(password)

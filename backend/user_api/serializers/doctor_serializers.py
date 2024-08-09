@@ -4,6 +4,7 @@ from django.contrib.auth.models import Group
 
 UserModel = get_user_model()
 
+
 class AssignDoctorSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
 

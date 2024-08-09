@@ -17,7 +17,8 @@ class DoctorToTestSerializer(serializers.ModelSerializer):
 class DoctorToTestDetailSerializer(serializers.ModelSerializer):
     doctor = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(),
                                                 required=False, allow_null=True,
-                                                validators=[validate_doctor_or_admin])
+                                                # validators=[validate_doctor_or_admin]
+                                                )
     class Meta:
         model = DoctorToTest
         fields = ['id', 'doctor', 'test']

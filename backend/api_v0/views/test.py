@@ -6,9 +6,11 @@ from testing.models.test import Test, PublicTest, ResponseTest, Whitelist
 from api_v0.serializers.test import TestSerializer, PublicTestSerializer, ResponseTestSerializer, \
     WhitelistSerializer, TestDetailSerializer, TestCreateUpdateSerializer, PublicDetailSerializer
 from api_v0.views.base import BaseModelViewSet, \
-    ListAndRetrieveForAnyUserModelViewSet, CloseForAnyUserModelViewSet, DetailedParamRetrieveModelViewSet
+    ListAndRetrieveForAnyUserModelViewSet, CloseForAnyUserModelViewSet, DetailedParamRetrieveModelViewSet, \
+    IsSuperUserOrDoctorOrAdminPermission
 from rest_framework.response import Response
 from rest_framework import status
+
 
 class IsSuperUserOrDoctorOrAdmin(IsMemberOfGroupsOrAdmin):
     group_names = ['Doctors', 'Administrators']
@@ -30,7 +32,15 @@ class ResponseTestModelViewSet(BaseModelViewSet):
     queryset = ResponseTest.objects.all()
     BaseSerializer = ResponseTestSerializer
 
+    def get_permissions(self):
+        if self.action in ['create', 'list', 'retrieve']:
+            permission_classes = [permissions.AllowAny]
+        else:
+            permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
+        return [permission() for permission in permission_classes]
+
 
 class WhitelistModelViewSet(ListAndRetrieveForAnyUserModelViewSet):
     queryset = Whitelist.objects.all()
     BaseSerializer = WhitelistSerializer
+    BaseDetailSerializer = WhitelistSerializer

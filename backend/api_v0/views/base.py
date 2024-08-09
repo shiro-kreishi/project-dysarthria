@@ -1,6 +1,6 @@
 from django.db.models import Model
 
-from api_v0.permissions import IsMemberOfGroupOrAdmin, IsMemberOfGroupsOrAdmin
+from api_v0.permissions import IsMemberOfGroupsOrAdmin
 from rest_framework import serializers
 from project.settings import DEBUG as debug_settings
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
@@ -43,7 +43,10 @@ class BaseModelViewSet(mixins.CreateModelMixin,
         return self.BaseSerializer
 
     def get_permissions(self):
-        permission_classes = [permissions.AllowAny]
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.AllowAny]
+        else:
+            permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
         return [permission() for permission in permission_classes]
 
 

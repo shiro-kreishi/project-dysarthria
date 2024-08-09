@@ -4,20 +4,18 @@ from api_v0.views import \
     ExerciseModelViewSet, ExerciseToTestModelViewSet, ResponseExerciseModelViewSet, \
     TestModelViewSet, PublicTestModelViewSet, \
     ResponseTestModelViewSet, WhitelistModelViewSet, \
-    DoctorToTestModelViewSet, ExerciseTypeViewSet, UserModelViewSet
-
+    ExerciseTypeViewSet
 
 router = routers.DefaultRouter()
-router.register(r'exercise-types', ExerciseTypeViewSet)
-router.register(r'exercises', ExerciseModelViewSet)
-router.register(r'exercises-to-test', ExerciseToTestModelViewSet)
-router.register(r'response-exercises', ResponseExerciseModelViewSet)
-router.register(r'tests', TestModelViewSet)
-router.register(r'public-tests', PublicTestModelViewSet)
-router.register(r'response-tests', ResponseTestModelViewSet)
-router.register(r'whitelists', WhitelistModelViewSet)
-router.register(r'doctors-test', DoctorToTestModelViewSet)
-router.register(r'users', UserModelViewSet)
+router.register(r'exercise-types', ExerciseTypeViewSet, basename='exercise-types')
+router.register(r'exercises', ExerciseModelViewSet, basename='exercises')
+router.register(r'exercises-to-test', ExerciseToTestModelViewSet, basename='exercises-to-test')
+router.register(r'response-exercises', ResponseExerciseModelViewSet, basename='response-exercises')
+router.register(r'tests', TestModelViewSet, basename='tests')
+router.register(r'public-tests', PublicTestModelViewSet, basename='public-tests')
+router.register(r'response-tests', ResponseTestModelViewSet, basename='response-tests')
+router.register(r'whitelists', WhitelistModelViewSet, basename='whitelists')
+
 
 
 urlpatterns = [
