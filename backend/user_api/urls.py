@@ -21,5 +21,5 @@ router.register(r'check-user-permissions', CheckUserPermissions, basename='check
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('confirm-email/<int:user_id>/<str:token>/', ConfirmEmailView.as_view(), name='user_confirm_email'),
+    path('confirm-email/<str:token>/', ConfirmEmailView.as_view(), name='user_confirm_email'),
 ]

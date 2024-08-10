@@ -1,4 +1,7 @@
 from __future__ import unicode_literals
+
+from datetime import timedelta
+
 from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin, AbstractUser
@@ -61,10 +64,11 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     username = models.CharField(_('username'), max_length=32, unique=True)
-    first_name = models.CharField(_('first name'), max_length=30, blank=True)
-    last_name = models.CharField(_('last name'), max_length=30, blank=True)
+    first_name = models.CharField(_('first name'), max_length=100, blank=True)
+    last_name = models.CharField(_('last name'), max_length=100, blank=True)
+    patronymic = models.CharField(_('Отчество'), max_length=100, blank=True)
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
-    is_staff = models.BooleanField(_('active'), default=False)
+    is_staff = models.BooleanField(_('staff'), default=False)
     is_active = models.BooleanField(_('active'), default=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
@@ -96,4 +100,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+class EmailConfirmationToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def has_expired(self):
+        expiration_time = timedelta(minutes=15)
+        return timezone.now() > self.created_at + expiration_time
+
+    def __str__(self):
+        return f"Token for {self.user.email}"
 
