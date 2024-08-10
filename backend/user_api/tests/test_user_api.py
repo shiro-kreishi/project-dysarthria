@@ -19,8 +19,11 @@ class UserRegistrationAPIViewTest(TestCase):
     def test_register_user(self):
         data = {
             'email': 'newuser@example.com',
+            'username': 'newuser',
+            "last_name": "New",
+            "first_name": "User",
+            "patronymic": "1",
             'password': 'NewPass123',
-            'username': 'newuser'
         }
 
         response = self.client.post(self.url, data, format='json')
@@ -37,8 +40,11 @@ class UserRegistrationAPIViewTest(TestCase):
         )
         data = {
             'email': 'newuser@example.com',
+            'username': 'newuser',
+            "last_name": "New",
+            "first_name": "User",
+            "patronymic": "1",
             'password': 'NewPass123',
-            'username': 'newuser'
         }
 
         response = self.client.post(self.url, data, format='json')
