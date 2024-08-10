@@ -1,10 +1,8 @@
 from django.core.signing import Signer, BadSignature
 from users.models.users import EmailConfirmationToken
 
-"""
- Здесь создаются токены при помощи криптографической подписи
- Возможно есть способ лучше, но я пока не нашёл
-"""
+#  TODO Здесь создаются токены при помощи криптографической подписи
+#   Возможно есть способ лучше, но я пока не нашёл
 
 
 def generate_signed_token(user):
@@ -23,9 +21,7 @@ def verify_signed_token(token):
     email = None
     user_id = None
 
-
     try:
-        # Распакуйте подписанный объект
         signed_id_and_email = signer.unsign_object(token)
         user_id, email = signed_id_and_email.split('%')
 
