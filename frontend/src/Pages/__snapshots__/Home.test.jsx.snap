@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Home component matches snapshot 1`] = `
+<DocumentFragment>
+  <div>
+    <div
+      class="color"
+    >
+      <div
+        class="container"
+      >
+        <div
+          class="row"
+        >
+          <div
+            class="col"
+          >
+            <img
+              alt="изображения"
+              src="new_img1.png"
+              width="700px"
+            />
+          </div>
+          <div
+            class="col"
+          >
+            <h1
+              class="hwhite"
+            >
+              Добро пожаловать в "НАЗВАНИЕ"
+            </h1>
+            <span
+              class="white-text"
+            >
+              «НАЗВАНИЕ» — это инновационное веб-приложение, созданное специально для логопедов, чтобы помочь вам в работе с пациентами, страдающими дизартрией.
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="container"
+    >
+      <div
+        class="row"
+      >
+        <div
+          class="col"
+        />
+        <div
+          class="col"
+        >
+          <h1>
+            Как начать?
+          </h1>
+          <ul>
+            <li>
+               Зарегистрируйтесь или войдите в свою учетную запись.
+            </li>
+            <li>
+               Изучайте упражнения: Просматривайте каталог упражнений и выбирайте подходящие для ваших пациентов.
+            </li>
+            <li>
+               Создавайте свои упражнения: Используйте нашу библиотеку материалов для создания уникальных занятий.
+            </li>
+            <li>
+               Отслеживайте прогресс: Сохраняйте результаты и анализируйте успехи ваших пациентов.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

@@ -9,7 +9,7 @@ function Home() {
         <Container>
           <Row>
             <Col>
-              <img src={img} width='700px' alt=' изображения' />
+              <img src={img} width='700px' alt='изображения'/>
             </Col>
             <Col>
               <h1 className='hwhite'>Добро пожаловать в "НАЗВАНИЕ"</h1>

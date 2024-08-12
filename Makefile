@@ -34,19 +34,19 @@ migrate:
 	venv/bin/python3 backend/manage.py migrate
 
 user-groups:
-	backend/venv/bin/python3 backend/create_user_groups.py
+	venv/bin/python3 backend/create_user_groups.py
 
 test-backend-users:
-	backend/venv/bin/python3 backend/manage.py test users
+	venv/bin/python3 backend/manage.py test users
 
 test-backend-user-api:
-	backend/venv/bin/python3 backend/manage.py test user_api
+	venv/bin/python3 backend/manage.py test user_api
 
 test-backend-api-v0:
-	backend/venv/bin/python3 backend/manage.py test api_v0
+	venv/bin/python3 backend/manage.py test api_v0
 
 test-backend-all:
-	backend/venv/bin/python3 backend/manage.py test users --parallel
-	backend/venv/bin/python3 backend/manage.py test user_api --parallel
-	backend/venv/bin/python3 backend/manage.py test api_v0 --parallel
+	venv/bin/python3 backend/manage.py test users --parallel
+	venv/bin/python3 backend/manage.py test user_api --parallel
+	venv/bin/python3 backend/manage.py test api_v0 --parallel
 
