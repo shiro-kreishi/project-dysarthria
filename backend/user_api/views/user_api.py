@@ -25,46 +25,38 @@ from users.models.users import EmailConfirmationToken
 
 class ConfirmEmailView(APIView):
     permission_classes = [permissions.AllowAny]
-    """
-        Подтверждение почты
-        
-        Вообще здесь нужна особая логика, так как удалять
-        пользователей не стоит
-        
-        Нужно спросить хочет ли пользователь перегенерировать
-        токен почты 
-    """
+    # TODO Подтверждение почты Вообще здесь нужна особая логика, так как удалять
+    #         пользователей не стоит!
+    #         Нужно спросить хочет ли пользователь перегенерировать
+    #         токен почты.
+
     def get(self, request, token, *args, **kwargs):
         email, signed_user_id = verify_signed_token(token)
 
         if email is None or signed_user_id is None:
-            return Response({"error": "Неправильный токен или пользователь."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             email_token = EmailConfirmationToken.objects.get(user_id=signed_user_id, token=token)
         except EmailConfirmationToken.DoesNotExist:
-            return Response({"error": "Неправильный токен или пользователь."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
 
 
         # TODO: Тут по моему уязвимость с тем что можно удалить существующего пользователя
-        # Если токен закончился
         if email_token.has_expired():
-            # Удаление токена
             email_token.delete()
             user = email_token.user
             if user.is_active is False:
-                user.delete()  # Удаляем пользователя
-            return Response({"error": "Неправильный токен или пользователь."}, status=status.HTTP_400_BAD_REQUEST)
+                user.delete()
+            return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
 
         user = email_token.user
 
-        # Отвечаем 400 ответом чтобы не могли прощупать пользователей
         if user.is_active:
-            return Response({"error": "Неправильный токен или пользователь."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid token. User is activated."}, status=status.HTTP_400_BAD_REQUEST)
 
         user.is_active = True
         user.save()
-        # Удалите токен после успешного подтверждения
         email_token.delete()
         return Response({"message": "Email confirmed successfully"}, status=status.HTTP_200_OK)
 
@@ -94,8 +86,8 @@ class UserRegistrationModelViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             clean_data = custom_validation(request.data)
-        except ValidationError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({"error": 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(data=clean_data)
         if serializer.is_valid():
             user = serializer.save()
