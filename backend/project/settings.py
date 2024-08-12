@@ -246,7 +246,7 @@ SIMPLE_JWT = {
     использовать консоль (т.е. все отправки писем будут выводится в консоли
     в запущенном проекте ./manage.py runserver)
 """
-if not DEBUG:
+if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
