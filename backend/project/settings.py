@@ -246,18 +246,19 @@ SIMPLE_JWT = {
     использовать консоль (т.е. все отправки писем будут выводится в консоли
     в запущенном проекте ./manage.py runserver)
 """
-if DEBUG:
+if not DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 
-EMAIL_HOST = 'smtp.example.com'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 EMAIL_HOST_USER = EMAIL_HOST_USER_CONFIG
 EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD_CONFIG
-DEFAULT_FROM_EMAIL = 'webmaster@example.com'
+DEFAULT_FROM_EMAIL = 'webmaster@gmail.com'
 SITE_URL = SITE_URL_CONFIG
 
 
