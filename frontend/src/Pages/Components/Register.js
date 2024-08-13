@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, FormControl, FormLabel, Input, Alert, AlertIcon } from "@chakra-ui/react";
+import axiosConfig from './AxiosConfig';
 
 const Register = ({ client, setCurrentUser }) => {
   const [email, setEmail] = useState('');
@@ -25,9 +26,8 @@ const Register = ({ client, setCurrentUser }) => {
     }
 
     try {
-      console.log(client.baseURL);
-      await client.post("/api/user/register/", { email, username, password });
-      await client.post("/api/user/login/", { email, password });
+      await axiosConfig.post("/api/user/register/", { email, username, password });
+      await axiosConfig.post("/api/user/login/", { email, password });
       console.log('Registration and login successful');
       setCurrentUser(true);
       localStorage.setItem('currentUser', JSON.stringify(true));

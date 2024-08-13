@@ -3,9 +3,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import './style.css';
 
-const Test = ({ name, description, id }) => {
+const Test = ({ name, description, id, link }) => {
   return (
-    <Link to={`/my-tests/test/${id}`} >
+    <Link to={`${link}`} >
       <div className='test-item'>
         <div className="test-header">
           <h3 className="test-title">{name}</h3>

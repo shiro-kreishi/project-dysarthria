@@ -6,7 +6,6 @@ import { Container, Button, Row, Col } from 'react-bootstrap';
 import { Input } from '@chakra-ui/react';
 import axiosConfig from './Components/AxiosConfig';
 
-
 const TestPassing = () => {
   const { id } = useParams();
   const { getTestById, loading, error } = useContext(DataContext);
@@ -119,10 +118,10 @@ const TestPassing = () => {
               {selectedExercise.type === 1 ? (
                 <div>
                   <h2>
-                    {selectedExercise.king_json.content.split(/_+/).map((part, idx) => (
+                    {selectedExercise.king_json?.content.split(/_+/).map((part, idx) => (
                       <span key={idx}>
                         {part}
-                        {idx < selectedExercise.king_json.content.match(/_+/g)?.length && (
+                        {idx < selectedExercise.king_json?.content.match(/_+/g)?.length && (
                           <input
                             type="text"
                             className="input-answer"
@@ -133,11 +132,10 @@ const TestPassing = () => {
                       </span>
                     ))}
                   </h2>
-
                 </div>
               ) : selectedExercise.type === 2 ? (
                 <div>
-                  {selectedExercise.king_json.content ? (
+                  {selectedExercise.king_json?.content ? (
                     <div>
                       <img
                         src={selectedExercise.king_json.content}

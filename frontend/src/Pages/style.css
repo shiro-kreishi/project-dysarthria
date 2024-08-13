@@ -1,139 +1,166 @@
+/* style.css */
+
 .color {
     background-color: #4178bf;
     height: 400px;
     width: 100%;
     display: flex;
-}
-
-.color-2 {
+    align-items: center; /* Выравнивание по вертикали */
+  }
+  
+  .color-2 {
     background-color: #d95252;
     height: 200px;
     width: 100%;
     display: flex;
-}
-
-body {
+    align-items: center; /* Выравнивание по вертикали */
+  }
+  
+  body {
     font-family: Roboto;
-}
-
-.white-text {
+  }
+  
+  .white-text {
     color: white;
     font-size: 30px;
     font-family: "Roboto";
-}
-
-.btn{
+  }
+  
+  .checkbox {
+    color: white;
+  }
+  
+  .btn {
     background-color: #d95252;
-    color:white;
+    color: white;
     font-family: "Roboto Black";
-}
-
-.btn:hover{
-    color:white;
+  }
+  
+  .btn:hover {
+    color: white;
     background-color: #f2b29b;
-}
-
-.btn-blue{
+  }
+  
+  .btn-blue {
     background-color: #4178bf;
-    color:white;
+    color: white;
     font-family: "Roboto Black";
-}
-
-.btn-blue:hover{
-    color:white;
+  }
+  
+  .btn-blue:hover {
+    color: white;
     background-color: #f2b29b;
-}
-
-.h-white{
-    color:white;
+  }
+  
+  .h-white {
+    color: white;
     font-family: 'Roboto Black';
     font-size: 36px;
-}
-
-.h-black{
-    color:black;
+  }
+  
+  .h-black {
+    color: black;
     font-family: 'Roboto Black';
     font-size: 36px;
-}
-
-.textarea {
+  }
+  
+  .textarea {
     border-radius: 10px;
-    border-style:dashed;
+    border-style: dashed;
     width: 70%;
     height: 500px;
     font-size: 36px;
-    box-sizing: border-box; 
-}
-
-.title-test{
+    box-sizing: border-box;
+  }
+  
+  .title-test {
     background: none;
     color: white;
     font-size: 36px;
     border: 0;
     border-style: none;
-
-}
-
-.title-test:active, :hover, :focus {
+  }
+  
+  .title-test:active, :hover, :focus {
     outline: 0;
     outline-offset: 0;
-}
-
-.half-size {
+  }
+  
+  .half-size {
     width: 50%;
-    height: auto; 
-}
-
-.input-style{
+    height: auto;
+  }
+  
+  .input-style {
     border-radius: 10px;
     font-size: 30px;
     border: 1px dashed red;
-}
-
-/* Добавьте этот стиль в ваш файл style.css */
-.correct-answer {
+  }
+  
+  .correct-answer {
     background-color: #28a745; /* Зеленый цвет для правильного ответа */
     color: white;
   }
   
-.btn-delete{
+  .btn-delete {
     position: absolute;
     border-radius: 50px;
     border: none;
-}
-
-.btn-exercise{
+  }
+  
+  .btn-exercise {
     width: 40px;
     height: 40px;
-}
-
-.input-answer{
+  }
+  
+  .input-answer {
     border-radius: 10px;
     width: 100px;
-    border-style: dashed;   
-}
-
-
-.input-answer {
-  display: inline-block;
-  width: 100px;
-  margin: 0 5px;
-}
-.selected {
-  background-color: #007bff;
-  color: white;
-}
-.half-size {
-  width: 50%;
-  display: block;
-  margin: 0 auto;
-}
-
-.selected{
+    border-style: dashed;
+  }
+  
+  .input-answer {
+    display: inline-block;
+    width: 100px;
+    margin: 0 5px;
+  }
+  
+  .selected {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .half-size {
+    width: 50%;
+    display: block;
+    margin: 0 auto;
+  }
+  
+  .selected {
     background-color: #28a745;
-}
-
-.area-1{
+  }
+  
+  .area-1 {
     width: 50%;
     height: 200px;
-}
+  }
+  
+  /* Дополнительные стили для улучшения адаптивности */
+  @media (max-width: 768px) {
+    .color, .color-2 {
+      height: auto;
+      padding: 20px;
+    }
+  
+    .half-size {
+      width: 100%;
+    }
+  
+    .textarea, .area-1 {
+      width: 100%;
+    }
+  
+    .input-answer {
+      width: 80px;
+    }
+  }

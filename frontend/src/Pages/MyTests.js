@@ -55,7 +55,7 @@ const MyTests = () => {
                             
                             <Col key={index}>
                                 <Button className='btn-delete' onClick={() => handleDeleteTest(test.id)}>X</Button>
-                                <Test name={test.name} description={test.description} id={test.id} />
+                                <Test name={test.name} description={test.description} id={test.id}  link={`/my-tests/test/${test.id}`} />
                             </Col>
                         ))
                     ) : (

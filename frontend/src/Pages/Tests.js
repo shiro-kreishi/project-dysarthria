@@ -7,10 +7,10 @@ import { DataContext } from './Components/DataContext';
 
 
 const Tests = () => {
-   const { tests, loading, error} = useContext(DataContext);
+   const { publicTests} = useContext(DataContext);
 
-   if (loading) return <p>Загрузка...</p>;
-   if (error) return <p>Ошибка: {error}</p>;
+   //if (loading) return <p>Загрузка...</p>;
+   //if (error) return <p>Ошибка: {error}</p>;
    return (
         <div>
             <div className='color'>
@@ -34,10 +34,10 @@ const Tests = () => {
             </div>
             <Container>
                 <Row>
-                  {tests.length > 0 ? (
-                        tests.map((test, index) => (
+                  {publicTests.length > 0 ? (
+                        publicTests.map((test, index) => (
                             <Col key={index}>
-                                <Test name={test.name} description={test.description} id={test.id} />
+                                <Test name={test.test.name} description={test.test.description} id={test.test.id}  link={`public-tests/${test.test.id}/`} />
                             </Col>
                         ))
                     ) : (

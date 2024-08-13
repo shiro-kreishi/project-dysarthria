@@ -8,7 +8,7 @@ run:
 	docker compose up -d
 
 stop:
-	docker compose stop
+	docker compose stop 
 
 logs:
 	docker compose logs
@@ -46,7 +46,7 @@ test-backend-api-v0:
 	venv/bin/python3 backend/manage.py test api_v0
 
 test-backend-all:
-	venv/bin/python3 backend/manage.py test users --parallel
-	venv/bin/python3 backend/manage.py test user_api --parallel
-	venv/bin/python3 backend/manage.py test api_v0 --parallel
+	backend/venv/bin/python3 backend/manage.py test users --parallel && \
+	backend/venv/bin/python3 backend/manage.py test user_api --parallel && \
+	backend/venv/bin/python3 backend/manage.py test api_v0 --parallel
 

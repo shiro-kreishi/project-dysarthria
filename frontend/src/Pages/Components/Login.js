@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, FormControl, FormLabel, Input, Alert, AlertIcon } from "@chakra-ui/react";
+import axiosConfig from './AxiosConfig';
 
 const Login = ({ client, setCurrentUser }) => {
   const [email, setEmail] = useState('');
@@ -19,7 +20,7 @@ const Login = ({ client, setCurrentUser }) => {
 
     try {
       console.log(client.baseURL);
-      const response = await client.post("/api/user/login/", { email, password });
+      const response = await axiosConfig.post("/api/user/login/", { email, password });
       if (response.status === 200) {
         console.log('Login successful');
         setCurrentUser(true);

@@ -11,38 +11,85 @@ import AddTest from './Pages/AddTest';
 import { DataProvider } from './Pages/Components/DataContext';
 import TestPassing from './Pages/TestPassing';
 import AddExercise from './Pages/AddExercise';
+import { useEffect, useState } from 'react';
+import axiosConfig from './Pages/Components/AxiosConfig';
 
 function App() {
+  const [isAllowed, setIsAllowed] = useState(false);
+
+  useEffect(() => {
+    const getAccess = async () => {
+      try {
+        const response = await axiosConfig.get("/api/user/check-user-permissions/");
+        if (response.data.access === "allow") {
+          setIsAllowed(true);
+        }
+        console.log(response.data.access);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    getAccess();
+    removeExpiredTest();
+
+  }, []);
+
+  const removeExpiredTest = () => {
+    const now = new Date().getTime();
+    const expirationTime = 3000; // 5 минут в миллисекундах
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('test_')) {
+        const testData = JSON.parse(localStorage.getItem(key));
+        if (testData.createdAt && now - testData.createdAt > expirationTime) {
+          localStorage.removeItem(key);
+          console.log(`Тест ${key} удален из локального хранилища`);
+        }
+      }
+    }
+  }
+
   return (
     <>
       <Navbar collapseOnSelect expand='md' bg='light' variant='light'>
-        <Container className='custom-container'>
-          <Navbar.Toggle aria-controls='responsive-navbar-nav' className='custom-nav-toggle'/>
-          <Navbar.Collapse id='responsive-navbar-nav'>
-            <Nav className='modal-fullscreen'>
+        <Container className='center-nav'>
+          <Navbar.Toggle aria-controls='responsive-navbar-nav' className='custom-nav-toggle' />
+          <Navbar.Collapse id='responsive-navbar-nav' style={{ position: 'relative' }}>
+            <Nav className='mx-auto'>
               <Nav.Link href='/' className='custom-nav-link'>Главная</Nav.Link>
               <Nav.Link href='/tests' className='custom-nav-link'>Тесты</Nav.Link>
-              <Nav.Link href='/library' className='custom-nav-link'>Библиотека</Nav.Link>
-              <Nav.Link href='/my-tests' className='custom-nav-link'>Мои тесты</Nav.Link>
+              {isAllowed && (
+                <>
+                  <Nav.Link href='/library' className='custom-nav-link'>Библиотека</Nav.Link>
+                  <Nav.Link href='/my-tests' className='custom-nav-link'>Мои тесты</Nav.Link>
+                </>
+              )}
               <Nav.Link href='/profile' className='custom-nav-link'>Профиль</Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Container>
       </Navbar>
-        <DataProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path='/' element={<Home />} />
-              <Route path='/tests' element={<Tests />} />
-              <Route path='/library' element={<Library />} />
-              <Route path='/my-tests' element={<MyTests />} />
-              <Route path='/my-tests/add-test' element={<AddTest />} />
-              <Route path='/my-tests/add-exercise' element={<AddExercise />} />
-              <Route path='/my-tests/test/:id' element={<TestPassing />} />
-              <Route path='/profile/*' element={<Profile />} />
-            </Routes>
-          </BrowserRouter>
-        </DataProvider>
+      <DataProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path='/' element={<Home />} />
+            <Route path='/tests' element={<Tests />} />
+            {isAllowed && (
+              <>
+                <Route path='/library' element={<Library />} />
+                <Route path='/my-tests' element={<MyTests />} />
+                <Route path='/my-tests/add-test' element={<AddTest />} />
+                <Route path='/my-tests/add-exercise' element={<AddExercise />} />
+                <Route path='/my-tests/test/:id' element={<TestPassing />} />
+                <Route path='/tests/public-tests/:id' element={<TestPassing />} />
+              </>
+            )}
+            <Route path='/profile/*' element={<Profile />} />
+          </Routes>
+        </BrowserRouter>
+      </DataProvider>
     </>
   );
 }
