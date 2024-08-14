@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Button, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Container, Row, Col, Button, Dropdown, DropdownButton, Toast } from 'react-bootstrap';
 import './style.css';
 import Modal from './Components/Modal';
 import axios from 'axios';
@@ -8,21 +8,51 @@ import { DataContext } from './Components/DataContext';
 import useModal from '../hooks/useModal';
 
 const AddExercise = () => {
-  const client = axios.create({
-    baseURL: "http://127.0.0.1:8000"
-  });
+
   const navigate = useNavigate();
   const [exercise, setExercise] = useState(null);
   const { isActive, openModal, closeModal } = useModal();
-  const [selectedType, setSelectedType] = useState(null);   
+  const [selectedType, setSelectedType] = useState(null);
   const [showWordButtons, setShowWordButtons] = useState(false);
   const { createExercise } = useContext(DataContext);
+  const [errors, setErrors] = useState([]);
+  const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('danger'); // 'danger' для ошибок, 'success' для успешных действий
+
 
   useEffect(() => {
     openModal();
   }, []);
 
+  const validateFields = () => {
+    const validationErrors = [];
+
+    if (!exercise?.name) {
+      validationErrors.push({ message: 'Название упражнения обязательно.', variant: 'danger' });
+    }
+    if (!exercise?.description) {
+      validationErrors.push({ message: 'Описание упражнения обязательно.', variant: 'danger' });
+    }
+    if (exercise?.type === '1' && exercise.missingWords.length === 0) {
+      validationErrors.push({ message: 'Должно быть выбрано хотя бы одно пропущенное слово.', variant: 'danger' });
+    }
+    if (exercise?.type === '2' && !exercise.correctAnswer) {
+      validationErrors.push({ message: 'Необходимо выбрать правильный ответ.', variant: 'danger' });
+    }
+
+    return validationErrors;
+  };
+
   const saveExercise = async () => {
+    const validationErrors = validateFields();
+
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
     const exerciseData = {
       name: exercise.name,
       type: exercise.type,
@@ -38,10 +68,10 @@ const AddExercise = () => {
 
     try {
       await createExercise(exerciseData);
-      console.log('Упражнение успешно сохранено');
+      setErrors([{ message: 'Упражнение успешно сохранено.', variant: 'success' }]);
       navigate('/library');
     } catch (error) {
-      console.error('Ошибка при сохранении упражнения', error);
+      setErrors([{ message: 'Ошибка при сохранении упражнения.', variant: 'danger' }]);
     }
   };
 
@@ -63,8 +93,8 @@ const AddExercise = () => {
 
   const handleWordClick = (word, index) => {
     const updatedContent = exercise.content.replace(word, '_'.repeat(word.length));
-    const updatedExercise = { 
-      ...exercise, 
+    const updatedExercise = {
+      ...exercise,
       content: updatedContent,
       missingWords: [...exercise.missingWords, { word, index }]
     };
@@ -73,9 +103,9 @@ const AddExercise = () => {
 
   const renderContentWithButtons = (content) => {
     return content.split(' ').map((word, index) => (
-      <Button 
-        key={index} 
-        onClick={() => handleWordClick(word, index)} 
+      <Button
+        key={index}
+        onClick={() => handleWordClick(word, index)}
         style={{ margin: '5px' }}
       >
         {word}
@@ -84,8 +114,8 @@ const AddExercise = () => {
   };
 
   const addAnswer = () => {
-    const updatedExercise = { 
-      ...exercise, 
+    const updatedExercise = {
+      ...exercise,
       answers: [...exercise.answers, '']
     };
     setExercise(updatedExercise);
@@ -100,13 +130,15 @@ const AddExercise = () => {
     const updatedAnswers = [...exercise.answers];
     updatedAnswers[index] = value;
     const updatedExercise = { ...exercise, answers: updatedAnswers };
-    setExercise(updatedExercise); 
+    setExercise(updatedExercise);
   };
 
   const handleExerciseFieldChange = (e, field) => {
     const updatedExercise = { ...exercise, [field]: e.target.value };
     setExercise(updatedExercise);
   };
+
+
 
   return (
     <div>
@@ -179,8 +211,8 @@ const AddExercise = () => {
                           value={answer}
                           onChange={(e) => answerChange(index, e.target.value)}
                         />
-                        <Button 
-                          onClick={() => setCorrectAnswer(answer)} 
+                        <Button
+                          onClick={() => setCorrectAnswer(answer)}
                           className={exercise.correctAnswer === answer ? 'correct-answer' : ''}
                         >
                           {exercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
@@ -205,6 +237,29 @@ const AddExercise = () => {
           <Dropdown.Item onClick={() => handleSelectType('other')}>Something else</Dropdown.Item>
         </DropdownButton>
       </Modal>
+      <div className="toast-container">
+        {errors.map((error, index) => (
+          <Toast
+            key={index}
+            onClose={() => setErrors(errors.filter((_, i) => i !== index))}
+            show={true}
+            delay={1000}
+            autohide
+            bg={error.variant || 'danger'}
+            className="mb-2"
+          >
+            <Toast.Header>
+              <strong className="me-auto">{error.variant === 'success' ? 'Успех' : 'Ошибка'}</strong>
+            </Toast.Header>
+            <Toast.Body className="text-white">
+              {error.message}
+            </Toast.Body>
+          </Toast>
+        ))}
+      </div>
+
+
+
     </div>
   );
 };

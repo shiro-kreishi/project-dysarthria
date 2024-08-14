@@ -61,8 +61,8 @@ const AddTest = () => {
 
       // Сохраняем данные в localStorage
       localStorage.setItem(`test_${testId}`, JSON.stringify({ test, exercises }));
-
-      navigate(`/my-tests/test/${testId}`);
+      localStorage.setItem('testCreated', 'true');
+      navigate(`/my-tests/`);
 
     } catch (error) {
       console.error('Ошибка при сохранении теста и упражнений', error);
