@@ -2,13 +2,12 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DataContext } from './Components/DataContext';
 import './style.css';
-import { Container, Button, Row, Col } from 'react-bootstrap';
-import { Input } from '@chakra-ui/react';
+import { Container, Button } from 'react-bootstrap';
 import axiosConfig from './Components/AxiosConfig';
 
 const TestPassing = () => {
   const { id } = useParams();
-  const { getTestById, loading, error } = useContext(DataContext);
+  const { getTestById, loading, error, refreshTests } = useContext(DataContext);
   const [test, setTest] = useState(null);
   const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
@@ -17,39 +16,26 @@ const TestPassing = () => {
 
   useEffect(() => {
     const loadTest = async () => {
-      // Попытка загрузить данные из localStorage
-      const localData = localStorage.getItem(`test_${id}`);
-      if (localData) {
-        const { test, exercises } = JSON.parse(localData);
+      let test = getTestById(id);
+      if (test) {
         setTest(test);
-        setExercises(exercises);
-        setAnswers(exercises.map(ex => ({
-          id: ex.id,
-          type: ex.type,
-          answer: ex.type === 1 ? [] : null
-        })));
-        // Удаляем данные из localStorage после загрузки
-        localStorage.removeItem(`test_${id}`);
-      } else {
-        const test = await getTestById(id);
-        if (test) { 
-          setTest(test);
-          if (test.exercises) {
-            setExercises(test.exercises);
-            setAnswers(test.exercises.map(ex => ({
-              id: ex.id,
-              type: ex.type,
-              answer: ex.type === 1 ? [] : null
-            })));
-          } else {
-            console.error('Test exercises are undefined');
-          }
+        if (test.exercises) {
+          setExercises(test.exercises);
+          setAnswers(test.exercises.map(ex => ({
+            id: ex.id,
+            type: ex.type,
+            answer: ex.type === 1 ? [] : null
+          })));
+        } else {
+          console.error('Test exercises are undefined');
         }
+      } else {
+        console.error('Test not found');
       }
     };
   
     loadTest();
-  }, [id, getTestById]);
+  }, [id, getTestById, refreshTests]);
 
   const selectExercise = (exercise) => {
     setSelectedExercise(exercise);
@@ -75,9 +61,9 @@ const TestPassing = () => {
     };
 
     try {
-      const response = await axiosConfig.post('/api/v0/response-tests/', responseTest);
-      console.log('Ответы успешно отправлены', response.data);
-      navigate('/my-tests')
+      await axiosConfig.post('/api/v0/response-tests/', responseTest);
+      console.log('Ответы успешно отправлены');
+      navigate('/my-tests');
     } catch (error) {
       console.error('Ошибка при отправке ответов', error);
     }

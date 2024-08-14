@@ -10,58 +10,61 @@
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-      const fetchTests = async () => {
-        try {
-          const response = await axiosConfig.get("/api/v0/tests/");
-          const testIds = response.data.map(test => test.id);
-          const fullTests = await Promise.all(
-            testIds.map(async id => {
-              const testResponse = await axiosConfig.get(`/api/v0/tests/${id}/`);
-              return testResponse.data;
-            })
-          );
+    const fetchTests = async () => {
+      try {
+        const response = await axiosConfig.get("/api/v0/tests/");
+        const testIds = response.data.map(test => test.id);
+        const fullTests = await Promise.all(
+          testIds.map(async id => {
+            const testResponse = await axiosConfig.get(`/api/v0/tests/${id}/`);
+            return testResponse.data;
+          })
+        );
 
-          setTests(fullTests);
-          setLoading(false);
-        } catch (error) {
-          setError(error.message);
-          setLoading(false);
-        }
-      };
+        setTests(fullTests);
+        setLoading(false);
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    };
+    const fetchPublicTests = async () => {
+      try {
+        const response = await axiosConfig.get(`/api/v0/public-tests/`);
+        const testIds = response.data.map(test => test.id);
+        const fullTests = await Promise.all(
+          testIds.map(async id => {
+            const testResponse = await axiosConfig.get(`/api/v0/public-tests/${id}/?detailed=true`);
+            return testResponse.data;
+          })
+        );
 
-      const fetchPublicTests = async () => {
-        try {
-          const response = await axiosConfig.get(`/api/v0/public-tests/`);
-          const testIds = response.data.map(test => test.id);
-          const fullTests = await Promise.all(
-            testIds.map(async id => {
-              const testResponse = await axiosConfig.get(`/api/v0/public-tests/${id}/?detailed=true`);
-              return testResponse.data;
-            })
-          );
-
-          setPublicTests(fullTests);
-          setLoading(false);
-        } catch (error) {
-          setError(error.message);
-          setLoading(false);
-        }
-      };
-      const fetchExercises = async () => {
-        try {
-          const response = await axiosConfig.get("/api/v0/exercises/");
-          setExercises(response.data);
-        } catch (error) {
-          console.error("Ошибка при загрузке упражнений:", error);
-        } 
-      };
+        setPublicTests(fullTests);
+        setLoading(false);
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    };
+    const fetchExercises = async () => {
+      try {
+        const response = await axiosConfig.get("/api/v0/exercises/");
+        setExercises(response.data);
+      } catch (error) {
+        console.error("Ошибка при загрузке упражнений:", error);
+      } 
+    };
+    useEffect(() => {     
       fetchTests();
       fetchPublicTests();
       fetchExercises();
     }, []);
 
-
+    const refreshTests = async () => {
+      setLoading(true);
+      await fetchTests();
+      setLoading(false);
+    }
 
     // const addTest = async (test) => {
     //   try {
@@ -166,7 +169,7 @@
     }
 
     return (
-      <DataContext.Provider value={{ tests, publicTests,  exercises, loading,  error, deleteTest, deleteExercise,  getTestById, createTest, createExercise, linkExerciseToTest, findExerciseByName, addPublicTest }}>
+      <DataContext.Provider value={{ tests, publicTests,  exercises, loading,  error, deleteTest, deleteExercise,  getTestById, createTest, createExercise, linkExerciseToTest, findExerciseByName, addPublicTest, refreshTests }}>
         {children}
       </DataContext.Provider>
     );
