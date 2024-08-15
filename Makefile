@@ -34,7 +34,8 @@ migrate:
 	venv/bin/python3 backend/manage.py migrate
 
 user-groups:
-	venv/bin/python3 backend/create_user_groups.py
+	backend/venv/bin/python3 backend/create_user_groups.py
+
 
 test-backend-users:
 	venv/bin/python3 backend/manage.py test users
