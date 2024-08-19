@@ -54,10 +54,14 @@
         console.error("Ошибка при загрузке упражнений:", error);
       } 
     };
-    useEffect(() => {     
-      fetchTests();
-      fetchPublicTests();
-      fetchExercises();
+    useEffect(() => {
+      const fetchData = async () => {
+        await fetchTests();
+        await fetchPublicTests();
+        await fetchExercises();
+      };
+    
+      fetchData();
     }, []);
 
     const refreshTests = async () => {
@@ -110,8 +114,8 @@
 
     const createExercise = async (exercise) => {
       try {
-
         const response = await axiosConfig.post('/api/v0/exercises/', exercise);
+        setExercises([...exercises, response.data]);
         return response.data;
       } catch (error) {
         console.error('Ошибка при создании упражнения', error);
@@ -136,15 +140,7 @@
       try {
         // Fetch the test object
         const test = tests.find(t => t.id === testId);
-        if (test && test.exercises && test.exercises.length > 0) {
-          // Delete each exercise associated with the test
-          await Promise.all(test.exercises.map(async (exercise) => {
-            await deleteExercise(exercise.id)
-          }));
-        }
-        
         await axiosConfig.delete(`/api/v0/tests/${testId}/`);
-        
         setTests(tests.filter(test => test.id !== testId));
       } catch (error) {
         setError(error.message);

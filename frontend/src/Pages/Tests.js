@@ -36,7 +36,7 @@ const Tests = () => {
                 <Row>
                   {publicTests.length > 0 ? (
                         publicTests.map((test, index) => (
-                            <Col key={index}>
+                            <Col key={index} sm={12} md={6} lg={4}>
                                 <Test name={test.test.name} description={test.test.description} id={test.test.id}  link={`public-tests/${test.test.id}/`} />
                             </Col>
                         ))

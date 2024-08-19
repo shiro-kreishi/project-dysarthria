@@ -38,8 +38,8 @@ const MyTests = () => {
         <div>
             <div className='color'>
                 <Container className="h-100">
-                    <Row className="h-100 align-items-center">
-                        <Col>
+                    <Row className="h-100 align-items-center justify-content-between">
+                        <Col className='aling-items-center justify-content-'>
                             <h1 className="h-white ml-100">Мои тесты</h1>
                         </Col>
                         <Col>
@@ -49,10 +49,16 @@ const MyTests = () => {
                                     placeholder='Введите название или тип теста...'
                                     className='mr-sm-2'
                                 />
-                                <Button variant='outline-info'>Поиск</Button>
-                                <Link to='/my-tests/add-test' className='btn btn-red m-4'>Добавить тест</Link>
-                                <Link to='/my-tests/add-exercise' className='btn btn-red m-4'>Добавить упражнение</Link>
                             </Form>
+                        </Col>
+                        <Col lg={2} sm={3} className="d-flex justify-content-end">
+                            <Button variant='outline-info'>Поиск</Button>
+                        </Col>
+                        <Col lg={2} className="d-flex justify-content-end">
+                            <Link to='/my-tests/add-test' className='btn btn-red '>Добавить тест</Link>
+                        </Col>
+                        <Col lg={2} className="d-flex justify-content-end">
+                            <Link to='/my-tests/add-exercise' className='btn btn-red'>Добавить упражнение</Link>
                         </Col>
                     </Row>
                 </Container>
@@ -61,7 +67,7 @@ const MyTests = () => {
                 <Row>
                     {tests.length > 0 ? (
                         tests.map((test, index) => (
-                            <Col key={index}>
+                            <Col key={index} sm={12} md={6} lg={2}>
                                 <Button className='btn-delete' onClick={() => handleDeleteTest(test.id)}>X</Button>
                                 <Test name={test.name} description={test.description} id={test.id} link={`/my-tests/test/${test.id}`} />
                             </Col>

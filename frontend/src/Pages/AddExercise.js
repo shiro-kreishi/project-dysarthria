@@ -69,6 +69,7 @@ const AddExercise = () => {
     try {
       await createExercise(exerciseData);
       setErrors([{ message: 'Упражнение успешно сохранено.', variant: 'success' }]);
+      localStorage.setItem('exerciseCreated', 'true');
       navigate('/library');
     } catch (error) {
       setErrors([{ message: 'Ошибка при сохранении упражнения.', variant: 'danger' }]);

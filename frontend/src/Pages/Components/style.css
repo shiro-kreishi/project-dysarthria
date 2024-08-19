@@ -32,10 +32,10 @@
     background-color: #4178bf;
     width: 200px;
     height: 100px;
-    margin: 10px;
+    margin-top: 20px;
     border-radius: 10px;
     text-align: center;
-    color:white;    
+    color:white;  
 }
 
 .exercise-item{

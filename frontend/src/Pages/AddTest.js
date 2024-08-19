@@ -61,7 +61,6 @@ const AddTest = () => {
       setLoading(false);
 
       // Сохраняем данные в localStorage
-      localStorage.setItem(`test_${testId}`, JSON.stringify({ test, exercises }));
       localStorage.setItem('testCreated', 'true');
       navigate(`/my-tests/`);
 

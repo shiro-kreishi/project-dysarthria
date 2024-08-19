@@ -1,34 +1,45 @@
-import { Container, Row, Col, Button } from 'react-bootstrap';
+import { Container, Row, Col, Button, Toast } from 'react-bootstrap';
 import './style.css';
 import { DataContext } from './Components/DataContext';
-import Test from './Components/TestItem';
-import { useContext, useEffect, useState } from 'react';
-import axiosConfig from './Components/AxiosConfig';
 import ExerciseItem from './Components/ExerciseItem';
 import Modal from './Components/Modal';
 import useModal from '../hooks/useModal';
-
+import { useContext, useEffect, useState } from 'react';
+import Test from './Components/TestItem';
 
 const Library = () => {
-  const {exercises, loading, error, deleteExercise} = useContext(DataContext);
-  const {isActive, openModal, closeModal} = useModal();
+  const { exercises, loading, error, deleteExercise } = useContext(DataContext);
+  const { isActive, openModal, closeModal } = useModal();
   const [exToDelete, setExToDelete] = useState(null);
-
+  const [show, setShow] = useState(false);
 
   const handleDeleteExercise = (exerciseId) => {
     setExToDelete(exerciseId);
     openModal();
-  }
+  };
 
-  const confirmDeleteExercise =() => {
+  const confirmDeleteExercise = () => {
     deleteExercise(exToDelete);
     setExToDelete(null);
     closeModal();
+  };
+
+  useEffect(() => {
+    const exerciseCreated = localStorage.getItem('exerciseCreated');
+    if (exerciseCreated === 'true') {
+      setShow(true);
+      localStorage.removeItem('exerciseCreated');
+    }
+  }, []);
+
+  if (error) {
+    return <div>Ошибка: {error}</div>;
   }
 
-  
-  if (error) return 'Ошибка';
-  if (loading) return 'Загрузка'
+  if (loading) {
+    return <div>Загрузка...</div>;
+  }
+
   return (
     <div>
       <div className="color">
@@ -38,12 +49,18 @@ const Library = () => {
       </div>
       <Container>
         <Row>
-          {exercises.map((exercise) => (
-            <Col key={exercise.id} sm={12} md={6} lg={4}>
-              <Button className='btn-delete' onClick={() => handleDeleteExercise(exercise.id)}>X</Button>
-              <ExerciseItem name={exercise.name}/>
+          {exercises && exercises.length > 0 ? (
+            exercises.map((exercise) => (
+              <Col key={exercise.id} sm={12} md={6} lg={4}>
+                <Button className='btn-delete' onClick={() => handleDeleteExercise(exercise.id)}>X</Button>
+                <ExerciseItem name={exercise.name} />
+              </Col>
+            ))
+          ) : (
+            <Col>
+              <p>Нет доступных упражнений.</p>
             </Col>
-          ))}
+          )}
         </Row>
       </Container>
       <Modal isActive={isActive} closeModal={closeModal}>
@@ -53,8 +70,16 @@ const Library = () => {
           <Button onClick={closeModal}>Нет</Button>
         </p>
       </Modal>
-    </div>  
+      <div className='toast-container'>
+        <Toast onClose={() => setShow(false)} show={show} delay={3000} autohide bg='success'>
+          <Toast.Header>
+            <strong className='me-auto'>Успешно!</strong>
+          </Toast.Header>
+          <Toast.Body className={'Daкk' && 'text-white'}>Упражнение успешно создано!</Toast.Body>
+        </Toast>
+      </div>
+    </div>
   );
-};  
+};
 
 export default Library;
