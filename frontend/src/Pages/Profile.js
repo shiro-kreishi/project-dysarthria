@@ -5,13 +5,12 @@ import { ChakraProvider, Box, Button, Flex, Heading } from "@chakra-ui/react";
 import Home from './Components/Home';
 import Login from './Components/Login';
 import Register from './Components/Register';
-import AssignDoctorGroup from './Components/AssignDoctorGroups';
+import Confirmation from './Components/Confirmation';
 import axiosConfig from './Components/AxiosConfig';
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 axios.defaults.withCredentials = true;
-
 
 function Profile() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -47,8 +46,7 @@ function Profile() {
           navigate('/profile');
         });
     } catch (error) {
-      console.error("Error to user logout: ", error);
-      throw error;
+      console.error("Error to user logout: ", error.response ? error.response.data : error.message);
     }
   };
 
@@ -70,16 +68,15 @@ function Profile() {
                 <Link to="/profile/register">
                   <Button colorScheme="teal">Регистрация</Button>
                 </Link>
-                
               </>
             )}
           </Flex>
-          <AssignDoctorGroup />
         </Flex>
         <Routes>
-          <Route path="/" element={<Home currentUser={currentUser} />} />
-          <Route path="/login" element={<Login client={axiosConfig} setCurrentUser={setCurrentUser} />} />
-          <Route path="/register" element={<Register axiosConfig={axiosConfig} setCurrentUser={setCurrentUser} />} />
+          <Route path="/" element={<Home currentUser={currentUser} client={axiosConfig} />} />
+          <Route path="/login" element={<Login setCurrentUser={setCurrentUser} />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/confirmation" element={<Confirmation/>} />
         </Routes>
       </Box>
     </ChakraProvider>
