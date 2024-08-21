@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Button, Col, Container, Dropdown, DropdownButton, Form, Row } from 'react-bootstrap';
+import { Button, Col, Container, Dropdown, DropdownButton, Form, Row} from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import useModal from '../hooks/useModal';
 import { DataContext } from './Components/DataContext';
@@ -107,15 +107,23 @@ const AddTest = () => {
   };
 
   const renderContentWithButtons = (content) => {
-    return content.split(' ').map((word, index) => (
-      <Button
-        key={index}
-        onClick={() => handleWordClick(word, index)}
-        style={{ margin: '5px' }}
-      >
-        {word}
-      </Button>
-    ));
+    // Разделяем текст на слова и знаки препинания
+    const words = content.split(/(\s+|[.,!?])/).filter(word => word.trim() !== '');
+    return words.map((word, index) => {
+      // Игнорируем знаки препинания
+      if (/[.,!?]/.test(word)) {
+        return <span key={index}>{word}</span>;
+      }
+      return (
+        <Button
+          key={index}
+          onClick={() => handleWordClick(word, index)}
+          style={{ margin: '5px' }}
+        >
+          {word}
+        </Button>
+      );
+    });
   };
 
   const addAnswer = () => {
@@ -237,9 +245,6 @@ const AddTest = () => {
                   <Col>
 
                   </Col>
-                  <Col>
-                    <Button>Сохранить упражнение в библиотеке</Button>
-                  </Col>
                 </Row>
               </div>
             ) : selectedExercise.type === '2' ? (
@@ -282,7 +287,7 @@ const AddTest = () => {
                         >
                           {selectedExercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
                         </Button>
-                        <Button>Сохранить упражнение в библиотеке</Button>
+
                       </div>
                     ))}
                   </Col>

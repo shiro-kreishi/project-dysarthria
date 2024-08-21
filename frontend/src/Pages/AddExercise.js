@@ -103,7 +103,8 @@ const AddExercise = () => {
   };
 
   const renderContentWithButtons = (content) => {
-    return content.split(' ').map((word, index) => (
+    const words = content.match(/\b(\w+)\b/g) || [];
+    return words.map((word, index) => (
       <Button
         key={index}
         onClick={() => handleWordClick(word, index)}

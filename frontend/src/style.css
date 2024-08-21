@@ -1,3 +1,9 @@
+body {
+  font-family: "Roboto", sans-serif;
+  font-weight: 100;
+  font-style: normal;
+}
+
 .custom-nav-link {
   font-family: "Roboto";
   display: inline-block;
@@ -9,27 +15,27 @@
   border-radius: 15px;
   text-decoration: none;
   transition: background-color 0.3s ease;
-  max-width: 200px ;
+  max-width: 200px;
   text-align: center;
-  font-size:17px;
+  font-size: 17px;
 }
 
-.center-nav{
+.center-nav {
   display: flex;
   justify-content: center;
 }
 
 .custom-nav-link:hover {
   background-color: #f2b29b;
-  color:white;
+  color: white;
 }
 
-.custom-nav-toggle{
+.custom-nav-toggle {
   background-color: #4178bf;
   border: 1px solid white;
 }
 
-.test-item{
+.test-item {
   background-color: #4178bf;
   width: 200px;
   height: 100px;
@@ -55,12 +61,15 @@
   border-radius: 15px;
   text-decoration: none;
   transition: background-color 0.3s ease;
-  max-width: 200px ;
+  max-width: 200px;
   text-align: center;
-  font-size:17px;
+  font-size: 17px;
 }
 
 .dropdown-item:hover {
   background-color: #f2b29b;
   color: white;
 }
+
+
+

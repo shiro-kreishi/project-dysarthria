@@ -1,5 +1,3 @@
-
-
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 import './style.css';
@@ -33,29 +31,12 @@ function App() {
     }
 
     getAccess();
-    removeExpiredTest();
-
   }, []);
 
-  const removeExpiredTest = () => {
-    const now = new Date().getTime();
-    const expirationTime = 3000; // 5 минут в миллисекундах
-
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key.startsWith('test_')) {
-        const testData = JSON.parse(localStorage.getItem(key));
-        if (testData.createdAt && now - testData.createdAt > expirationTime) {
-          localStorage.removeItem(key);
-          console.log(`Тест ${key} удален из локального хранилища`);
-        }
-      }
-    }
-  }
 
   return (
     <>
-      <Navbar collapseOnSelect expand='md' bg='light' variant='light'>
+      <Navbar collapseOnSelect expand='md' bg='light' variant='light' className='custom-navbar'>
         <Container className='center-nav'>
           <Navbar.Toggle aria-controls='responsive-navbar-nav' className='custom-nav-toggle' />
           <Navbar.Collapse id='responsive-navbar-nav' style={{ position: 'relative' }}>

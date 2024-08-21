@@ -64,7 +64,7 @@ const MyTests = () => {
                 </Container>
             </div>
             <Container>
-                <Row>
+                <Row clas>
                     {tests.length > 0 ? (
                         tests.map((test, index) => (
                             <Col key={index} sm={12} md={6} lg={2}>
@@ -73,7 +73,12 @@ const MyTests = () => {
                             </Col>
                         ))
                     ) : (
-                        <p>Тестов нет. Добавьте новые тесты!</p>
+                        <div className='text-center'>
+                            <h1 className='text-center'>Тестов нет</h1>
+                            <p>Добавьте новые тесты. Если тесты не
+                                добавляются - обратитесь к администратору
+                            </p>
+                        </div>
                     )}
                 </Row>
             </Container>

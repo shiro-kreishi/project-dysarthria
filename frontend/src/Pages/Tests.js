@@ -17,7 +17,7 @@ const Tests = () => {
                 <Container className="h-100">
                     <Row className="h-100 align-items-center">
                         <Col>
-                            <h1 className="h-white ml-100">Мои тесты</h1>
+                            <h1 className="h-white ml-100">Каталог тестов</h1>
                         </Col>
                         <Col>
                             <Form inline>
@@ -41,7 +41,13 @@ const Tests = () => {
                             </Col>
                         ))
                     ) : (
-                        <p>Тестов нет</p>
+                        <div className='text-center'>
+                            <h1 className='text-center'>Тестов нет</h1>
+                            <p>Новые тесты скоро , если тестов нет - сообщите 
+                                администратору
+                            </p>
+                        </div>
+                        
                   )}
                 </Row>
             </Container>
