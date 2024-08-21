@@ -15,7 +15,7 @@ const AssignDoctorGroup = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/v0/users/');
+                const response = await axios.get('http://127.0.0.1:8000/api/user/users/');
                 setUsers(response.data);
                 setLooading(false);
 
