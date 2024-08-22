@@ -1,5 +1,5 @@
-import React, { useContext, useState } from 'react';
-import { Container, Row, Col, Form, Button, FormControl } from 'react-bootstrap';
+import React, { useContext, useState, useEffect } from 'react';
+import { Container, Row, Col, Form, Button, FormControl, Toast } from 'react-bootstrap';
 import './style.css';
 import { Link } from "react-router-dom";
 import Test from './Components/TestItem';
@@ -8,24 +8,33 @@ import Modal from './Components/Modal';
 import useModal from '../hooks/useModal';
 
 const MyTests = () => {
-   const { tests, loading, error, deleteTest } = useContext(DataContext);
-   const { isActive, openModal, closeModal } = useModal();
-   const [testToDelete, setTestToDelete] = useState(null);
+    const { tests, loading, error, deleteTest } = useContext(DataContext);
+    const { isActive, openModal, closeModal } = useModal();
+    const [testToDelete, setTestToDelete] = useState(null);
+    const [show, setShow] = useState(false);
 
-   const handleDeleteTest = (testId) => {
-     setTestToDelete(testId);
-     openModal();
-   };
+    const handleDeleteTest = (testId) => {
+        setTestToDelete(testId);
+        openModal();
+    };
 
-   const confirmDeleteTest = () => {
-     deleteTest(testToDelete);
-     setTestToDelete(null);
-     closeModal();
-   };
+    const confirmDeleteTest = () => {
+        deleteTest(testToDelete);
+        setTestToDelete(null);
+        closeModal();
+    };
 
-   if (loading) return <p>Загрузка...</p>;
-   if (error) return <p>Ошибка: {error}</p>;
-   return (
+    useEffect(() => {
+        const testCreated = localStorage.getItem('testCreated');
+        if (testCreated === 'true') {
+            setShow(true);
+            localStorage.removeItem('testCreated');
+        }
+    }, []);
+
+    if (loading) return <p>Загрузка...</p>;
+    if (error) return <p>Ошибка: {error}</p>;
+    return (
         <div>
             <div className='color'>
                 <Container className="h-100">
@@ -50,26 +59,34 @@ const MyTests = () => {
             </div>
             <Container>
                 <Row>
-                  {tests.length > 0 ? (
+                    {tests.length > 0 ? (
                         tests.map((test, index) => (
-                            
                             <Col key={index}>
                                 <Button className='btn-delete' onClick={() => handleDeleteTest(test.id)}>X</Button>
-                                <Test name={test.name} description={test.description} id={test.id} />
+                                <Test name={test.name} description={test.description} id={test.id} link={`/my-tests/test/${test.id}`} />
                             </Col>
                         ))
                     ) : (
                         <p>Тестов нет. Добавьте новые тесты!</p>
-                  )}
+                    )}
                 </Row>
             </Container>
             <Modal isActive={isActive} closeModal={closeModal}>
                 <h1>Удалить выбранный тест?</h1>
                 <p>
-                  <Button onClick={confirmDeleteTest}>Да</Button>
-                  <Button onClick={closeModal}>Нет</Button>
+                    <Button onClick={confirmDeleteTest}>Да</Button>
+                    <Button onClick={closeModal}>Нет</Button>
                 </p>
             </Modal>
+
+            <div className="toast-container">
+                <Toast onClose={() => setShow(false)} show={show} delay={3000} autohide bg='success'>
+                    <Toast.Header>
+                        <strong className='me-auto'>Успешно!</strong>
+                    </Toast.Header>
+                    <Toast.Body className={'Dark' && 'text-white'}>Тест и упражнения к нему успешно созданы.</Toast.Body>
+                </Toast>
+            </div>
         </div>
     );
 };

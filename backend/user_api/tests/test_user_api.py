@@ -66,8 +66,6 @@ class UserRegistrationAPIViewTest(TestCase):
         }
 
         response = self.client.post(self.url, data, format='json')
-        print(self.url)
-        print(response)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(User.objects.filter(email='newuser@example.com').exists())
 

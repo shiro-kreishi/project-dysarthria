@@ -1,10 +1,12 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext, useState } from 'react';
+import { Button, Col, Container, Dropdown, DropdownButton, Form, Row } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Button, Dropdown, DropdownButton, Alert } from 'react-bootstrap';
-import './style.css';
-import Modal from './Components/Modal';
-import { DataContext } from './Components/DataContext';
 import useModal from '../hooks/useModal';
+import { DataContext } from './Components/DataContext';
+import Modal from './Components/Modal';
+import './style.css';
+import axiosConfig from './Components/AxiosConfig';
+
 
 const AddTest = () => {
   const navigate = useNavigate();
@@ -14,8 +16,10 @@ const AddTest = () => {
   const [selectedType, setSelectedType] = useState('1');
   const [showWordButtons, setShowWordButtons] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
-  const { createTest, createExercise, linkExerciseToTest, exercises: libraryExercises, findExerciseByName } = useContext(DataContext); // Получаем exercises из контекста
+  const { createTest, addPublicTest, createExercise, linkExerciseToTest, exercises: libraryExercises, findExerciseByName } = useContext(DataContext); // Получаем exercises из контекста
   const [loading, setLoading] = useState(false);
+  const [isChecked, setIsCheked] = useState(false);
+
 
   const SaveTest = async () => {
     setLoading(true);
@@ -26,7 +30,7 @@ const AddTest = () => {
     try {
       const createdTest = await createTest(test);
       const testId = createdTest.id;
-  
+
       const exercisePromise = exercises.map(async (exercise) => {
         const existingExercise = await findExerciseByName(exercise.name);
         if (existingExercise) {
@@ -49,21 +53,26 @@ const AddTest = () => {
         }
       });
       await Promise.all(exercisePromise);
-  
+      if (isChecked) {
+        await addPublicTest(createdTest.id);
+      }
+      
       console.log('Тест и упражнения успешно сохранены');
       setLoading(false);
-  
+
       // Сохраняем данные в localStorage
       localStorage.setItem(`test_${testId}`, JSON.stringify({ test, exercises }));
-  
+      localStorage.setItem('testCreated', 'true');
       navigate(`/my-tests/`);
-  
+
     } catch (error) {
       console.error('Ошибка при сохранении теста и упражнений', error);
     }
   };
-  
-  
+
+  const handleCheckboxChange = (event) => {
+    setIsCheked(event.target.checked);
+  }
 
   const addExercise = (type) => {
     let newExercise;
@@ -79,7 +88,7 @@ const AddTest = () => {
 
   const selectExercise = (exercise) => {
     setSelectedExercise(exercise);
-    console.log(exercise);
+    console.log(selectedExercise);
   };
 
   const handleSelectType = (type) => {
@@ -156,7 +165,7 @@ const AddTest = () => {
     const convertedExercise = convertLibraryExercise(exercise);
     setExercises([...exercises, convertedExercise]);
     setSelectedExercise(convertedExercise);
-    
+    setSelectedType(convertedExercise.type)
     closeModal();
   };
 
@@ -168,14 +177,24 @@ const AddTest = () => {
             <Col></Col>
             <Col>
               <input className='title-test' placeholder={'введите название теста'}></input>
-              <p><Button className='btn-blue' onClick={SaveTest}>Сохранить</Button></p>
+              <p><Button className='btn-blue' onClick={SaveTest}>Сохранить тест и выйти</Button></p>
+              <div className='checkbox'>
+                <Form.Check
+                  type={'checkbox'}
+                  id={'default-chekbox'}
+                  label={'Сделать публичным'}
+                  checked={isChecked}
+                  onChange={handleCheckboxChange}
+                />
+              </div>
+
             </Col>
           </Row>
           <Row>
             <Col>
               <div className="exercise-nav">
                 {exercises.map((exercise, index) => (
-                  <Button
+                  <Button 
                     key={exercise.id}
                     className='exercise-btn'
                     onClick={() => selectExercise(exercise)}
@@ -217,7 +236,7 @@ const AddTest = () => {
                 )}
                 <Row>
                   <Col>
-                    
+
                   </Col>
                   <Col>
                     <Button>Сохранить упражнение в библиотеке</Button>
@@ -258,8 +277,8 @@ const AddTest = () => {
                           value={answer}
                           onChange={(e) => AnswerChange(index, e.target.value)}
                         />
-                        <Button 
-                          onClick={() => setCorrectAnswer(answer)} 
+                        <Button
+                          onClick={() => setCorrectAnswer(answer)}
                           className={selectedExercise.correctAnswer === answer ? 'correct-answer' : ''}
                         >
                           {selectedExercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
@@ -271,7 +290,7 @@ const AddTest = () => {
                   <Col>
                   </Col>
                 </Row>
-               
+
               </div>
             ) : null
           ) : (

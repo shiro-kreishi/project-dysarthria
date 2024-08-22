@@ -7,11 +7,11 @@ function Home() {
     <div>
       <div className='color'>
         <Container>
-          <Row>
-            <Col>
-              <img src={img} width='700px' alt=' изображения' />
+          <Row className='align-items-center'>
+            <Col xs={12} md={6}>
+              <img src={img} className='img-fluid' alt='изображения'/>
             </Col>
-            <Col>
+            <Col xs={10} md={6}>
               <h1 className='hwhite'>Добро пожаловать в "НАЗВАНИЕ"</h1>
               <span className='white-text'>
                 «НАЗВАНИЕ» — это инновационное веб-приложение,
@@ -23,10 +23,10 @@ function Home() {
         </Container>
       </div>
       <Container>
-        <Row>
-          <Col></Col>
-          <Col>
-            <h1>Как начать?</h1>
+        <Row className='justify-content-center'>
+          <Col xs={12} md={6}> <h1>Как начать?</h1></Col>
+          <Col xs={12} md={6}>
+            
             <ul>
               <li> Зарегистрируйтесь или войдите в свою учетную запись.</li>
               <li> Изучайте упражнения: Просматривайте каталог упражнений и выбирайте подходящие для ваших пациентов.</li>

@@ -11,7 +11,6 @@ class AssignDoctorSerializer(serializers.Serializer):
     def validate_user_id(self, value):
         try:
             user = UserModel.objects.filter(id=value).first()
-            print(f"user: {user}")
         except UserModel.DoesNotExist:
             raise serializers.ValidationError("User does not exist.")
         return value

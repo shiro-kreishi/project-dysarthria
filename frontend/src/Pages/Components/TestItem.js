@@ -1,19 +1,24 @@
-//Компонент объекта теста для списков на страницах Tests, MyTests 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { DataContext } from './DataContext';
 import './style.css';
 
-const Test = ({ name, description, id }) => {
+const Test = ({ name, description, id, link }) => {
+  const { refreshTests } = useContext(DataContext); // Доступ к контексту для обновления тестов
+  const navigate = useNavigate();
+
+  const handleClick = async () => {
+    await refreshTests(); // Обновляем тесты перед переходом
+    navigate(link); // Переход по ссылке после обновления
+  };
+
   return (
-    <Link to={`/my-tests/test/${id}`} >
-      <div className='test-item'>
-        <div className="test-header">
-          <h3 className="test-title">{name}</h3>
-          <p className="test-description">{description}</p>
-        </div>
+    <div className='test-item' onClick={handleClick}>
+      <div className="test-header">
+        <h3 className="test-title">{name}</h3>
+        <p className="test-description">{description}</p>
       </div>
-      
-    </Link>
+    </div>
   );
 };
 

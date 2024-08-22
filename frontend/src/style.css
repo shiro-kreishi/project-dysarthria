@@ -14,6 +14,11 @@
   font-size:17px;
 }
 
+.center-nav{
+  display: flex;
+  justify-content: center;
+}
+
 .custom-nav-link:hover {
   background-color: #f2b29b;
   color:white;
@@ -24,10 +29,6 @@
   border: 1px solid white;
 }
 
-.custom-container{
-  justify-content: center;
-}
-
 .test-item{
   background-color: #4178bf;
   width: 200px;
@@ -35,4 +36,31 @@
   margin: 10px;
   border-radius: 10px;
   text-align: center;
+}
+
+/* Добавляем стили для выпадающего меню */
+.dropdown-menu {
+  text-align: center;
+  position: absolute; /* Добавляем абсолютное позиционирование */
+  z-index: 1000; /* Убедитесь, что меню находится поверх других элементов */
+}
+
+.dropdown-item {
+  display: inline-block;
+  width: 200px;
+  padding: 10px;
+  margin: 10px;
+  color: white;
+  background-color: #4178bf;
+  border-radius: 15px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  max-width: 200px ;
+  text-align: center;
+  font-size:17px;
+}
+
+.dropdown-item:hover {
+  background-color: #f2b29b;
+  color: white;
 }
