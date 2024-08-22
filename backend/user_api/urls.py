@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from user_api.views.user import DoctorToTestModelViewSet, UserModelViewSet, CheckUserPermissions
 from user_api.views.user_api import \
-    UserRegistrationAPIView, UserRegistrationModelViewSet, UserLoginModelViewSet, \
+    UserRegistrationModelViewSet, UserLoginModelViewSet, \
     UserLogoutViewSet, CurrentUserViewSet, UserChangePasswordModelViewSet, AssignDoctorGroupModelViewSet, \
     UpdateNameModelViewSet, ConfirmEmailView
 
@@ -18,8 +18,8 @@ router.register(r'update-name', UpdateNameModelViewSet, basename='update-name')
 router.register(r'doctors-test', DoctorToTestModelViewSet, basename='doctors-test')
 router.register(r'users', UserModelViewSet, basename='users')
 router.register(r'check-user-permissions', CheckUserPermissions, basename='check-user-permissions')
+router.register(r'confirm-email', ConfirmEmailView, basename='user-confirm-email')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('confirm-email/<str:token>/', ConfirmEmailView.as_view(), name='user_confirm_email'),
 ]

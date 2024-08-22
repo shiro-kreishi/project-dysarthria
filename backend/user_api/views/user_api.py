@@ -6,6 +6,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from project.settings import DEBUG
 from user_api.serializers.user import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, \
     ChangePasswordSerializer, ChangeNameSerializer
 from rest_framework import permissions, status, viewsets
@@ -23,37 +25,63 @@ class IsSuperUserOrDoctorOrAdminPermission(IsMemberOfGroupsOrAdmin):
 from users.models.users import EmailConfirmationToken
 
 
-class ConfirmEmailView(APIView):
+class ConfirmEmailView(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
-    # TODO Подтверждение почты Вообще здесь нужна особая логика, так как удалять
-    #         пользователей не стоит!
-    #         Нужно спросить хочет ли пользователь перегенерировать
-    #         токен почты.
+    queryset = User.objects.all()  # Задаем queryset, так как это ModelViewSet
+    http_method_names = ['get', 'head', 'options', 'list']
 
-    def get(self, request, token, *args, **kwargs):
+    """
+     Подтверждение почты Вообще здесь нужна особая логика, так как удалять
+     пользователей не стоит!
+     Нужно спросить хочет ли пользователь перегенерировать
+     токен почты.
+    """
+    def list(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        token = pk
         email, signed_user_id = verify_signed_token(token)
 
+        # Проверяем токен на то что почта и id не пустые
         if email is None or signed_user_id is None:
-            return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
+            if DEBUG:
+                return Response({"error": "Field email or user_id is Null. Token is invalid"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Достаем токен из базы
         try:
             email_token = EmailConfirmationToken.objects.get(user_id=signed_user_id, token=token)
         except EmailConfirmationToken.DoesNotExist:
-            return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
+            if DEBUG:
+                return Response({"error": "Token not found."}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
 
 
         # TODO: Тут по моему уязвимость с тем что можно удалить существующего пользователя
+        # Проверка на то что токен просрочен
         if email_token.has_expired():
+            # Удаляем пользователя и токен
             email_token.delete()
             user = email_token.user
             if user.is_active is False:
                 user.delete()
-            return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
+                if DEBUG:
+                    return Response({"error": "Token has expired. User and token has deleted"}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
+
 
         user = email_token.user
-
+        # Удаляем токен если пользователь уже активен
         if user.is_active:
-            return Response({"error": "Invalid token. User is activated."}, status=status.HTTP_400_BAD_REQUEST)
+            email_token.delete()
+            if DEBUG:
+                return Response({"error": "User is activated. But he has token."}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
         user.is_active = True
         user.save()
@@ -61,21 +89,21 @@ class ConfirmEmailView(APIView):
         return Response({"message": "Email confirmed successfully"}, status=status.HTTP_200_OK)
 
 
-class UserRegistrationAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        clean_data = custom_validation(request.data)
-        serializer = UserRegistrationSerializer(data=clean_data)
-        if serializer.is_valid():
-            user = serializer.save()
-            if user is not None:
-                response_data = {
-                    "email": user.email,
-                    "username": user.username,
-                }
-                return Response(response_data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class UserRegistrationAPIView(APIView):
+#     permission_classes = [permissions.AllowAny]
+#
+#     def post(self, request):
+#         clean_data = custom_validation(request.data)
+#         serializer = UserRegistrationSerializer(data=clean_data)
+#         if serializer.is_valid():
+#             user = serializer.save()
+#             if user is not None:
+#                 response_data = {
+#                     "email": user.email,
+#                     "username": user.username,
+#                 }
+#                 return Response(response_data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserRegistrationModelViewSet(viewsets.ModelViewSet):
