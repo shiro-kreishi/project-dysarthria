@@ -1,5 +1,7 @@
+from django.core.exceptions import ValidationError
 from django.core.signing import Signer, BadSignature
-from users.models.users import EmailConfirmationToken
+from users.models.users import EmailConfirmationToken, User
+
 
 #  TODO Здесь создаются токены при помощи криптографической подписи
 #   Возможно есть способ лучше, но я пока не нашёл
@@ -10,10 +12,20 @@ def generate_signed_token(user):
     signed_id_and_email = signer.sign_object(f'{user.id}%{user.email}')
     return f"{signed_id_and_email}"
 
-def create_confirmation_token(user):
-    token = generate_signed_token(user)
-    email_token = EmailConfirmationToken.objects.create(user=user, token=token)
-    return email_token.token
+
+def create_confirmation_token(user, is_changing_email=False):
+    # Проверка наличия пользователя
+    if not user or not User.objects.filter(pk=user.pk).exists():
+        raise ValidationError("Пользователь не найден или не существует.")
+
+    try:
+        # Генерация токена и сохранение
+        token = generate_signed_token(user)
+        email_token = EmailConfirmationToken.objects.create(user=user, token=token, is_changing_email=is_changing_email)
+        return email_token.token
+    except Exception as e:
+        # Обработка возможных ошибок при создании токена
+        raise ValidationError(f"Ошибка создания токена подтверждения: {str(e)}")
 
 
 def verify_signed_token(token):

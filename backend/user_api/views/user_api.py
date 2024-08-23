@@ -1,5 +1,6 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
+from django.core.mail import send_mail
 from django.core.signing import Signer, BadSignature
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import ValidationError
@@ -7,12 +8,14 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from project import settings
 from project.settings import DEBUG
 from user_api.serializers.user import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, \
-    ChangePasswordSerializer, ChangeNameSerializer
+    ChangePasswordSerializer, ChangeNameSerializer, UserChangeEmailSerializer
 from rest_framework import permissions, status, viewsets
 
-from user_api.utils.token_generator import verify_signed_token
+from user_api.utils.creating_email_message import send_confirmation_email
+from user_api.utils.token_generator import verify_signed_token, create_confirmation_token
 from user_api.validations import custom_validation, validate_email, validate_password
 from users.models import User
 from user_api.serializers.doctor_serializers import AssignDoctorSerializer
@@ -27,7 +30,7 @@ from users.models.users import EmailConfirmationToken
 
 class ConfirmEmailView(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
-    queryset = User.objects.all()  # Задаем queryset, так как это ModelViewSet
+    queryset = User.objects.all()
     http_method_names = ['get', 'head', 'options', 'list']
 
     """
@@ -59,33 +62,38 @@ class ConfirmEmailView(viewsets.ModelViewSet):
             else:
                 return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
 
+        user = email_token.user
 
         # TODO: Тут по моему уязвимость с тем что можно удалить существующего пользователя
         # Проверка на то что токен просрочен
         if email_token.has_expired():
-            # Удаляем пользователя и токен
-            email_token.delete()
-            user = email_token.user
-            if user.is_active is False:
-                user.delete()
-                if DEBUG:
-                    return Response({"error": "Token has expired. User and token has deleted"}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
-
-
-        user = email_token.user
-        # Удаляем токен если пользователь уже активен
-        if user.is_active:
+            # Удаляем токен
             email_token.delete()
             if DEBUG:
-                return Response({"error": "User is activated. But he has token."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Token has expired. Token has deleted"}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
 
-        user.is_active = True
-        user.save()
+
+        if user.is_active:
+            # Если пользователь активен и хочет изменить почту
+            if email_token.is_changing_email:
+                # Проверяем флаг и изменяем
+                user.email = email_token.changed_email
+            else:
+                # Если флага на токена нет значит произошла какая то ошибка или уязвимость
+                email_token.delete()
+                if DEBUG:
+                    return Response({"error": "User is activated. But he has token."}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Если пользователь не активен (только зарегистрировался)
+            # Делаем пользователя активным
+            user.is_active = True
+
         email_token.delete()
+        user.save()
         return Response({"message": "Email confirmed successfully"}, status=status.HTTP_200_OK)
 
 
@@ -225,7 +233,7 @@ class AssignDoctorGroupModelViewSet(viewsets.ModelViewSet):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UpdateNameModelViewSet(viewsets.ModelViewSet):
+class UpdateNameModelViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ChangeNameSerializer
     http_method_names = ['post', 'get']
@@ -249,3 +257,32 @@ class UpdateNameModelViewSet(viewsets.ModelViewSet):
             serializer.data,
             status=status.HTTP_200_OK
         )
+
+
+class UserChangeEmailModelViewSet(viewsets.ModelViewSet):
+    http_method_names = ['post']
+    serializer_class = UserChangeEmailSerializer
+
+    def get_queryset(self):
+        request = self.request
+        user = request.user
+        # Вернуть queryset, содержащий только текущего пользователя
+        return User.objects.filter(pk=user.pk)
+
+    def list(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)  # Проверяет данные
+        self.send_confirmation_email(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+    def send_confirmation_email(self, user):
+        confirmation_token = create_confirmation_token(user)
+        send_confirmation_email(user, confirmation_token)
+
+
+
+
