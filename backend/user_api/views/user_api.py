@@ -275,12 +275,13 @@ class UserChangeEmailModelViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)  # Проверяет данные
-        self.send_confirmation_email(request.user)
+        new_email = serializer.validated_data.get('new_email')
+        self.send_confirmation_email(request.user, new_email)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-    def send_confirmation_email(self, user):
-        confirmation_token = create_confirmation_token(user)
+    def send_confirmation_email(self, user, new_email):
+        confirmation_token = create_confirmation_token(user=user, is_changing_email=True, changed_email=new_email)
         send_confirmation_email(user, confirmation_token)
 
 

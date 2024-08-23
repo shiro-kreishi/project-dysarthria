@@ -13,7 +13,7 @@ def generate_signed_token(user):
     return f"{signed_id_and_email}"
 
 
-def create_confirmation_token(user, is_changing_email=False):
+def create_confirmation_token(user, is_changing_email=False, changed_email=''):
     # Проверка наличия пользователя
     if not user or not User.objects.filter(pk=user.pk).exists():
         raise ValidationError("Пользователь не найден или не существует.")
@@ -21,7 +21,13 @@ def create_confirmation_token(user, is_changing_email=False):
     try:
         # Генерация токена и сохранение
         token = generate_signed_token(user)
-        email_token = EmailConfirmationToken.objects.create(user=user, token=token, is_changing_email=is_changing_email)
+        email_token = EmailConfirmationToken.objects.create(
+            user=user,
+            token=token,
+            is_changing_email=is_changing_email,
+            changed_email=changed_email,
+        )
+
         return email_token.token
     except Exception as e:
         # Обработка возможных ошибок при создании токена
