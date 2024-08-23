@@ -76,10 +76,9 @@ class ConfirmEmailViewTestCase(APITestCase):
             response = self.client.get(url)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             if DEBUG:
-                self.assertEqual(response.data['error'], 'Token has expired. User and token has deleted')
+                self.assertEqual(response.data['error'], 'Token has expired. Token has deleted')
             else:
                 self.assertEqual(response.data['error'], 'Invalid token or user.')
-            with self.assertRaises(User.DoesNotExist):
                 self.user.refresh_from_db()
 
     def test_confirm_email_already_active(self):

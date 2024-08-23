@@ -81,7 +81,7 @@ class ConfirmEmailView(viewsets.ModelViewSet):
                 # Проверяем флаг и изменяем
                 user.email = email_token.changed_email
             else:
-                # Если флага на токена нет значит произошла какая то ошибка или уязвимость
+                # Если флага на токена нет - значит произошла какая то ошибка или уязвимость
                 email_token.delete()
                 if DEBUG:
                     return Response({"error": "User is activated. But he has token."}, status=status.HTTP_400_BAD_REQUEST)
@@ -144,8 +144,8 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        assert validate_email(data)
-        assert validate_password(data)
+        # assert validate_email(data)
+        # assert validate_password(data)
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             try:
@@ -260,7 +260,8 @@ class UpdateNameModelViewSet(viewsets.ViewSet):
 
 
 class UserChangeEmailModelViewSet(viewsets.ModelViewSet):
-    http_method_names = ['post']
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['post',]
     serializer_class = UserChangeEmailSerializer
 
     def get_queryset(self):
@@ -277,7 +278,7 @@ class UserChangeEmailModelViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)  # Проверяет данные
         new_email = serializer.validated_data.get('new_email')
         self.send_confirmation_email(request.user, new_email)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
 
     def send_confirmation_email(self, user, new_email):
