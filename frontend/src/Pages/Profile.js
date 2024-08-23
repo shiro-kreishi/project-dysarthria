@@ -7,6 +7,7 @@ import Login from './Components/Login';
 import Register from './Components/Register';
 import Confirmation from './Components/Confirmation';
 import axiosConfig from './Components/AxiosConfig';
+import EmailConfirmation from "./Components/EmailConfirmation";
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -74,6 +75,7 @@ function Profile() {
         </Flex>
         <Routes>
           <Route path="/" element={<Home currentUser={currentUser} client={axiosConfig} />} />
+          <Route path='/confirm-email/:emailConfirmKey' element={<EmailConfirmation client={axiosConfig}/>} />
           <Route path="/login" element={<Login setCurrentUser={setCurrentUser} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/confirmation" element={<Confirmation/>} />
