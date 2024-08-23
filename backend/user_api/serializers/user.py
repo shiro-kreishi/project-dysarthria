@@ -110,7 +110,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 class ChangeNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
-        fields = ['first_name', 'last_name']
+        fields = ['first_name', 'last_name', 'patronymic',]
 
     def validate_first_name(self, value):
         if not value:
@@ -126,12 +126,16 @@ class ChangeNameSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Фамилия должна содержать только буквы")
         return value
 
+    def validate_patronymic(self, value):
+        return value
+
     def validate(self, data):
         return data
 
     def update(self, instance, validated_data):
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.patronymic = validated_data.get('patronymic', instance.patronymic)
         instance.save()
         return instance
 
