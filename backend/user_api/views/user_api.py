@@ -81,7 +81,7 @@ class ConfirmEmailView(viewsets.ModelViewSet):
             if DEBUG:
                 return Response({"error": "User is activated. But he has token."}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
         user.is_active = True
         user.save()

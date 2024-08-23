@@ -6,7 +6,7 @@ from testing.models.test import Test, PublicTest, ResponseTest, Whitelist
 from api_v0.serializers.test import TestSerializer, PublicTestSerializer, ResponseTestSerializer, \
     WhitelistSerializer, TestDetailSerializer, TestCreateUpdateSerializer, PublicDetailSerializer
 from api_v0.views.base import BaseModelViewSet, \
-    ListAndRetrieveForAnyUserModelViewSet, CloseForAnyUserModelViewSet, DetailedParamRetrieveModelViewSet, \
+    ListAndRetrieveForAnyUserModelViewSet, DetailedParamRetrieveModelViewSet, \
     IsSuperUserOrDoctorOrAdminPermission
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,10 +16,21 @@ class IsSuperUserOrDoctorOrAdmin(IsMemberOfGroupsOrAdmin):
     group_names = ['Doctors', 'Administrators']
 
 
-class TestModelViewSet(CloseForAnyUserModelViewSet):
+class TestModelViewSet(BaseModelViewSet):
     queryset = Test.objects.all()
     BaseSerializer = TestSerializer
     BaseDetailSerializer = TestDetailSerializer
+
+    def get_serializer_class(self):
+        if debug_settings:
+            print(f'action: {self.action}')
+            print(f'get: {self.request.query_params}')
+        # if self.action in ['create', 'update', 'partial_update']:
+        #     return TestCreateUpdateSerializer
+
+        if self.action in ['retrieve', ]:
+            return self.BaseDetailSerializer
+        return self.BaseSerializer
 
 
 class PublicTestModelViewSet(DetailedParamRetrieveModelViewSet):

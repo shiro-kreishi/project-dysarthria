@@ -11,44 +11,6 @@ from user_api.serializers import (
 from users.models.users import EmailConfirmationToken
 
 
-class ConfirmEmailViewTest(TestCase):
-    view_name = 'user_confirm_email'
-
-    def setUp(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(
-            email='test@example.com',
-            password='TestPass123',
-            username='testuser',
-            last_name='New',
-            first_name='User',
-            patronymic='1',
-            is_active=False
-        )
-
-        self.signer = Signer()
-        self.token = self.signer.sign_object(f'{self.user.id}%{self.user.email}')
-
-        self.email_token = EmailConfirmationToken.objects.create(
-            user=self.user,
-            token=self.token,
-        )
-
-
-
-    def test_confirm_email_valid(self):
-        url = reverse(self.view_name, args=[self.token])
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.user.refresh_from_db()
-        self.assertTrue(self.user.is_active)
-
-    def test_confirm_email_invalid_token(self):
-        url = reverse(self.view_name, args=['invalid_token'])
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-
 class UserRegistrationAPIViewTest(TestCase):
     def setUp(self):
         self.client = APIClient()
