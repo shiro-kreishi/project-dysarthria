@@ -10,6 +10,7 @@ from project import settings
 from user_api.utils.creating_email_message import send_confirmation_email
 from user_api.utils.token_generator import create_confirmation_token
 from user_api.validations import validate_password_change, custom_validate_email
+from django.contrib.auth.hashers import check_password
 
 UserModel = get_user_model()
 

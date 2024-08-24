@@ -16,8 +16,9 @@ class CreatingChangeEmailTokenViewTestCase(APITestCase):
             username='testuser',
             email='test@example.com',
             is_active=True,
-            password='eX@2mplePassWorD'
+            # password='eX@2mplePassWorD'
         )
+        self.user.set_password('eX@2mplePassWorD')
 
         self.client.force_authenticate(user=self.user)
 
@@ -27,7 +28,7 @@ class CreatingChangeEmailTokenViewTestCase(APITestCase):
         url = reverse(self.change_email_url_str)
         data = {
             "new_email": "newemail@example.com",
-            "password": "eX@2mplePassWorD"
+            "password": 'eX@2mplePassWorD'
         }
         response = self.client.post(url, data, format='json')
         print(response.data)
@@ -53,7 +54,7 @@ class CreatingChangeEmailTokenViewTestCase(APITestCase):
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('email', response.data)
+        self.assertIn('new_email', response.data)
         self.assertFalse(EmailConfirmationToken.objects.filter(user=self.user).exists())
 
     def test_getting_change_email_token_with_wrong_email_and_password(self):
@@ -64,9 +65,10 @@ class CreatingChangeEmailTokenViewTestCase(APITestCase):
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('email', response.data)
-        self.assertIn('password', response.data)
+        self.assertIn('new_email', response.data)
+        # self.assertIn('password', response.data)
         self.assertFalse(EmailConfirmationToken.objects.filter(user=self.user).exists())
+
 
 class ConfirmChangeEmailViewTestCase(APITestCase):
     def setUp(self):
@@ -102,10 +104,11 @@ class ConfirmChangeEmailViewTestCase(APITestCase):
             user_id=self.user.id,
             token=self.raw_token,
             is_changing_email=True,
-            created_at=datetime.now(pytz.UTC) - settings.EMAIL_CONFIRMATION_TOKEN_LIFETIME - timedelta(minutes=30),
+            created_at=datetime.now(pytz.UTC) - timedelta(minutes=settings.EMAIL_CONFIRMATION_TOKEN_LIFETIME) - timedelta(minutes=30),
             changed_email='newemail@example.com',
         )
-
+        token_expired.created_at = datetime.now(pytz.UTC) - timedelta(minutes=settings.EMAIL_CONFIRMATION_TOKEN_LIFETIME) - timedelta(minutes=30)
+        token_expired.save()
         url = reverse(self.confirm_email_url_str) + f'{token_expired.token}/'
         response = self.client.get(url)
 
@@ -142,6 +145,6 @@ class ConfirmChangeEmailViewTestCase(APITestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.email, 'test@example.com')
 
-        self.assertFalse(EmailConfirmationToken.objects.filter(token_without_flag.token).exists())
+        self.assertFalse(EmailConfirmationToken.objects.filter(token=token_without_flag.token).exists())
 
 

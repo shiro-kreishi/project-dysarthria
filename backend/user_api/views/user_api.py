@@ -147,7 +147,7 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
         # assert validate_email(data)
         # assert validate_password(data)
         serializer = self.serializer_class(data=data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             try:
                 user = serializer.check_user(data)
             except ValidationError as e:
@@ -279,7 +279,6 @@ class UserChangeEmailModelViewSet(viewsets.ModelViewSet):
         new_email = serializer.validated_data.get('new_email')
         self.send_confirmation_email(request.user, new_email)
         return Response(status=status.HTTP_200_OK)
-
 
     def send_confirmation_email(self, user, new_email):
         confirmation_token = create_confirmation_token(user=user, is_changing_email=True, changed_email=new_email)
