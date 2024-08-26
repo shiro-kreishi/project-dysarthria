@@ -68,6 +68,7 @@ DB_PORT=5432
 SITE_URL=http://127.0.0.1:3000
 EMAIL_HOST_USER=projectdysarthria@gmail.com
 EMAIL_HOST_PASSWORD=password
+EMAIL_CONFIRMATION_TOKEN_LIFETIME = 15
 ```
 ### .env.docker
 ```bash
@@ -85,6 +86,7 @@ DB_PORT=5432
 SITE_URL=http://127.0.0.1:3000
 EMAIL_HOST_USER=projectdysarthria@gmail.com
 EMAIL_HOST_PASSWORD=password
+EMAIL_CONFIRMATION_TOKEN_LIFETIME = 15
 ```
 ## .env file for frontend
 file location: frontend/

@@ -20,6 +20,7 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(EmailConfirmationToken)
 class EmailToken(admin.ModelAdmin):
-    list_display = ('user', 'token', 'created_at')
-    search_fields = ('user__email', 'token')
-    list_filter = ('created_at',)
+    list_display = ('user', 'token', 'created_at','is_changing_email','changed_email')
+    search_fields = ('user__email', 'token','is_changing_email')
+    list_filter = ('created_at','is_changing_email')
+    readonly_fields = ('created_at','token','is_changing_email','user',)

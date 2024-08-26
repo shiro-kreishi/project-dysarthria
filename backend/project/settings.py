@@ -16,7 +16,9 @@ from config.config import (
     DJANGO_ALLOWED_HOSTS_CONFIG,
     DB_ENGINE, DB_DATABASE, DB_USER,
     DB_PASSWORD, DB_HOST, DB_PORT, CORS_ALLOWED_ORIGINS_CONFIG,
-    SITE_URL_CONFIG, EMAIL_HOST_PASSWORD_CONFIG, EMAIL_HOST_USER_CONFIG
+    SITE_URL_CONFIG, EMAIL_HOST_PASSWORD_CONFIG,
+    EMAIL_HOST_USER_CONFIG, EMAIL_CONFIRMATION_TOKEN_LIFETIME_CONFIG
+
 )
 from datetime import timedelta
 
@@ -198,6 +200,27 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Logger
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "django.log",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+}
+
+
 # Simple JWT
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
@@ -261,6 +284,8 @@ EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD_CONFIG
 DEFAULT_FROM_EMAIL = 'webmaster@gmail.com'
 SITE_URL = SITE_URL_CONFIG
 
+# Время жизни токена на подтверждения почты (В МИНУТАХ)
+EMAIL_CONFIRMATION_TOKEN_LIFETIME = EMAIL_CONFIRMATION_TOKEN_LIFETIME_CONFIG
 
 # Как получать ошибки проекта на Django на свою почту?
 # ADMINS = (

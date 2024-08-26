@@ -2,6 +2,8 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.core.signing import Signer, BadSignature
+
+from project.settings import DEBUG
 from users.models import User, EmailConfirmationToken
 from user_api.utils import generate_signed_token, create_confirmation_token, verify_signed_token
 from rest_framework import status
@@ -48,10 +50,10 @@ class ConfirmEmailViewTestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create(username='testuser', email='test@example.com', is_active=False)
         self.token = create_confirmation_token(self.user)
-        self.url_str = 'user_confirm_email'
+        self.url_str = 'user-confirm-email-list'
 
     def test_confirm_email_valid_token(self):
-        url = reverse(self.url_str, args=[self.token])
+        url = reverse(self.url_str) + f'{self.token}/'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], 'Email confirmed successfully')
@@ -59,25 +61,33 @@ class ConfirmEmailViewTestCase(APITestCase):
         self.assertTrue(self.user.is_active)
 
     def test_confirm_email_invalid_token(self):
-        url = reverse(self.url_str, args=['invalid_token'])
+        url = reverse(self.url_str) + f'invalid-token/'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'], 'Invalid token or user.')
+        if DEBUG:
+            self.assertEqual(response.data['error'], 'Field email or user_id is Null. Token is invalid')
+        else:
+            self.assertEqual(response.data['error'], 'Invalid token or user.')
 
     def test_confirm_email_expired_token(self):
         # Mocking the has_expired method to return True
         with patch.object(EmailConfirmationToken, 'has_expired', return_value=True):
-            url = reverse(self.url_str, args=[self.token])
+            url = reverse(self.url_str) + f'{self.token}/'
             response = self.client.get(url)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            self.assertEqual(response.data['error'], 'Invalid token or user.')
-            with self.assertRaises(User.DoesNotExist):
+            if DEBUG:
+                self.assertEqual(response.data['error'], 'Token has expired. Token has deleted')
+            else:
+                self.assertEqual(response.data['error'], 'Invalid token or user.')
                 self.user.refresh_from_db()
 
     def test_confirm_email_already_active(self):
         self.user.is_active = True
         self.user.save()
-        url = reverse(self.url_str, args=[self.token])
+        url = reverse(self.url_str) + f'{self.token}/'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'], 'Invalid token. User is activated.')
+        if DEBUG:
+            self.assertEqual(response.data['error'], 'User is activated. But he has token.')
+        else:
+            self.assertEqual(response.data['error'], 'Invalid token.')

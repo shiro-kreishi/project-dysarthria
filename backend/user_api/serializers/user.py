@@ -4,11 +4,13 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import serializers, status
 from django.contrib.auth import get_user_model, authenticate
 from django.core.mail import send_mail
+from django.core.exceptions import ValidationError
 from rest_framework.response import Response
 from project import settings
+from user_api.utils.creating_email_message import send_confirmation_email
 from user_api.utils.token_generator import create_confirmation_token
-from user_api.validations import validate_password_change
-
+from user_api.validations import validate_password_change, custom_validate_email
+from django.contrib.auth.hashers import check_password
 
 UserModel = get_user_model()
 
@@ -31,10 +33,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def send_confirmation_email(self, user):
         confirmation_token = create_confirmation_token(user)
-        confirmation_url = f"{settings.SITE_URL}/api/user/confirm-email/{confirmation_token}/"
-        email_subject = "Подтверждение почты"
-        email_message = f"Пожалуйста подтвердите свою почту кликнув по следующей ссылке: {confirmation_url}"
-        send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [user.email])
+        send_confirmation_email(user, confirmation_token)
 
     def validate_password(self, value):
         if len(value) < 8:
@@ -144,3 +143,32 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ['id', 'name']
+
+
+class UserChangeEmailSerializer(serializers.Serializer):
+    new_email = serializers.EmailField()  # Поле для нового email
+    password = serializers.CharField(write_only=True)  # Поле для пароля
+
+    def validate(self, data):
+        request = self.context.get('request')
+        user = request.user if request else None
+
+        if not user:
+            raise serializers.ValidationError("User not authenticated")
+
+        if not user.check_password(data.get('password')):
+            raise serializers.ValidationError({"password": "Wrong password."})
+
+        new_email = data.get('new_email')
+
+        try:
+            custom_validate_email(new_email)
+        except ValidationError as e:
+            raise serializers.ValidationError({"email": str(e)})
+
+        return data
+
+
+
+
+
