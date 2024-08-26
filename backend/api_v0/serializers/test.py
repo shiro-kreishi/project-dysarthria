@@ -67,6 +67,7 @@ class PublicTestSerializer(serializers.ModelSerializer):
 
 class PublicDetailSerializer(serializers.ModelSerializer):
     test = TestDetailSerializer()
+
     class Meta:
         model = PublicTest
         fields = ['id', 'test']
@@ -78,3 +79,15 @@ class ResponseTestSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResponseTest
         fields = ['id', 'test', 'user', 'json_result']
+
+    def validate(self, data):
+        # Получаем пользователя из контекста
+        user = self.context['request'].user
+
+        # Проверяем, авторизован ли пользователь
+        if user and user.is_authenticated:
+            data['user'] = user
+        else:
+            data['user'] = None
+
+        return data
