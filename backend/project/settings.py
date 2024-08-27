@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'user_api',
     'testing',
     'api_v0',
+    'admin_app',
 ]
 
 MIDDLEWARE = [
