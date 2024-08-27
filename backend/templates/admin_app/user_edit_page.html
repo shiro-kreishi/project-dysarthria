@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Редактирование данных пользователя</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Сохранить</button>
+    <a href="{% url 'admin_homepage' %}" class="btn btn-secondary">Отмена</a>
+</form>
+
+<div class="text-center mt-4">
+    <div class="btn-group" role="group" aria-label="Basic example">
+        <button type="button" class="btn btn-primary">Сделать пользователя администратором.</button>
+        <button type="button" class="btn btn-primary">Дать возможность пользователю создавать тестирования.</button>
+        <button type="button" class="btn btn-primary">Забанить/разбанить пользователя.</button>
+    </div>
+</div>
+{% endblock %}
