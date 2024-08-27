@@ -4,9 +4,8 @@ import { Container, Row, Col, Button, Dropdown, DropdownButton, Toast } from 're
 import './style.css';
 import Modal from './Components/Modal';
 import axios from 'axios';
-import { DataContext } from './Components/DataContext';
 import useModal from '../hooks/useModal';
-
+import { createExercise } from './Components/api';
 const AddExercise = () => {
 
   const navigate = useNavigate();
@@ -14,7 +13,6 @@ const AddExercise = () => {
   const { isActive, openModal, closeModal } = useModal();
   const [selectedType, setSelectedType] = useState(null);
   const [showWordButtons, setShowWordButtons] = useState(false);
-  const { createExercise } = useContext(DataContext);
   const [errors, setErrors] = useState([]);
   const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
   const [showToast, setShowToast] = useState(false);
@@ -103,16 +101,21 @@ const AddExercise = () => {
   };
 
   const renderContentWithButtons = (content) => {
-    const words = content.match(/\b(\w+)\b/g) || [];
-    return words.map((word, index) => (
-      <Button
-        key={index}
-        onClick={() => handleWordClick(word, index)}
-        style={{ margin: '5px' }}
-      >
-        {word}
-      </Button>
-    ));
+    const words = content.split(/(\s+|[.,!?])/).filter(word => word.trim() !== '');
+    return words.map((word, index) => {
+      if (/[.,!?]/.test(word)) {
+        return <span key={index}>{word}</span>;
+      }
+      return (
+        <Button
+          key={index}
+          onClick={() => handleWordClick(word, index)}
+          style={{ margin: '5px' }}
+        >
+          {word}
+        </Button>
+      );
+    });
   };
 
   const addAnswer = () => {
@@ -247,7 +250,7 @@ const AddExercise = () => {
             show={true}
             delay={1000}
             autohide
-            bg={error.variant || 'danger'}
+            bg={error.variant || 'danger'}  
             className="mb-2"
           >
             <Toast.Header>

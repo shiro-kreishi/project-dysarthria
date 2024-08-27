@@ -51,6 +51,11 @@ body {
   font-family: "Roboto Black";
 }
 
+.btn-edit{
+  position: relative;
+  left: 200px;
+}
+
 .btn-blue:hover {
   color: white;
   background-color: #f2b29b;

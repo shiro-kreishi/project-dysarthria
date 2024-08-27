@@ -1,41 +1,29 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DataContext } from './Components/DataContext';
 import './style.css';
 import { Container, Button } from 'react-bootstrap';
+import { useQuery } from 'react-query';
+import { fetchTestById } from './Components/api';
 import axiosConfig from './Components/AxiosConfig';
 
 const TestPassing = () => {
   const { id } = useParams();
-  const { getTestById, loading, error, refreshTests } = useContext(DataContext);
-  const [test, setTest] = useState(null);
-  const [exercises, setExercises] = useState([]);
+  const navigate = useNavigate();
+  const { data: test, isLoading, error } = useQuery(['test', id], () => fetchTestById(id));
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [answers, setAnswers] = useState([]);
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const loadTest = async () => {
-      let test = getTestById(id);
-      if (test) {
-        setTest(test);
-        if (test.exercises) {
-          setExercises(test.exercises);
-          setAnswers(test.exercises.map(ex => ({
-            id: ex.id,
-            type: ex.type,
-            answer: ex.type === 1 ? [] : null
-          })));
-        } else {
-          console.error('Test exercises are undefined');
-        }
-      } else {
-        console.error('Test not found');
-      }
-    };
-  
-    loadTest();
-  }, [id, getTestById, refreshTests]);
+  const exercises = test?.exercises || [];
+
+  useState(() => {
+    if (test) {
+      setAnswers(test.exercises.map(ex => ({
+        id: ex.id,
+        type: ex.type,
+        answer: ex.type === 1 ? [] : null
+      })));
+    }
+  }, [test]);
 
   const selectExercise = (exercise) => {
     setSelectedExercise(exercise);
@@ -69,8 +57,8 @@ const TestPassing = () => {
     }
   };
 
-  if (loading) return <h1>Загрузка</h1>;
-  if (error) return <h1>Ошибка {error}</h1>;
+  if (isLoading) return <h1>Загрузка</h1>;
+  if (error) return <h1>Ошибка {error.message}</h1>;
   if (!test) return <h1>Тест не найден</h1>;
   if (!exercises || exercises.length === 0) return <h1>Упражнения не найдены</h1>;
 

@@ -1,12 +1,15 @@
 import React, { useContext, useState } from 'react';
-import { Button, Col, Container, Dropdown, DropdownButton, Form, Row} from 'react-bootstrap';
+import { Button, Col, Container, Dropdown, DropdownButton, Form, Row } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import useModal from '../hooks/useModal';
-import { DataContext } from './Components/DataContext';
 import Modal from './Components/Modal';
 import './style.css';
 import axiosConfig from './Components/AxiosConfig';
-
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import {
+  createTest, createExercise, linkExerciseToTest, findExerciseByName, addPublicTest,
+  fetchExercises, fetchTestById, fetchPublicTests, updateExercise
+} from './Components/api';
 
 const AddTest = () => {
   const navigate = useNavigate();
@@ -16,62 +19,65 @@ const AddTest = () => {
   const [selectedType, setSelectedType] = useState('1');
   const [showWordButtons, setShowWordButtons] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
-  const { createTest, addPublicTest, createExercise, linkExerciseToTest, exercises: libraryExercises, findExerciseByName } = useContext(DataContext); // Получаем exercises из контекста
-  const [loading, setLoading] = useState(false);
-  const [isChecked, setIsCheked] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
 
+  const queryClient = useQueryClient();
 
-  const SaveTest = async () => {
-    setLoading(true);
+  const saveTestMutation = useMutation(async () => {
     const test = {
       name: document.querySelector('.title-test').value,
       description: 'test'
     };
-    try {
-      const createdTest = await createTest(test);
-      const testId = createdTest.id;
+    const createdTest = await createTest(test);
+    const testId = createdTest.id;
 
-      const exercisePromise = exercises.map(async (exercise) => {
-        const existingExercise = await findExerciseByName(exercise.name);
-        if (existingExercise) {
-          await linkExerciseToTest(existingExercise.id, testId);
-        } else {
-          const exerciseData = {
-            name: exercise.name,
-            type: exercise.type,
-            king_json: exercise.type === '1' ? {
-              content: exercise.content,
-              missing_words: exercise.missingWords
-            } : {
-              content: exercise.content,
-              answers: exercise.answers,
-              correct_answer: exercise.correctAnswer
-            }
-          };
-          const createdExercise = await createExercise(exerciseData);
-          await linkExerciseToTest(createdExercise.id, testId);
-        }
-      });
-      await Promise.all(exercisePromise);
-      if (isChecked) {
-        await addPublicTest(createdTest.id);
+    const exercisePromise = exercises.map(async (exercise) => {
+      const existingExercise = await findExerciseByName(exercise.name);
+      if (existingExercise) {
+        await linkExerciseToTest(existingExercise.id, testId);
+      } else {
+        const exerciseData = {
+          name: exercise.name,
+          type: exercise.type,
+          king_json: exercise.type === '1' ? {
+            content: exercise.content,
+            missing_words: exercise.missingWords
+          } : {
+            content: exercise.content,
+            answers: exercise.answers,
+            correct_answer: exercise.correctAnswer
+          }
+        };
+        const createdExercise = await createExercise(exerciseData);
+        await linkExerciseToTest(createdExercise.id, testId);
       }
-      
-      console.log('Тест и упражнения успешно сохранены');
-      setLoading(false);
-
-      // Сохраняем данные в localStorage
-      localStorage.setItem('testCreated', 'true');
-      navigate(`/my-tests/`);
-
-    } catch (error) {
-      console.error('Ошибка при сохранении теста и упражнений', error);
+    });
+    await Promise.all(exercisePromise);
+    if (isChecked) {
+      await addPublicTest(createdTest.id);
     }
-  };
+
+    console.log('Тест и упражнения успешно сохранены');
+    localStorage.setItem('testCreated', 'true');
+    navigate(`/my-tests/`);
+  }, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('tests');
+    }
+  });
+
+  const updateExerciseMutation = useMutation(
+    (exerciseData) => updateExercise(selectedExercise.id, exerciseData),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('exercises');
+      }
+    }
+  );
 
   const handleCheckboxChange = (event) => {
-    setIsCheked(event.target.checked);
-  }
+    setIsChecked(event.target.checked);
+  };
 
   const addExercise = (type) => {
     let newExercise;
@@ -87,7 +93,7 @@ const AddTest = () => {
 
   const selectExercise = (exercise) => {
     setSelectedExercise(exercise);
-    console.log(selectedExercise);
+    console.log(selectedExercise.type);
   };
 
   const handleSelectType = (type) => {
@@ -107,10 +113,8 @@ const AddTest = () => {
   };
 
   const renderContentWithButtons = (content) => {
-    // Разделяем текст на слова и знаки препинания
     const words = content.split(/(\s+|[.,!?])/).filter(word => word.trim() !== '');
     return words.map((word, index) => {
-      // Игнорируем знаки препинания
       if (/[.,!?]/.test(word)) {
         return <span key={index}>{word}</span>;
       }
@@ -172,9 +176,27 @@ const AddTest = () => {
     const convertedExercise = convertLibraryExercise(exercise);
     setExercises([...exercises, convertedExercise]);
     setSelectedExercise(convertedExercise);
-    setSelectedType(convertedExercise.type)
+    setSelectedType(convertedExercise.type);
     closeModal();
   };
+
+  const handleSaveExercise = () => {
+    const exerciseData = {
+      name: selectedExercise.name,
+      type: selectedExercise.type,
+      king_json: selectedExercise.type === '1' ? {
+        content: selectedExercise.content,
+        missing_words: selectedExercise.missingWords
+      } : {
+        content: selectedExercise.content,
+        answers: selectedExercise.answers,
+        correct_answer: selectedExercise.correctAnswer
+      }
+    };
+    updateExerciseMutation.mutate(exerciseData);
+  };
+
+  const { data: libraryExercises } = useQuery('exercises', fetchExercises);
 
   return (
     <div>
@@ -184,7 +206,7 @@ const AddTest = () => {
             <Col></Col>
             <Col>
               <input className='title-test' placeholder={'введите название теста'}></input>
-              <p><Button className='btn-blue' onClick={SaveTest}>Сохранить тест и выйти</Button></p>
+              <p><Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить тест и выйти</Button></p>
               <div className='checkbox'>
                 <Form.Check
                   type={'checkbox'}
@@ -194,14 +216,13 @@ const AddTest = () => {
                   onChange={handleCheckboxChange}
                 />
               </div>
-
             </Col>
           </Row>
           <Row>
             <Col>
               <div className="exercise-nav">
                 {exercises.map((exercise, index) => (
-                  <Button 
+                  <Button
                     key={exercise.id}
                     className='exercise-btn'
                     onClick={() => selectExercise(exercise)}
@@ -219,7 +240,7 @@ const AddTest = () => {
       <div className='exercise-editor'>
         <Container>
           {selectedExercise ? (
-            selectedExercise.type === '1' ? (
+            parseInt(selectedExercise.type) === 1 ? (
               <div>
                 <h3>Редактор упражнения {selectedExercise.id}</h3>
                 <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
@@ -243,11 +264,11 @@ const AddTest = () => {
                 )}
                 <Row>
                   <Col>
-
+                    <Button onClick={handleSaveExercise}>Сохранить изменения</Button>
                   </Col>
                 </Row>
               </div>
-            ) : selectedExercise.type === '2' ? (
+            ) : parseInt(selectedExercise.type) == 2 ? (
               <div>
                 <h3>Редактор изображения {selectedExercise.id}</h3>
                 <p>Название упражнения <input value={selectedExercise.name} onChange={e => handleExerciseFieldChange(e, "name")} /></p>
@@ -287,14 +308,13 @@ const AddTest = () => {
                         >
                           {selectedExercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
                         </Button>
-
                       </div>
                     ))}
+                    <Button onClick={handleSaveExercise}>Сохранить изменения</Button>
                   </Col>
                   <Col>
                   </Col>
                 </Row>
-
               </div>
             ) : null
           ) : (
@@ -316,7 +336,7 @@ const AddTest = () => {
             </Col>
             <Col>
               <DropdownButton id="dropdown-basic-button" title="Выбрать из библиотеки">
-                {libraryExercises.map((exercise, index) => (
+                {libraryExercises?.map((exercise, index) => (
                   <Dropdown.Item key={index} onClick={() => addExerciseFromLibrary(exercise)}>
                     {exercise.name}
                   </Dropdown.Item>
