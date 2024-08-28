@@ -26,7 +26,7 @@ const AddTest = () => {
   const saveTestMutation = useMutation(async () => {
     const test = {
       name: document.querySelector('.title-test').value,
-      description: 'test'
+      description: document.querySelector('.description-test').value
     };
     const createdTest = await createTest(test);
     const testId = createdTest.id;
@@ -93,7 +93,6 @@ const AddTest = () => {
 
   const selectExercise = (exercise) => {
     setSelectedExercise(exercise);
-    console.log(selectedExercise.type);
   };
 
   const handleSelectType = (type) => {
@@ -102,6 +101,7 @@ const AddTest = () => {
   };
 
   const handleWordClick = (word, index) => {
+    if (!selectedExercise) return;
     const updatedContent = selectedExercise.content.replace(word, '_'.repeat(word.length));
     const updatedExercise = {
       ...selectedExercise,
@@ -131,6 +131,7 @@ const AddTest = () => {
   };
 
   const addAnswer = () => {
+    if (!selectedExercise) return;
     const updatedExercise = {
       ...selectedExercise,
       answers: [...selectedExercise.answers, '']
@@ -140,12 +141,14 @@ const AddTest = () => {
   };
 
   const setCorrectAnswer = (answer) => {
+    if (!selectedExercise) return;
     const updatedExercise = { ...selectedExercise, correctAnswer: answer };
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise);
   };
 
   const AnswerChange = (index, value) => {
+    if (!selectedExercise) return;
     const updatedAnswers = [...selectedExercise.answers];
     updatedAnswers[index] = value;
     const updatedExercise = { ...selectedExercise, answers: updatedAnswers };
@@ -154,13 +157,14 @@ const AddTest = () => {
   };
 
   const handleExerciseFieldChange = (e, field) => {
+    if (!selectedExercise) return;
     const updatedExercise = { ...selectedExercise, [field]: e.target.value };
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise);
   };
 
-  const convertLibraryExercise = (exercise) => {
-    return {
+  const addExerciseFromLibrary = (exercise) => {
+    const convertedExercise = {
       id: exercise.id,
       type: exercise.type,
       content: exercise.king_json.content,
@@ -170,10 +174,6 @@ const AddTest = () => {
       name: exercise.name,
       description: exercise.description
     };
-  };
-
-  const addExerciseFromLibrary = (exercise) => {
-    const convertedExercise = convertLibraryExercise(exercise);
     setExercises([...exercises, convertedExercise]);
     setSelectedExercise(convertedExercise);
     setSelectedType(convertedExercise.type);
@@ -181,6 +181,7 @@ const AddTest = () => {
   };
 
   const handleSaveExercise = () => {
+    if (!selectedExercise) return;
     const exerciseData = {
       name: selectedExercise.name,
       type: selectedExercise.type,
@@ -195,6 +196,11 @@ const AddTest = () => {
     };
     updateExerciseMutation.mutate(exerciseData);
   };
+  const removeExercise = (exerciseId) => {
+    setExercises(exercises.filter(exercise => exercise.id !== exerciseId));
+    setSelectedExercise(null);
+    
+  };
 
   const { data: libraryExercises } = useQuery('exercises', fetchExercises);
 
@@ -205,7 +211,9 @@ const AddTest = () => {
           <Row>
             <Col></Col>
             <Col>
-              <input className='title-test' placeholder={'введите название теста'}></input>
+              <input className='title-test ' placeholder={'Введите название теста'}></input>
+              <textarea className='description-test'placeholder='Введите описание теста'>
+              </textarea>
               <p><Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить тест и выйти</Button></p>
               <div className='checkbox'>
                 <Form.Check
@@ -265,6 +273,13 @@ const AddTest = () => {
                 <Row>
                   <Col>
                     <Button onClick={handleSaveExercise}>Сохранить изменения</Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => removeExercise(selectedExercise.id)}
+                      className="delete-btn"
+                    >
+                      X
+                    </Button>
                   </Col>
                 </Row>
               </div>
@@ -311,6 +326,13 @@ const AddTest = () => {
                       </div>
                     ))}
                     <Button onClick={handleSaveExercise}>Сохранить изменения</Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => removeExercise(selectedExercise.id)}
+                      className="delete-btn"
+                    >
+                      X
+                    </Button>
                   </Col>
                   <Col>
                   </Col>

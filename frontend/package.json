@@ -15,6 +15,7 @@
     "framer-motion": "^11.2.10",
     "jest": "^29.7.0",
     "react": "^18.3.1",
+    "react-autosuggest": "^10.1.0",
     "react-bootstrap": "^2.10.4",
     "react-dom": "^18.3.1",
     "react-query": "^3.39.3",

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './style.css';
 import { Container, Button } from 'react-bootstrap';
@@ -15,7 +15,7 @@ const TestPassing = () => {
 
   const exercises = test?.exercises || [];
 
-  useState(() => {
+  useEffect(() => {
     if (test) {
       setAnswers(test.exercises.map(ex => ({
         id: ex.id,
@@ -30,15 +30,25 @@ const TestPassing = () => {
   };
 
   const handleInputChange = (event, index) => {
-    const updatedAnswers = [...answers];
-    updatedAnswers.find(a => a.id === selectedExercise.id).answer[index] = event.target.value;
-    setAnswers(updatedAnswers);
+    if (selectedExercise) {
+      const updatedAnswers = [...answers];
+      const answerObj = updatedAnswers.find(a => a.id === selectedExercise.id);
+      if (answerObj) {
+        answerObj.answer[index] = event.target.value;
+        setAnswers(updatedAnswers);
+      }
+    }
   };
 
   const handleOptionSelect = (index) => {
-    const updatedAnswers = [...answers];
-    updatedAnswers.find(a => a.id === selectedExercise.id).answer = index;
-    setAnswers(updatedAnswers);
+    if (selectedExercise) {
+      const updatedAnswers = [...answers];
+      const answerObj = updatedAnswers.find(a => a.id === selectedExercise.id);
+      if (answerObj) {
+        answerObj.answer = index;
+        setAnswers(updatedAnswers);
+      }
+    }
   };
 
   const submitAnswers = async () => {

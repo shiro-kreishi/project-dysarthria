@@ -1,7 +1,7 @@
 import React from 'react';
 import { Container, Row, Col, Form, Button, FormControl } from 'react-bootstrap';
 import './style.css';
-import Test from './Components/TestItem';
+import PublicTest from './Components/PublicTestItem';
 import { useQueries, useQueryClient, useQuery} from 'react-query';
 import { fetchPublicTests, fetchPublicTestById } from './Components/api';
 
@@ -38,7 +38,6 @@ const Tests = () => {
                   placeholder='Введите название или тип теста...'
                   className='mr-sm-2'
                 />
-                <Button variant='outline-info'>Поиск</Button>
               </Form>
             </Col>
           </Row>
@@ -51,7 +50,7 @@ const Tests = () => {
           ) : testData.length > 0 ? (
             testData.map((test) => (
               <Col key={test.id} sm={12} md={6} lg={2}>
-                <Test 
+                <PublicTest
                   name={test.test.name} 
                   description={test.description} 
                   id={test.id} 

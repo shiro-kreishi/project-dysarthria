@@ -11,11 +11,18 @@
 
 .color-2 {
   background-color: #d95252;
-  height: 200px;
+  height: auto;
   max-width: 100%;
   display: flex;
   align-items: center;
   /* Выравнивание по вертикали */
+}
+
+.description-test{
+  border-style:dashed;
+  color: white;
+  font-size: 20px;
+  background: none;
 }
 
 body {
@@ -52,8 +59,10 @@ body {
 }
 
 .btn-edit{
-  position: relative;
-  left: 200px;
+  position: absolute;
+  border-radius: 50px;
+  border: none;
+  left: 620px;
 }
 
 .btn-blue:hover {

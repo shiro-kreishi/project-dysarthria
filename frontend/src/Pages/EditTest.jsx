@@ -1,68 +1,119 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Col, Container, Row, Form } from 'react-bootstrap';
+import React, { useContext, useState, useEffect } from 'react';
+import { Button, Col, Container, Dropdown, DropdownButton, Form, Row } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
-import Modal from './Components/Modal';
 import useModal from '../hooks/useModal';
+import Modal from './Components/Modal';
 import './style.css';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { fetchTestById, updateTest, createExercise, linkExerciseToTest, fetchExercises } from './Components/api';
+import axiosConfig from './Components/AxiosConfig';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import {
+  createTest, createExercise, linkExerciseToTest, findExerciseByName, addPublicTest,
+  fetchExercises, fetchTestById, fetchPublicTests, updateExercise,
+  updateTest,
+  unLinkExerciseToTest
+} from './Components/api';
 
 const EditTest = () => {
-  const { id } = useParams(); // Получаем ID теста из параметров маршрута
+  const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { isActive, openModal, closeModal } = useModal();
+  const [exercises, setExercises] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
+  const { isActive, openModal, closeModal } = useModal();
   const [selectedType, setSelectedType] = useState('1');
   const [showWordButtons, setShowWordButtons] = useState(false);
+  const [selectedWords, setSelectedWords] = useState([]);
   const [isChecked, setIsChecked] = useState(false);
-  const [exercises, setExercises] = useState([]);
-  // Загрузка теста по ID
-  const { data: test, isLoading: testLoading } = useQuery(['test', id], () => fetchTestById(id));
+  const [testTitle, setTestTitle] = useState('');
+  const [testDescription, setTestDescription] = useState('');
+  const { data: test, isLoading, error } = useQuery(['test', id], () => fetchTestById(id));
+  const queryClient = useQueryClient();
 
-  // Загрузка упражнений из библиотеки
-  const { data: libraryExercises, isLoading: exercisesLoading } = useQuery('exercises', fetchExercises);
+  const updateExerciseMutation = useMutation(
+    (exerciseData) => updateExercise(selectedExercise.id, exerciseData),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('exercises');
+      }
+    }
+  );
 
-  // Мутация для обновления теста
-  const updateTestMutation = useMutation(updateTest, {
+  const saveTestMutation = useMutation(async () => {
+    const testData = {
+      name: testTitle,
+      description: testDescription
+    };
+    const updatedTest = await updateTest(id, testData);
+    const testId = updatedTest.id;
+
+    const exercisePromises = exercises.map(async (exercise) => {
+      const existingExercise = test.exercises.find(ex => ex.id === exercise.id);
+      if (existingExercise) {
+        const exerciseData = {
+          name: exercise.name,
+          type: exercise.type,
+          king_json: exercise.type === '1' ? {
+            content: exercise.king_json.content,
+            missing_words: exercise.king_json.missing_words
+          } : {
+            content: exercise.king_json.content,
+            answers: exercise.king_json.answers,
+            correct_answer: exercise.correctAnswer
+          }
+        };
+        await updateExercise(exercise.id, exerciseData);
+      } else {
+        const exerciseData = {
+          name: exercise.name,
+          type: exercise.type,
+          king_json: exercise.type === '1' ? {
+            content: exercise.king_json.content,
+            missing_words: exercise.king_json.missing_words
+          } : {
+            content: exercise.king_json.content,
+            answers: exercise.king_json.answers,
+            correct_answer: exercise.correctAnswer
+          }
+        };
+        const createdExercise = await createExercise(exerciseData);
+        await linkExerciseToTest(createdExercise.id, testId);
+      }
+    });
+
+    await Promise.all(exercisePromises);
+    if (isChecked) {
+      await addPublicTest(testId);
+    }
+
+    console.log('Тест и упражнения успешно сохранены');
+    navigate(`/my-tests/`);
+  }, {
     onSuccess: () => {
-      queryClient.invalidateQueries(['test', id]);
-      navigate('/my-tests');
+      queryClient.invalidateQueries('tests');
     }
   });
 
   useEffect(() => {
-    if (test) {
+    if (test && test.name) {
+      setTestTitle(test.name);
+      setTestDescription(test.description);
       setExercises(test.exercises || []);
-      setIsChecked(test.isPublic || false);
-      if (test.exercises.length > 0) {
+      if (test.exercises && test.exercises.length > 0) {
         setSelectedExercise(test.exercises[0]);
       }
     }
   }, [test]);
-
-  const saveTest = async () => {
-    if (test) {
-      const updatedTest = { ...test, exercises, isPublic: isChecked };
-      updateTestMutation.mutate({ testId: id, test: updatedTest });
-    }
-  };
 
   const handleCheckboxChange = (event) => {
     setIsChecked(event.target.checked);
   };
 
   const addExercise = (type) => {
-    const newExercise = {
-      id: exercises.length + 1,
-      type,
-      content: '',
-      missingWords: [],
-      answers: type === '2' ? [] : undefined, // Инициализируем answers только для типа 2
-      correctAnswer: '',
-      name: '',
-      description: ''
-    };
+    let newExercise;
+    if (type === '1') {
+      newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', missing_words: [] }, name: '', description: '', answers: [] };
+    } else if (type === '2') {
+      newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', answers: [] }, answers: [], correctAnswer: '', name: '', description: '' };
+    }
     setExercises([...exercises, newExercise]);
     setSelectedExercise(newExercise);
     closeModal();
@@ -78,16 +129,18 @@ const EditTest = () => {
   };
 
   const handleWordClick = (word, index) => {
-    if (selectedExercise) {
-      const updatedContent = selectedExercise.content.replace(word, '_'.repeat(word.length));
-      const updatedExercise = {
-        ...selectedExercise,
+    if (!selectedExercise) return;
+    const updatedContent = selectedExercise.king_json.content.replace(word, '_'.repeat(word.length));
+    const updatedExercise = {
+      ...selectedExercise,
+      king_json: {
+        ...selectedExercise.king_json,
         content: updatedContent,
-        missingWords: [...selectedExercise.missingWords, { word, index }]
-      };
-      setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-      setSelectedExercise(updatedExercise);
-    }
+        missing_words: [...selectedExercise.king_json.missing_words, { word, index }]
+      }
+    };
+    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
   };
 
   const renderContentWithButtons = (content) => {
@@ -109,94 +162,123 @@ const EditTest = () => {
   };
 
   const addAnswer = () => {
-    if (selectedExercise) {
-      const updatedExercise = {
-        ...selectedExercise,
-        answers: [...(selectedExercise.answers || []), ''] // Убеждаемся, что answers всегда массив
-      };
-      setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-      setSelectedExercise(updatedExercise);
-    }
+    if (!selectedExercise) return;
+    const updatedExercise = {
+      ...selectedExercise,
+      king_json: {
+        ...selectedExercise.king_json,
+        answers: [...selectedExercise.king_json.answers, '']
+      }
+    };
+    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
   };
 
   const setCorrectAnswer = (answer) => {
-    if (selectedExercise) {
-      const updatedExercise = { ...selectedExercise, correctAnswer: answer };
-      setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-      setSelectedExercise(updatedExercise);
-    }
+    if (!selectedExercise) return;
+    const updatedExercise = { ...selectedExercise, correctAnswer: answer };
+    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
   };
 
-  const answerChange = (index, value) => {
-    if (selectedExercise) {
-      const updatedAnswers = [...(selectedExercise.answers || [])]; // Убеждаемся, что answers всегда массив
-      updatedAnswers[index] = value;
-      const updatedExercise = { ...selectedExercise, answers: updatedAnswers };
-      setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-      setSelectedExercise(updatedExercise);
-    }
+  const AnswerChange = (index, value) => {
+    if (!selectedExercise) return;
+    const updatedAnswers = [...selectedExercise.king_json.answers];
+    updatedAnswers[index] = value;
+    const updatedExercise = {
+      ...selectedExercise,
+      king_json: {
+        ...selectedExercise.king_json,
+        answers: updatedAnswers
+      }
+    };
+    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
   };
 
   const handleExerciseFieldChange = (e, field) => {
-    if (selectedExercise) {
-      const updatedExercise = { ...selectedExercise, [field]: e.target.value };
-      setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-      setSelectedExercise(updatedExercise);
-    }
+    if (!selectedExercise) return;
+    const updatedExercise = { ...selectedExercise, [field]: e.target.value };
+    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
   };
 
-  const convertLibraryExercise = (exercise) => {
-    return {
+  const addExerciseFromLibrary = (exercise) => {
+    const convertedExercise = {
       id: exercise.id,
       type: exercise.type,
-      content: exercise.king_json.content,
-      missingWords: exercise.king_json.missing_words || [],
-      answers: exercise.king_json.answers || [],
+      king_json: {
+        content: exercise.king_json.content,
+        missing_words: exercise.king_json.missing_words || [],
+        answers: exercise.king_json.answers || []
+      },
       correctAnswer: exercise.king_json.correct_answer || '',
       name: exercise.name,
       description: exercise.description
     };
-  };
-
-  const addExerciseFromLibrary = (exercise) => {
-    const convertedExercise = convertLibraryExercise(exercise);
     setExercises([...exercises, convertedExercise]);
     setSelectedExercise(convertedExercise);
     setSelectedType(convertedExercise.type);
     closeModal();
   };
 
-  if (testLoading || exercisesLoading) {
-    return <div>Загрузка...</div>;
-  }
+  const handleSaveExercise = () => {
+    if (!selectedExercise) return;
+    const exerciseData = {
+      name: selectedExercise.name,
+      type: selectedExercise.type,
+      king_json: selectedExercise.type === '1' ? {
+        content: selectedExercise.king_json.content,
+        missing_words: selectedExercise.king_json.missing_words
+      } : {
+        content: selectedExercise.king_json.content,
+        answers: selectedExercise.king_json.answers,
+        correct_answer: selectedExercise.correctAnswer
+      }
+    };
+    updateExerciseMutation.mutate(exerciseData);
+  };
+
+  const removeExercise = (exerciseId) => {
+    setExercises(exercises.filter(exercise => exercise.id !== exerciseId));
+    unLinkExerciseToTest(exerciseId, test.id);
+    setSelectedExercise(null);
+    
+  };
+
+  const { data: libraryExercises } = useQuery('exercises', fetchExercises);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div>
       <div className='color-2'>
         <Container>
           <Row>
+            <Col></Col>
             <Col>
               <input
                 className='title-test'
-                value={test?.name || ''}
-                onChange={(e) => {
-                  if (test) {
-                    const updatedTest = { ...test, name: e.target.value };
-                    updateTestMutation.mutate({ testId: id, test: updatedTest });
-                  }
-                }}
-                placeholder='Введите название теста'
+                placeholder='введите название теста'
+                value={testTitle}
+                onChange={(e) => setTestTitle(e.target.value)}
               />
-              <p>
-                <Button className='btn-blue' onClick={saveTest} disabled={updateTestMutation.isLoading}>
-                  {updateTestMutation.isLoading ? 'Сохранение...' : 'Сохранить тест и выйти'}
-                </Button>
-              </p>
+              <textarea 
+                className='description-test'
+                placeholder='Введите описание теста'
+                value={testDescription}
+                onChange={(e) => setTestDescription(e.target.value)}
+                >
+                
+                
+              </textarea>
+              <p><Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить тест и выйти</Button></p>
               <div className='checkbox'>
                 <Form.Check
-                  type='checkbox'
-                  id='default-checkbox'
-                  label='Сделать публичным'
+                  type={'checkbox'}
+                  id={'default-chekbox'}
+                  label={'Сделать публичным'}
                   checked={isChecked}
                   onChange={handleCheckboxChange}
                 />
@@ -205,15 +287,16 @@ const EditTest = () => {
           </Row>
           <Row>
             <Col>
-              <div className='exercise-nav'>
+              <div className="exercise-nav">
                 {exercises.map((exercise, index) => (
-                  <Button
-                    key={exercise.id}
-                    className='exercise-btn'
-                    onClick={() => selectExercise(exercise)}
-                  >
-                    {index + 1}
-                  </Button>
+                  <div key={exercise.id} className="exercise-btn-wrapper">
+                    <Button
+                      className='exercise-btn'
+                      onClick={() => selectExercise(exercise)}
+                    >
+                      {index + 1}
+                    </Button>
+                  </div>
                 ))}
                 <Button className='add-btn' onClick={openModal}>Добавить</Button>
               </div>
@@ -221,31 +304,26 @@ const EditTest = () => {
           </Row>
         </Container>
       </div>
+
       <div className='exercise-editor'>
         <Container>
           {selectedExercise ? (
             parseInt(selectedExercise.type) === 1 ? (
               <div>
                 <h3>Редактор упражнения {selectedExercise.id}</h3>
-                <p>
-                  Название упражнения
-                  <input
-                    value={selectedExercise.name}
-                    onChange={(e) => handleExerciseFieldChange(e, 'name')}
-                  />
-                </p>
-                <p>
-                  Описание упражнения
-                  <input
-                    value={selectedExercise.description}
-                    onChange={(e) => handleExerciseFieldChange(e, 'description')}
-                  />
-                </p>
+                <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
+                <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
                 <textarea
-                  className='input-style area-1'
-                  value={selectedExercise.content}
+                  className=' input-style area-1'
+                  value={selectedExercise.king_json.content}
                   onChange={(e) => {
-                    const updatedExercise = { ...selectedExercise, content: e.target.value };
+                    const updatedExercise = {
+                      ...selectedExercise,
+                      king_json: {
+                        ...selectedExercise.king_json,
+                        content: e.target.value
+                      }
+                    };
                     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
                     setSelectedExercise(updatedExercise);
                   }}
@@ -255,43 +333,45 @@ const EditTest = () => {
                 </Button>
                 {showWordButtons && (
                   <div>
-                    {renderContentWithButtons(selectedExercise.content)}
+                    {renderContentWithButtons(selectedExercise.king_json.content)}
                   </div>
                 )}
+                <Row>
+                  <Col>
+                    <Button onClick={handleSaveExercise}>Сохранить изменения</Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => removeExercise(selectedExercise.id)}
+                      className="delete-btn"
+                    >
+                      X
+                    </Button>
+                  </Col>
+                </Row>
               </div>
-            ) : parseInt(selectedExercise.type) === 2 ? (
+            ) : parseInt(selectedExercise.type) == 2 ? (
               <div>
                 <h3>Редактор изображения {selectedExercise.id}</h3>
-                <p>
-                  Название упражнения
-                  <input
-                    value={selectedExercise.name}
-                    onChange={(e) => handleExerciseFieldChange(e, 'name')}
-                  />
-                </p>
-                <p>
-                  Описание упражнения
-                  <input
-                    value={selectedExercise.description}
-                    onChange={(e) => handleExerciseFieldChange(e, 'description')}
-                  />
-                </p>
-                <Row className='align-items-center'>
+                <p>Название упражнения <input value={selectedExercise.name} onChange={e => handleExerciseFieldChange(e, "name")} /></p>
+                <p>Описание упражнения <input value={selectedExercise.description} onChange={e => handleExerciseFieldChange(e, "description")} /></p>
+                <Row className="align-items-center">
                   <Col>
-                    {selectedExercise.content && (
-                      <img
-                        src={selectedExercise.content}
-                        alt='Загруженное изображение'
-                        className='half-size'
-                      />
+                    {selectedExercise.king_json.content && (
+                      <img src={selectedExercise.king_json.content} alt="Загруженное изображение" className="half-size" />
                     )}
                     <input
-                      type='file'
+                      type="file"
                       onChange={(e) => {
                         const file = e.target.files[0];
                         const reader = new FileReader();
                         reader.onloadend = () => {
-                          const updatedExercise = { ...selectedExercise, content: reader.result };
+                          const updatedExercise = {
+                            ...selectedExercise,
+                            king_json: {
+                              ...selectedExercise.king_json,
+                              content: reader.result
+                            }
+                          };
                           setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
                           setSelectedExercise(updatedExercise);
                         };
@@ -302,12 +382,12 @@ const EditTest = () => {
                       <Button onClick={addAnswer}>Добавить вариант ответа</Button>
                     </p>
                     <h3>Варианты ответа</h3>
-                    {(selectedExercise.answers || []).map((answer, index) => ( // Убеждаемся, что answers всегда массив
-                      <div key={index} className='answer-option'>
+                    {selectedExercise.king_json.answers?.map((answer, index) => (
+                      <div key={index} className="answer-option">
                         <input
                           className='input-style'
                           value={answer}
-                          onChange={(e) => answerChange(index, e.target.value)}
+                          onChange={(e) => AnswerChange(index, e.target.value)}
                         />
                         <Button
                           onClick={() => setCorrectAnswer(answer)}
@@ -317,6 +397,16 @@ const EditTest = () => {
                         </Button>
                       </div>
                     ))}
+                    <Button onClick={handleSaveExercise}>Сохранить изменения</Button>
+                    <Button
+                      variant="danger"
+                      onClick={() => removeExercise(selectedExercise.id)}
+                      className="delete-btn"
+                    >
+                      X
+                    </Button>
+                  </Col>
+                  <Col>
                   </Col>
                 </Row>
               </div>
@@ -324,23 +414,29 @@ const EditTest = () => {
           ) : (
             <p>Выберите упражнение для редактирования</p>
           )}
+          
         </Container>
       </div>
+
       <Modal isActive={isActive} closeModal={closeModal}>
         <Container className='text-center'>
           <h1>Выберите тип упражнения</h1>
           <Row>
             <Col>
-              <Button onClick={() => handleSelectType('1')}>Пропущенные слова</Button>
-              <Button onClick={() => handleSelectType('2')}>Что на изображении</Button>
+              <DropdownButton id="dropdown-basic-button" title="Создать">
+                <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('other')}>Something else</Dropdown.Item>
+              </DropdownButton>
             </Col>
             <Col>
-              <Button onClick={openModal}>Выбрать из библиотеки</Button>
-              {libraryExercises?.map((exercise, index) => (
-                <Button key={index} onClick={() => addExerciseFromLibrary(exercise)}>
-                  {exercise.name}
-                </Button>
-              ))}
+              <DropdownButton id="dropdown-basic-button" title="Выбрать из библиотеки">
+                {libraryExercises?.map((exercise, index) => (
+                  <Dropdown.Item key={index} onClick={() => addExerciseFromLibrary(exercise)}>
+                    {exercise.name}
+                  </Dropdown.Item>
+                ))}
+              </DropdownButton>
             </Col>
           </Row>
         </Container>

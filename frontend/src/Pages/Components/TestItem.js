@@ -1,16 +1,19 @@
-import React, { useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from 'react-bootstrap';
 import './style.css';
 
-const Test = ({ name, description, id, link }) => {
-   const navigate = useNavigate();
+const Test = ({ name, description, id, link, onDelete, onEdit }) => {
+  const navigate = useNavigate();
 
   const handleClick = async () => {
-    navigate(link); // Переход по ссылке после обновления
+    navigate(link);
   };
 
   return (
-    <div className='test-item' onClick={handleClick}>
+    <div className="test-item" onClick={handleClick}>
+      <Button className="edit-button" onClick={(e) => { e.stopPropagation(); onEdit(); }}>E</Button>
+      <Button className="delete-button" onClick={(e) => { e.stopPropagation(); onDelete(); }}>X</Button>
       <div className="test-header">
         <h3 className="test-title">{name}</h3>
         <p className="test-description">{description}</p>

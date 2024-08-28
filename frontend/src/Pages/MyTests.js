@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, FormControl, Toast } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, FormControl, Toast, ListGroup } from 'react-bootstrap';
 import './style.css';
 import { Link, useNavigate } from "react-router-dom";
 import Test from './Components/TestItem';
@@ -14,6 +14,8 @@ const MyTests = () => {
   const { isActive, openModal, closeModal } = useModal();
   const [testToDelete, setTestToDelete] = useState(null);
   const [show, setShow] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
 
   const deleteTestMutation = useMutation(deleteTest, {
     onSuccess: () => {
@@ -41,6 +43,40 @@ const MyTests = () => {
     }
   }, []);
 
+  const filteredTests = tests?.filter(test => 
+    test.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    test.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getSuggestions = (value) => {
+    const inputValue = value.trim().toLowerCase();
+    const inputLength = inputValue.length;
+
+    return inputLength === 0 ? [] : tests?.filter(test => 
+      test.name.toLowerCase().includes(inputValue) || 
+      test.description.toLowerCase().includes(inputValue)
+    );
+  };
+
+  const onSuggestionsFetchRequested = ({ value }) => {
+    setSuggestions(getSuggestions(value));
+  };
+
+  const onSuggestionsClearRequested = () => {
+    setSuggestions([]);
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    onSuggestionsFetchRequested({ value });
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion.name);
+    setSuggestions([]);
+  };
+
   if (isLoading) return <p>Загрузка...</p>;
   if (error) return <p>Ошибка: {error.message}</p>;
 
@@ -58,7 +94,22 @@ const MyTests = () => {
                   type='text'
                   placeholder='Введите название или тип теста...'
                   className='mr-sm-2'
+                  value={searchQuery}
+                  onChange={handleSearchChange}
                 />
+                {suggestions.length > 0 && (
+                  <ListGroup className="suggestions-list">
+                    {suggestions.map(suggestion => (
+                      <ListGroup.Item 
+                        key={suggestion.id} 
+                        action 
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        {suggestion.name}
+                      </ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                )}
               </Form>
             </Col>
             <Col lg={2} sm={3} className="d-flex justify-content-end">
@@ -75,12 +126,17 @@ const MyTests = () => {
       </div>
       <Container>
         <Row clas>
-          {tests?.length > 0 ? (
-            tests.map((test, index) => (
+          {filteredTests?.length > 0 ? (
+            filteredTests.map((test, index) => (
               <Col key={index} sm={12} md={6} lg={2}>
-                <Button className='btn-delete' onClick={() => handleDeleteTest(test.id)}>X</Button>
-                <Button className='btn-edit' onClick={() => navigate(`/my-tests/edit-test/test/${test.id}`)}>E</Button>
-                <Test name={test.name} description={test.description} id={test.id} link={`/my-tests/test/${test.id}`} />
+                <Test 
+                  name={test.name} 
+                  description={test.description} 
+                  id={test.id} 
+                  link={`/my-tests/test/${test.id}`} 
+                  onDelete={() => handleDeleteTest(test.id)}
+                  onEdit={() => navigate(`/my-tests/edit-test/test/${test.id}`)}
+                />
               </Col>
             ))
           ) : (

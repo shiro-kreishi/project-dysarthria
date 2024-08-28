@@ -122,6 +122,36 @@ export const linkExerciseToTest = async (exerciseId, testId) => {
   }
 };
 
+export const unLinkExerciseToTest = async (exerciseId, testId) => {
+  let linkId = null;
+
+  try {
+    const links = await axiosConfig.get('/api/v0/exercises-to-test/');
+    for (let link of links.data) {
+      if (link.exercise === exerciseId && link.test === testId) {
+        linkId = link.id;
+        break; // Выходим из цикла, как только найдем совпадение
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка при получении связей упражнений и тестов', error);
+    throw error;
+  }
+
+  if (linkId === null) {
+    console.error('Связь между упражнением и тестом не найдена');
+    throw new Error('Связь между упражнением и тестом не найдена');
+  }
+
+  try {
+    const response = await axiosConfig.delete(`/api/v0/exercises-to-test/${linkId}/`);
+    return response.data;
+  } catch (error) {
+    console.error('Не удалось удалить упражнение из теста', error);
+    throw error;
+  }
+};
+
 export const updateExercise = async (exerciseId, exerciseData) => {
   try {
     const response = await axiosConfig.put(`/api/v0/exercises/${exerciseId}/`, exerciseData);
