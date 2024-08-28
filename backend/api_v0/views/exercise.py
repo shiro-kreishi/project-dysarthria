@@ -32,6 +32,9 @@ class ExerciseToTestModelViewSet(ListAndRetrieveForAnyUserModelViewSet):
     queryset = ExerciseToTest.objects.all()
     BaseSerializer = ExerciseToTestSerializer
 
+    def get_serializer_class(self):
+        return self.BaseSerializer
+
 
 class ResponseExerciseModelViewSet(BaseModelViewSet):
     queryset = ResponseExercise.objects.all()

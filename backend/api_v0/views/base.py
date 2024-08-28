@@ -1,3 +1,7 @@
+import logging
+
+from django.core.serializers import SerializerDoesNotExist
+from django.db.migrations.serializer import BaseSerializer
 from django.db.models import Model
 
 from api_v0.permissions import IsMemberOfGroupsOrAdmin
@@ -51,7 +55,7 @@ class BaseModelViewSet(mixins.CreateModelMixin,
 
 
 class DetailedParamRetrieveModelViewSet(BaseModelViewSet):
-    BaseDetailSerializer = serializers.BaseSerializer
+    BaseDetailSerializer = None
 
     def get_query_param_by_key(self, key: str):
         return self.request.query_params.get(key)
@@ -62,7 +66,12 @@ class DetailedParamRetrieveModelViewSet(BaseModelViewSet):
         #     print(f'get: {self.request.query_params}')
 
         if self.action in ['retrieve'] and self.get_query_param_by_key('detailed') == 'true':
-            return self.BaseDetailSerializer
+            try:
+                serializer = self.BaseDetailSerializer
+            except TypeError as e:
+                logging.exception('Exception while retrieving detailed params: ', e)
+                serializer = BaseSerializer
+            return serializer
         return self.BaseSerializer
 
 
