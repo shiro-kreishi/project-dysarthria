@@ -130,7 +130,7 @@ class UserRegistrationModelViewSet(viewsets.ModelViewSet):
             if user is not None:
                 response_data = {
                     "email": user.email,
-                    "username": user.username,
+                    # "username": user.username,
                 }
                 return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
