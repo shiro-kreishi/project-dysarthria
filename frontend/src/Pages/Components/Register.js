@@ -44,23 +44,23 @@ const Register = () => {
     <Box mt="10" textAlign="center">
       <form onSubmit={handleSubmit}>
         <FormControl id="formBasicEmail" mb="4">
-          <FormLabel>Email address</FormLabel>
-          <Input type="email" placeholder="Enter email" value={email} onChange={e => setEmail(e.target.value)} />
+          <FormLabel>Email</FormLabel>
+          <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
         </FormControl>
         <FormControl id="formBasicUsername" mb="4">
-          <FormLabel>Username</FormLabel>
-          <Input type="text" placeholder="Enter username" value={username} onChange={e => setUsername(e.target.value)} />
+          <FormLabel>Никнейм</FormLabel>
+          <Input type="text" placeholder="Никнейм" value={username} onChange={e => setUsername(e.target.value)} />
         </FormControl>
         <FormControl id="formBasicPassword" mb="4">
-          <FormLabel>Password</FormLabel>
-          <Input type={showPassword1 ? 'text' : 'password'} placeholder="Password" value={password1} onChange={e => setPassword1(e.target.value)} />
+          <FormLabel>Пароль</FormLabel>
+          <Input type={showPassword1 ? 'text' : 'password'} placeholder="Пароль" value={password1} onChange={e => setPassword1(e.target.value)} />
           <Button variant={'ghost'} onClick={() => setShowPassword1((showPassword1) => !showPassword1)}>
             {showPassword1 ? <ViewIcon /> : <ViewOffIcon />}
           </Button>
         </FormControl>
         <FormControl id="formBasicPassword2" mb="4">
-          <FormLabel>Password confirmation</FormLabel>
-          <Input type={showPassword2 ? 'text' : 'password'} placeholder="Password confirmation" value={password2} onChange={e => setPassword2(e.target.value)} />
+          <FormLabel>Подтверждение пароля</FormLabel>
+          <Input type={showPassword2 ? 'text' : 'password'} placeholder="Подтверждение пароля" value={password2} onChange={e => setPassword2(e.target.value)} />
           <Button variant={'ghost'} onClick={() => setShowPassword2((showPassword2) => !showPassword2)}>
             {showPassword2 ? <ViewIcon /> : <ViewOffIcon />}
           </Button>
