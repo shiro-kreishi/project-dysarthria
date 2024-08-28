@@ -12,6 +12,8 @@ from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 
+from project import settings
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -102,11 +104,34 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class EmailConfirmationToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.CharField(max_length=255, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    token = models.CharField(
+        max_length=255,
+        unique=True,
+        verbose_name='Токен подтверждения почты.',
+        help_text='Токен который указывается в GET запросе на подтверждения почты.\n'
+                  'Состоит из id пользователя и email, зашифрованных django.signer.'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Время создания токена.'
+    )
+
+    is_changing_email = models.BooleanField(
+        default=False,
+        verbose_name='Флаг ',
+        help_text='Флаг для токена,назначается в случае если пользователь решил изменить '
+                  'почту (или зарегистрироваться).\n'
+                  'В случае если пользователь регистрируется = False. В ином True.'
+    )
+
+    changed_email = models.EmailField(
+        unique=True,
+        blank=True,
+        help_text='Почта на которую пользователь хочет изменить свою текущую.'
+    )
 
     def has_expired(self):
-        expiration_time = timedelta(minutes=15)
+        expiration_time = timedelta(minutes=settings.EMAIL_CONFIRMATION_TOKEN_LIFETIME)
         return timezone.now() > self.created_at + expiration_time
 
     def __str__(self):

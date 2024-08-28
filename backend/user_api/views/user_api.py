@@ -1,16 +1,21 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
+from django.core.mail import send_mail
 from django.core.signing import Signer, BadSignature
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from project import settings
+from project.settings import DEBUG
 from user_api.serializers.user import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, \
-    ChangePasswordSerializer, ChangeNameSerializer
+    ChangePasswordSerializer, ChangeNameSerializer, UserChangeEmailSerializer
 from rest_framework import permissions, status, viewsets
 
-from user_api.utils.token_generator import verify_signed_token
+from user_api.utils.creating_email_message import send_confirmation_email
+from user_api.utils.token_generator import verify_signed_token, create_confirmation_token
 from user_api.validations import custom_validation, validate_email, validate_password
 from users.models import User
 from user_api.serializers.doctor_serializers import AssignDoctorSerializer
@@ -23,59 +28,90 @@ class IsSuperUserOrDoctorOrAdminPermission(IsMemberOfGroupsOrAdmin):
 from users.models.users import EmailConfirmationToken
 
 
-class ConfirmEmailView(APIView):
+class ConfirmEmailView(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
-    # TODO Подтверждение почты Вообще здесь нужна особая логика, так как удалять
-    #         пользователей не стоит!
-    #         Нужно спросить хочет ли пользователь перегенерировать
-    #         токен почты.
+    queryset = User.objects.all()
+    http_method_names = ['get', 'head', 'options', 'list']
 
-    def get(self, request, token, *args, **kwargs):
+    """
+     Подтверждение почты Вообще здесь нужна особая логика, так как удалять
+     пользователей не стоит!
+     Нужно спросить хочет ли пользователь перегенерировать
+     токен почты.
+    """
+    def list(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        token = pk
         email, signed_user_id = verify_signed_token(token)
 
+        # Проверяем токен на то что почта и id не пустые
         if email is None or signed_user_id is None:
-            return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
+            if DEBUG:
+                return Response({"error": "Field email or user_id is Null. Token is invalid"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Достаем токен из базы
         try:
             email_token = EmailConfirmationToken.objects.get(user_id=signed_user_id, token=token)
         except EmailConfirmationToken.DoesNotExist:
-            return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
-
-
-        # TODO: Тут по моему уязвимость с тем что можно удалить существующего пользователя
-        if email_token.has_expired():
-            email_token.delete()
-            user = email_token.user
-            if user.is_active is False:
-                user.delete()
-            return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
+            if DEBUG:
+                return Response({"error": "Token not found."}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
 
         user = email_token.user
 
-        if user.is_active:
-            return Response({"error": "Invalid token. User is activated."}, status=status.HTTP_400_BAD_REQUEST)
+        # TODO: Тут по моему уязвимость с тем что можно удалить существующего пользователя
+        # Проверка на то что токен просрочен
+        if email_token.has_expired():
+            # Удаляем токен
+            email_token.delete()
+            if DEBUG:
+                return Response({"error": "Token has expired. Token has deleted"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"error": "Invalid token or user."}, status=status.HTTP_400_BAD_REQUEST)
 
-        user.is_active = True
-        user.save()
+
+        if user.is_active:
+            # Если пользователь активен и хочет изменить почту
+            if email_token.is_changing_email:
+                # Проверяем флаг и изменяем
+                user.email = email_token.changed_email
+            else:
+                # Если флага на токена нет - значит произошла какая то ошибка или уязвимость
+                email_token.delete()
+                if DEBUG:
+                    return Response({"error": "User is activated. But he has token."}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Если пользователь не активен (только зарегистрировался)
+            # Делаем пользователя активным
+            user.is_active = True
+
         email_token.delete()
+        user.save()
         return Response({"message": "Email confirmed successfully"}, status=status.HTTP_200_OK)
 
 
-class UserRegistrationAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        clean_data = custom_validation(request.data)
-        serializer = UserRegistrationSerializer(data=clean_data)
-        if serializer.is_valid():
-            user = serializer.save()
-            if user is not None:
-                response_data = {
-                    "email": user.email,
-                    "username": user.username,
-                }
-                return Response(response_data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class UserRegistrationAPIView(APIView):
+#     permission_classes = [permissions.AllowAny]
+#
+#     def post(self, request):
+#         clean_data = custom_validation(request.data)
+#         serializer = UserRegistrationSerializer(data=clean_data)
+#         if serializer.is_valid():
+#             user = serializer.save()
+#             if user is not None:
+#                 response_data = {
+#                     "email": user.email,
+#                     "username": user.username,
+#                 }
+#                 return Response(response_data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserRegistrationModelViewSet(viewsets.ModelViewSet):
@@ -108,10 +144,10 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        assert validate_email(data)
-        assert validate_password(data)
+        # assert validate_email(data)
+        # assert validate_password(data)
         serializer = self.serializer_class(data=data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             try:
                 user = serializer.check_user(data)
             except ValidationError as e:
@@ -124,7 +160,6 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
             }
             return Response(response_data, status=status.HTTP_200_OK)
         else:
-            print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -198,7 +233,7 @@ class AssignDoctorGroupModelViewSet(viewsets.ModelViewSet):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UpdateNameModelViewSet(viewsets.ModelViewSet):
+class UpdateNameModelViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ChangeNameSerializer
     http_method_names = ['post', 'get']
@@ -222,3 +257,33 @@ class UpdateNameModelViewSet(viewsets.ModelViewSet):
             serializer.data,
             status=status.HTTP_200_OK
         )
+
+
+class UserChangeEmailModelViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['post',]
+    serializer_class = UserChangeEmailSerializer
+
+    def get_queryset(self):
+        request = self.request
+        user = request.user
+        # Вернуть queryset, содержащий только текущего пользователя
+        return User.objects.filter(pk=user.pk)
+
+    def list(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)  # Проверяет данные
+        new_email = serializer.validated_data.get('new_email')
+        self.send_confirmation_email(request.user, new_email)
+        return Response(status=status.HTTP_200_OK)
+
+    def send_confirmation_email(self, user, new_email):
+        confirmation_token = create_confirmation_token(user=user, is_changing_email=True, changed_email=new_email)
+        send_confirmation_email(user, confirmation_token)
+
+
+
+

@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.core.validators import validate_email
 
 UserModel = get_user_model()
 
@@ -20,18 +21,31 @@ def custom_validation(data):
     return data
 
 
-def validate_email(data):
-    email = data['email'].strip()
+def custom_validate_email(email):
+    email = email.strip()  # Убираем пробелы
+
+    # Проверка на пустой email
     if not email:
-        raise ValidationError('an email is needed')
+        raise ValidationError('Поле почты пустое.')
+
+    # Проверка формата email
+    try:
+        validate_email(email)
+    except ValidationError:
+        raise ValidationError('Неправильный формат почты.')
+
+    # Проверка уникальности email
+    if UserModel.objects.filter(email=email).exists():
+        raise ValidationError('Эта почта уже используется.')
+
+    # Проверка на запрещенные или одноразовые домены
+    blocked_domains = ['tempmail.com', 'mailinator.com']
+    domain = email.split('@')[-1]
+    if domain in blocked_domains:
+        raise ValidationError(f'Почта с доменом {domain} запрещена.')
+
     return True
 
-
-def validate_username(data):
-    username = data['username'].strip()
-    if not username:
-        raise ValidationError('choose another username')
-    return True
 
 
 def validate_password(data):
