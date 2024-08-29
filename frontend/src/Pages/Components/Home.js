@@ -15,10 +15,10 @@ import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import AssignDoctorGroup from './AssignDoctorGroups';
 
 const Home = ({ currentUser, client }) => {
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
+  const [patronimyc, setPatronimyc] = useState('');
   const [password1, setPassword1] = useState('');
   const [password2, setPassword2] = useState('');
   const [showPassword1, setShowPassword1] = useState(false);
@@ -29,7 +29,7 @@ const Home = ({ currentUser, client }) => {
       if (currentUser) {
         const response = await client.get("/api/user/current-user/");
         setEmail(response.data.email);
-        setUsername(response.data.username);
+        // setUsername(response.data.username);
         setFirstname(response.data.first_name);
         setLastname(response.data.last_name);
       }
@@ -46,7 +46,11 @@ const Home = ({ currentUser, client }) => {
         console.error('CSRF token is missing');
         return;
       }
-      await client.post("/api/user/update-name/", { first_name: firstname, last_name: lastname }, {
+      await client.post("/api/user/update-name/", {
+        first_name: firstname,
+        last_name: lastname,
+        firstname: firstname,
+      }, {
         headers: {
           'X-CSRFToken': csrfToken
         }
@@ -94,21 +98,21 @@ const Home = ({ currentUser, client }) => {
                 </Center>
               </Stack>
             </FormControl>
-            <FormControl id="userName" isRequired>
-              <FormLabel>Username</FormLabel>
-              <Input placeholder="Username" _placeholder={{ color: 'gray.500' }} type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-            </FormControl>
             <FormControl id="email" isRequired>
               <FormLabel>Email</FormLabel>
               <Input placeholder="email@example.com" _placeholder={{ color: 'gray.500' }} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </FormControl>
-            <FormControl id="firstName" isRequired>
-              <FormLabel>First name</FormLabel>
-              <Input placeholder="First name" _placeholder={{ color: 'gray.500' }} type="text" value={firstname} onChange={(e) => setFirstname(e.target.value)} />
-            </FormControl>
             <FormControl id="lastName" isRequired>
-              <FormLabel>Last name</FormLabel>
-              <Input placeholder="Last name" _placeholder={{ color: 'gray.500' }} type="text" value={lastname} onChange={(e) => setLastname(e.target.value)} />
+              <FormLabel>Фамилия</FormLabel>
+              <Input placeholder="Введите фамилию" _placeholder={{ color: 'gray.500' }} type="text" value={lastname} onChange={(e) => setLastname(e.target.value)} />
+            </FormControl>
+            <FormControl id="firstName" isRequired>
+              <FormLabel>Имя</FormLabel>
+              <Input placeholder="Введите имя" _placeholder={{ color: 'gray.500' }} type="text" value={firstname} onChange={(e) => setFirstname(e.target.value)} />
+            </FormControl>
+            <FormControl id="patronimyc" isRequired>
+              <FormLabel>Отчество</FormLabel>
+              <Input placeholder="Введите отчество" _placeholder={{ color: 'gray.500' }} type="text" value={patronimyc} onChange={(e) => setPatronimyc(e.target.value)} />
             </FormControl>
             <Stack spacing={6} direction={['column', 'row']}>
               <form onSubmit={handleChangeData}>
@@ -141,9 +145,9 @@ const Home = ({ currentUser, client }) => {
           </Stack>
         </Flex>
       }
-      {currentUser && username === 'Admin' ? (
-        <AssignDoctorGroup/>
-      ) : <></>}
+      {/*{currentUser && username === 'Admin' ? (*/}
+      {/*  <AssignDoctorGroup/>*/}
+      {/*) : <></>}*/}
     </Box>
   );
 };
