@@ -60,7 +60,7 @@ class UserLoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
-        fields = ('email', 'username', 'last_name', 'first_name',)
+        fields = ('email', 'username', 'last_name', 'first_name', 'patronymic')
 
 
 class UserWithIdSerializer(serializers.ModelSerializer):

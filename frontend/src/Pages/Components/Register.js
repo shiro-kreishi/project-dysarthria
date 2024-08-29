@@ -6,7 +6,6 @@ import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 
 const Register = () => {
   const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
   const [password1, setPassword1] = useState('');
   const [password2, setPassword2] = useState('');
   const [lastName, setLastName] = useState('');

@@ -18,7 +18,7 @@ const Home = ({ currentUser, client }) => {
   const [email, setEmail] = useState('');
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
-  const [patronimyc, setPatronimyc] = useState('');
+  const [patronymic, setPatronymic] = useState('');
   const [password1, setPassword1] = useState('');
   const [password2, setPassword2] = useState('');
   const [showPassword1, setShowPassword1] = useState(false);
@@ -32,6 +32,7 @@ const Home = ({ currentUser, client }) => {
         // setUsername(response.data.username);
         setFirstname(response.data.first_name);
         setLastname(response.data.last_name);
+        setPatronymic(response.data.patronymic)
       }
     };
 
@@ -49,7 +50,7 @@ const Home = ({ currentUser, client }) => {
       await client.post("/api/user/update-name/", {
         first_name: firstname,
         last_name: lastname,
-        firstname: firstname,
+        patronimyc: patronymic,
       }, {
         headers: {
           'X-CSRFToken': csrfToken
@@ -110,9 +111,9 @@ const Home = ({ currentUser, client }) => {
               <FormLabel>Имя</FormLabel>
               <Input placeholder="Введите имя" _placeholder={{ color: 'gray.500' }} type="text" value={firstname} onChange={(e) => setFirstname(e.target.value)} />
             </FormControl>
-            <FormControl id="patronimyc" isRequired>
+            <FormControl id="patronymic" isRequired>
               <FormLabel>Отчество</FormLabel>
-              <Input placeholder="Введите отчество" _placeholder={{ color: 'gray.500' }} type="text" value={patronimyc} onChange={(e) => setPatronimyc(e.target.value)} />
+              <Input placeholder="Введите отчество" _placeholder={{ color: 'gray.500' }} type="text" value={patronymic} onChange={(e) => setPatronymic(e.target.value)} />
             </FormControl>
             <Stack spacing={6} direction={['column', 'row']}>
               <form onSubmit={handleChangeData}>
