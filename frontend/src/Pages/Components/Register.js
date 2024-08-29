@@ -55,10 +55,6 @@ const Register = () => {
           <FormLabel>Электронная почта</FormLabel>
           <Input type="email" placeholder="Введите электронную почту" value={email} onChange={e => setEmail(e.target.value)} />
         </FormControl>
-        {/*<FormControl id="formBasicUsername" mb="4">*/}
-        {/*  <FormLabel>Username</FormLabel>*/}
-        {/*  <Input type="text" placeholder="Enter username" value={username} onChange={e => setUsername(e.target.value)} />*/}
-        {/*</FormControl>*/}
         <FormControl id="formBasicLastName" mb="4">
           <FormLabel>Фамилия</FormLabel>
           <Input type="text" placeholder="Введите фамилию" value={lastName} onChange={e => setLastName(e.target.value)} />
