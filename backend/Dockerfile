@@ -22,5 +22,6 @@ RUN apt-get install -y librabbitmq-dev libssh-dev libpq-dev
 RUN pip install --upgrade pip
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
+#COPY ../.env.docker /usr/src/app/.env
 COPY . /usr/src/app
-COPY .env.docker /usr/src/app/.env
+

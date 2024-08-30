@@ -1,8 +1,9 @@
 build:
 	#docker build .
 	docker compose up -d --build
-	docker compose exec django python manage.py makemigrations
+	docker compose exec django python manage.py makemigrations users testing
 	docker compose exec django python manage.py migrate
+	docker compose exec django python backend/create_user_groups.py
 
 run:
 	docker compose up -d
