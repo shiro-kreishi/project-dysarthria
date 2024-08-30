@@ -1,30 +1,23 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
-from django.core.mail import send_mail
-from django.core.signing import Signer, BadSignature
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
-from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from project import settings
 from project.settings import DEBUG
+from user_api.permissions.is_member_group_or_admin import IsSuperUserOrAdminPermission, \
+    IsSuperUserOrDoctorOrAdminPermission
 from user_api.serializers.user import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, \
     ChangePasswordSerializer, ChangeNameSerializer, UserChangeEmailSerializer
 from rest_framework import permissions, status, viewsets
 
 from user_api.utils.creating_email_message import send_confirmation_email
 from user_api.utils.token_generator import verify_signed_token, create_confirmation_token
-from user_api.validations import custom_validation, validate_email, validate_password
+from user_api.validations import custom_validation
 from users.models import User
-from user_api.serializers.doctor_serializers import AssignDoctorSerializer
+from user_api.serializers.doctor_serializers import AssignGroupSerializer
 from django.contrib.auth.models import Group
-from user_api.permissions import IsMemberOfGroupsOrAdmin
-
-class IsSuperUserOrDoctorOrAdminPermission(IsMemberOfGroupsOrAdmin):
-    group_names = ['Doctors', 'Administrators']
-
 from users.models.users import EmailConfirmationToken
 
 
@@ -208,11 +201,14 @@ class UserChangePasswordModelViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class AssignDoctorGroupModelViewSet(viewsets.ModelViewSet):
-    serializer_class = AssignDoctorSerializer
+    serializer_class = AssignGroupSerializer
     permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
     http_method_names = ['post']
+
+    def get_group(self):
+        user_group, _ = Group.objects.get_or_create(name='Doctors')
+        return user_group
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -225,10 +221,44 @@ class AssignDoctorGroupModelViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Пользователь не найден."}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            doctor_group, created = Group.objects.get_or_create(name='Doctors')
-            user.groups.add(doctor_group)
+            if user.is_doctor():
+                user.groups.remove(self.get_group())
+                return Response({"detail": "Группа снята", "user_in_group": False}, status=status.HTTP_200_OK)
+
+            user.groups.add(self.get_group())
             user.save()
-            return Response({"detail": "Группа назначена."}, status=status.HTTP_200_OK)
+            return Response({"detail": "Группа назначена.", "user_in_group": True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class AssignAdministratorGroupModelViewSet(viewsets.ModelViewSet):
+    serializer_class = AssignGroupSerializer
+    permission_classes = [IsSuperUserOrAdminPermission]
+    http_method_names = ['post']
+
+    def get_group(self):
+        user_group, _ = Group.objects.get_or_create(name='Administrators')
+        return user_group
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_id = serializer.validated_data['user_id']
+
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "Пользователь не найден."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            if user.is_administrator():
+                user.groups.remove(self.get_group())
+                return Response({"detail": "Группа снята", "user_in_group": False}, status=status.HTTP_200_OK)
+
+            user.groups.add(self.get_group())
+            user.save()
+            return Response({"detail": "Группа назначена.", "user_in_group": True}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

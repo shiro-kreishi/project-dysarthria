@@ -102,6 +102,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+    def is_doctor(self):
+        return self.groups.filter(name='Doctors').exists()
+
+    def is_administrator(self):
+        return self.groups.filter(name='Administrators').exists()
+
 class EmailConfirmationToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.CharField(
