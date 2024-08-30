@@ -205,7 +205,7 @@ const AddTest = () => {
     const exerciseData = {
       name: selectedExercise.name,
       type: selectedExercise.type,
-      king_json: selectedExercise.type === '1' ? {
+      king_json: selectedExercise.type === '1' || selectedExercise.type === '3' ? {
         content: selectedExercise.content,
         missing_words: selectedExercise.missingWords
       } : {
