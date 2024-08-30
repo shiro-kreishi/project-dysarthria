@@ -61,7 +61,12 @@ const AddExercise = () => {
         content: exercise.content,
         answers: exercise.answers,
         correct_answer: exercise.correctAnswer
-      }
+      },
+      correct_answers: exercise.type === '1' ? (
+        exercise.missingWords.map(missingWord => missingWord.word)
+      ) : (
+        [exercise.correctAnswer]
+      )
     };
 
     try {

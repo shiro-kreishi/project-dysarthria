@@ -12,6 +12,9 @@ import TestPassing from './Pages/TestPassing';
 import AddExercise from './Pages/AddExercise';
 import usePermissions from './hooks/usePermissions';
 import EditTest from './Pages/EditTest';
+import ResultTest from './Pages/ResultTest';
+import TestResults from './Pages/TestResultDetailed';
+import FinallResult from './Pages/Components/FinallResult';
 
 function App() {
   const { isAllowed, isLoading, error } = usePermissions();
@@ -39,6 +42,7 @@ function App() {
                 <>
                   <Nav.Link href="/library" className="custom-nav-link">Библиотека</Nav.Link>
                   <Nav.Link href="/my-tests" className="custom-nav-link">Мои тесты</Nav.Link>
+                  <Nav.Link href="/result-test" className="custom-nav-link">Результаты</Nav.Link>
                 </>
               )}
               <Nav.Link href="/profile" className="custom-nav-link">Профиль</Nav.Link>
@@ -58,10 +62,13 @@ function App() {
               <Route path="/my-tests/add-test" element={<AddTest />} />
               <Route path="/my-tests/add-exercise" element={<AddExercise />} />
               <Route path="/my-tests/test/:id" element={<TestPassing />} />
+              <Route path="/result-test" element={<ResultTest />} />
+              <Route path="/result-test/test/:id" element={<TestResults />} />
             </>
           )}
           <Route path="/profile/*" element={<Profile />} />
           <Route path="/public-tests/test/:id" element={<TestPassing />} />
+          <Route path="/public-tests/test/result/:id" element={<FinallResult/>} />
         </Routes>
       </BrowserRouter>
     </>
