@@ -4,6 +4,7 @@ from api_v0.serializers import ExerciseSerializer
 from testing.models.test import \
     Test, DoctorToTest, Whitelist, PublicTest, \
     ResponseTest, Exercise, ResponseExercise, ExerciseToTest
+from user_api.serializers import UserSerializer
 from users.models import User
 
 
@@ -91,3 +92,11 @@ class ResponseTestSerializer(serializers.ModelSerializer):
             data['user'] = None
 
         return data
+
+
+class ResponseDetailTestSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = ResponseTest
+        fields = ['id', 'test', 'user', 'json_result']
