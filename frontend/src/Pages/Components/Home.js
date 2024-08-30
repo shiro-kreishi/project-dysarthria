@@ -50,7 +50,7 @@ const Home = ({ currentUser, client }) => {
       await client.post("/api/user/update-name/", {
         first_name: firstname,
         last_name: lastname,
-        patronimyc: patronymic,
+        patronymic: patronymic,
       }, {
         headers: {
           'X-CSRFToken': csrfToken
