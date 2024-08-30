@@ -51,6 +51,7 @@ const EditTest = () => {
         const exerciseData = {
           name: exercise.name,
           type: exercise.type,
+          description: exercise.description,
           king_json: exercise.type === '1' || exercise.type === '3' ? {
             content: exercise.king_json.content,
             missing_words: exercise.king_json.missing_words
@@ -65,6 +66,7 @@ const EditTest = () => {
         const exerciseData = {
           name: exercise.name,
           type: exercise.type,
+          description: exercise.description,
           king_json: exercise.type === '1' || exercise.type === '3' ? {
             content: exercise.king_json.content,
             missing_words: exercise.king_json.missing_words

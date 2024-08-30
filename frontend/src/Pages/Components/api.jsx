@@ -99,6 +99,16 @@ export const findExerciseByName = async (name) => {
   }
 };
 
+export const fetchExerciseById = async (exerciseId) => {
+  try {
+    const response = await axiosConfig.get(`/api/v0/exercises/${exerciseId}/?detailed=true`);
+    return response.data;
+  } catch (error) {
+    console.error('Ошибка при загрузке упражнения по ID', error);
+    return null;
+  }
+};
+
 export const createExercise = async (exercise) => {
   try {
     const response = await axiosConfig.post('/api/v0/exercises/', exercise);

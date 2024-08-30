@@ -10,6 +10,7 @@ import Profile from './Pages/Profile';
 import AddTest from './Pages/AddTest';
 import TestPassing from './Pages/TestPassing';
 import AddExercise from './Pages/AddExercise';
+import ExercisePassing from './Pages/ExercisePassing';
 import usePermissions from './hooks/usePermissions';
 import EditTest from './Pages/EditTest';
 
@@ -58,6 +59,7 @@ function App() {
               <Route path="/my-tests/add-test" element={<AddTest />} />
               <Route path="/my-tests/add-exercise" element={<AddExercise />} />
               <Route path="/my-tests/test/:id" element={<TestPassing />} />
+              <Route path="/exercise/:id" element={<ExercisePassing />} />
             </>
           )}
           <Route path="/profile/*" element={<Profile />} />
