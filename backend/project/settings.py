@@ -189,7 +189,8 @@ AUTH_USER_MODEL = "users.User"
 
 STATIC_URL = 'static/'
 # STATICFILES_DIRS = [
-#     BASE_DIR / 'static',
+#     BASE_DIR / 'static/admin',
+#     BASE_DIR / 'static/rest_framework'
 # ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
@@ -308,6 +309,8 @@ SITE_URL = SITE_URL_CONFIG
 
 # Время жизни токена на подтверждения почты (В МИНУТАХ)
 EMAIL_CONFIRMATION_TOKEN_LIFETIME = EMAIL_CONFIRMATION_TOKEN_LIFETIME_CONFIG
+
+
 
 # Как получать ошибки проекта на Django на свою почту?
 # ADMINS = (

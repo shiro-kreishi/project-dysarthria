@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 UserModel = get_user_model()
 
 
-class AssignDoctorSerializer(serializers.Serializer):
+class AssignGroupSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
 
     def validate_user_id(self, value):
