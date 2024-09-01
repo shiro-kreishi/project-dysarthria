@@ -32,7 +32,7 @@ function App() {
 
   return (
       <>
-        <p>URL: {process.env.REACT_APP_BASE_URL}</p>
+        {/*<p>URL: {process.env.REACT_APP_BASE_URL}</p>*/}
         <Navbar collapseOnSelect expand="md" bg="light" variant="light" className="custom-navbar">
           <Container className="center-nav">
             <Navbar.Toggle aria-controls="responsive-navbar-nav" className="custom-nav-toggle"/>
