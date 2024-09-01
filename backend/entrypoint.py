@@ -1,13 +1,13 @@
 import django
 import os
 
-from config.config import ADMIN_EMAIL_CONFIG, ADMIN_PASSWORD_CONFIG
-
+from config.config import ADMIN_EMAIL_CONFIG, ADMIN_PASSWORD_CONFIG, EXERCISE_TYPES_CONFIG
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 django.setup()
 
 from users.models import User
+from testing.models import ExerciseType
 from django.contrib.auth.models import Group, Permission
 
 try:
@@ -64,3 +64,17 @@ try:
         print(f"Суперпользователь с электронной почтой {superuser_email} уже существует.")
 except Exception as e:
     print(f"Ошибка при создании суперпользователя: {e}")
+
+
+Exercise_Types = EXERCISE_TYPES_CONFIG
+
+try:
+    for ex_type in Exercise_Types:
+        if not ExerciseType.objects.filter(name=ex_type).exists():
+            ExerciseType.objects.create(name=ex_type)
+            print(f"Тип задания '{ex_type}' успешно создан.")
+        else:
+            print(f"Тип задания с именем '{ex_type}' уже существует.")
+except Exception as e:
+    print(f"Ошибка при создании типа задания: {e}")
+

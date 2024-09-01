@@ -34,7 +34,7 @@ migrate:
 	backend/venv/bin/python3 backend/manage.py makemigrations users testing
 	backend/venv/bin/python3 backend/manage.py migrate
 
-user-groups:
+django-entrypoint:
 	 export DJANGO_SETTINGS_MODULE=project.settings && backend/venv/bin/python3 backend/entrypoint.py
 
 
