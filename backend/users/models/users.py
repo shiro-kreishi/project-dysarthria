@@ -103,10 +103,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
-    def is_doctor(self):
+    def is_doctor(self) -> bool:
         return self.groups.filter(name='Doctors').exists()
 
-    def is_administrator(self):
+    def is_administrator(self) -> bool:
         return self.groups.filter(name='Administrators').exists()
 
 class EmailConfirmationToken(models.Model):
