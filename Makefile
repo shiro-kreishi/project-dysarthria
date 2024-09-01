@@ -3,7 +3,7 @@ build:
 	docker compose up -d --build
 	docker compose exec django python manage.py makemigrations users testing
 	docker compose exec django python manage.py migrate
-	docker compose exec django python create_user_groups.py
+	docker compose exec django python entrypoint.py
 
 run:
 	docker compose up -d
@@ -35,7 +35,7 @@ migrate:
 	backend/venv/bin/python3 backend/manage.py migrate
 
 user-groups:
-	backend/venv/bin/python3 backend/create_user_groups.py
+	 export DJANGO_SETTINGS_MODULE=project.settings && backend/venv/bin/python3 backend/entrypoint.py
 
 
 test-backend-users:
