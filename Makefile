@@ -3,7 +3,7 @@ build:
 	docker compose up -d --build
 	docker compose exec django python manage.py makemigrations users testing
 	docker compose exec django python manage.py migrate
-	docker compose exec django python backend/create_user_groups.py
+	docker compose exec django python create_user_groups.py
 
 run:
 	docker compose up -d
