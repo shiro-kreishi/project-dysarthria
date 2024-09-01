@@ -1,5 +1,6 @@
 import axios from "axios";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 const getCSRFToken = () => {
     const cookieValue = document.cookie
       .split('; ')
@@ -8,7 +9,7 @@ const getCSRFToken = () => {
     return cookieValue;
   };
   const axiosConfig = axios.create({
-    baseURL: "http://127.0.0.1:8000",
+    baseURL: BASE_URL,
     headers: {
         'X-CSRFToken': getCSRFToken(),
         'Content-Type': 'application/json',

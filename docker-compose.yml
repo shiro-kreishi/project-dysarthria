@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   django:
     build: backend
@@ -11,7 +10,7 @@ services:
     ports:
       - 8001:8001
     env_file:
-      - ./backend/.env.docker
+      - .env.docker
     depends_on:
       - postgres
     networks:
@@ -20,14 +19,22 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_DB: "project-db"
-      POSTGRES_USER: "user-db"
-      POSTGRES_PASSWORD: "password-project-db"
       PGDATA: "/var/lib/postgresql/data/pgdata"
+    env_file:
+      - .env.docker
     volumes:
       - data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - nginx_network
+
+  react:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - react_main_front:/app/build
     networks:
       - nginx_network
 
@@ -40,8 +47,10 @@ services:
       - ./config/docker/nginx/conf.d:/etc/nginx/conf.d
       - static_volume:/usr/src/app/static  # <-- bind the static volume
       - media_volume:/usr/src/app/media  # <-- bind the media volume
+      - react_main_front:/usr/src/app/frontend
     depends_on:
       - django
+      - react
     networks:
       - nginx_network
 
@@ -49,6 +58,7 @@ volumes:
   data:
   static_volume:
   media_volume:
+  react_main_front:
 
 networks:
   nginx_network:

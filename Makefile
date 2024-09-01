@@ -1,14 +1,19 @@
 build:
 	#docker build .
 	docker compose up -d --build
-	docker compose exec django python manage.py makemigrations
+	docker compose exec django python manage.py makemigrations users testing
 	docker compose exec django python manage.py migrate
+	docker compose exec django python entrypoint.py
 
 run:
 	docker compose up -d
 
 stop:
 	docker compose stop 
+
+react-rebuild:
+	docker compose build --no-cache react
+
 
 logs:
 	docker compose logs
@@ -33,8 +38,8 @@ migrate:
 	backend/venv/bin/python3 backend/manage.py makemigrations users testing
 	backend/venv/bin/python3 backend/manage.py migrate
 
-user-groups:
-	backend/venv/bin/python3 backend/create_user_groups.py
+django-entrypoint:
+	 export DJANGO_SETTINGS_MODULE=project.settings && backend/venv/bin/python3 backend/entrypoint.py
 
 
 test-backend-users:
