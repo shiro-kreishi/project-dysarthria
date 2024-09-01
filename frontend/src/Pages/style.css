@@ -94,7 +94,7 @@ body {
 .title-test {
   background: none;
   color: white;
-  font-size: 36px;
+  font-size: 36px;  
   border: 0;
   border-style: none;
   width: 100%;
@@ -206,6 +206,31 @@ body {
   .input-answer{
     width: 200px;
   }
+}
+
+.input-answer.correct {
+  background-color: green;
+  color: white;
+}
+
+.input-answer.incorrect {
+  background-color: red;
+  color: white;
+}
+
+.correct {
+  background-color: green !important;
+  color: white !important;
+}
+
+.incorrect {
+  background-color: red !important;
+  color: white !important;
+}
+
+.correct-word {
+  font-size: 0.8em;
+  color: green;
 }
 /*мобильные устроства в альболмном режиме*/
 @media ((min-width:576px) and (max-width: 767.98px)) {

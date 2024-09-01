@@ -30,7 +30,7 @@ const AddTest = () => {
     };
     const createdTest = await createTest(test);
     const testId = createdTest.id;
-
+  
     const exercisePromise = exercises.map(async (exercise) => {
       const existingExercise = await findExerciseByName(exercise.name);
       if (existingExercise) {
@@ -39,14 +39,19 @@ const AddTest = () => {
         const exerciseData = {
           name: exercise.name,
           type: exercise.type,
+          description: exercise.description,
           king_json: exercise.type === '1' || exercise.type === '3' ? {
             content: exercise.content,
             missing_words: exercise.missingWords
           } : {
             content: exercise.content,
             answers: exercise.answers,
-            correct_answer: exercise.correctAnswer
-          }
+          },
+          correct_answers: parseInt(exercise.type) === 1 ? (
+            exercise.missingWords.map(missingWord => missingWord.word)
+          ) : (
+            [exercise.correctAnswer]
+          )
         };
         const createdExercise = await createExercise(exerciseData);
         await linkExerciseToTest(createdExercise.id, testId);
@@ -56,7 +61,7 @@ const AddTest = () => {
     if (isChecked) {
       await addPublicTest(createdTest.id);
     }
-
+  
     console.log('Тест и упражнения успешно сохранены');
     localStorage.setItem('testCreated', 'true');
     navigate(`/my-tests/`);
@@ -65,15 +70,6 @@ const AddTest = () => {
       queryClient.invalidateQueries('tests');
     }
   });
-
-  const updateExerciseMutation = useMutation(
-    (exerciseData) => updateExercise(selectedExercise.id, exerciseData),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('exercises');
-      }
-    }
-  );
 
   const handleCheckboxChange = (event) => {
     setIsChecked(event.target.checked);
@@ -212,14 +208,19 @@ const AddTest = () => {
         content: selectedExercise.content,
         answers: selectedExercise.answers,
         correct_answer: selectedExercise.correctAnswer
-      }
+      },
+      correct_answers: selectedExercise.type === '1' ? (
+        selectedExercise.missingWords.map(missingWord => missingWord.word)
+      ) : (
+        [selectedExercise.correctAnswer]
+      )
     };
-    updateExerciseMutation.mutate(exerciseData);
+    updateExercise.mutate(exerciseData);
   };
+
   const removeExercise = (exerciseId) => {
     setExercises(exercises.filter(exercise => exercise.id !== exerciseId));
     setSelectedExercise(null);
-    
   };
 
   const { data: libraryExercises } = useQuery('exercises', fetchExercises);
@@ -232,7 +233,7 @@ const AddTest = () => {
             <Col></Col>
             <Col>
               <input className='title-test ' placeholder={'Введите название теста'}></input>
-              <textarea className='description-test'placeholder='Введите описание теста'>
+              <textarea className='description-test' placeholder='Введите описание теста'>
               </textarea>
               <p><Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить тест и выйти</Button></p>
               <div className='checkbox'>

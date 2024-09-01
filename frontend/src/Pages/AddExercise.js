@@ -57,6 +57,7 @@ const AddExercise = () => {
     const exerciseData = {
       name: exercise.name,
       type: exercise.type,
+      description: exercise.description,
       king_json: exercise.type === '1' || exercise.type === '3' ? {
         content: exercise.content,
         missing_words: exercise.missingWords
@@ -64,7 +65,12 @@ const AddExercise = () => {
         content: exercise.content,
         answers: exercise.answers,
         correct_answer: exercise.correctAnswer
-      }
+      },
+      correct_answers: exercise.type === '1' ? (
+        exercise.missingWords.map(missingWord => missingWord.word)
+      ) : (
+        [exercise.correctAnswer]
+      )
     };
 
     try {
