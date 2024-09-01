@@ -37,3 +37,9 @@ class CheckUserInGroupsOrAdmin:
         is_group_member = any(user.groups.filter(name=group_name).exists() for group_name in self.group_names)
         is_admin = user.is_superuser and user.is_staff
         return is_group_member or is_admin
+
+class IsSuperUserOrDoctorOrAdminPermission(IsMemberOfGroupsOrAdmin):
+    group_names = ['Doctors', 'Administrators']
+
+class IsSuperUserOrAdminPermission(IsMemberOfGroupsOrAdmin):
+    group_names = ['Administrators']

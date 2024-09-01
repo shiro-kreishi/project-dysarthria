@@ -6,5 +6,6 @@ class AccessUtils:
         """
             ОБЯЗАТЕЛЬНАЯ проверка аутентификации для всего приложения
         """
-        if user.is_authenticated and (user.is_superuser or user.groups.filter(name='Administrator').exists()):
+        if user.is_authenticated and (user.is_superuser or user.is_administrator):
             return True
+

@@ -2,22 +2,14 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import generics, mixins, views, status, permissions, viewsets
 
-from api_v0.permissions import IsMemberOfGroupOrAdmin
 from testing.models import DoctorToTest
 from testing.serializers.testing import DoctorToTestDetailSerializer
-from user_api.permissions.is_member_group_or_admin import CheckUserInGroupsOrAdmin
+from user_api.permissions.is_member_group_or_admin import CheckUserInGroupsOrAdmin, IsSuperUserOrDoctorOrAdminPermission
 
-from user_api.serializers.user import UserSerializer, UserWithIdSerializer, GroupSerializer
+from user_api.serializers.user import UserWithIdSerializer, GroupSerializer
 from users.models import User
-from api_v0.views.base import IsSuperUserOrDoctorOrAdminPermission
+
 from rest_framework.decorators import action
-
-
-class IsAdminOrDoctor(IsMemberOfGroupOrAdmin):
-    group_name = 'Doctors'
-
-class UserIsMemberOfGroupOrSuperuser(CheckUserInGroupsOrAdmin):
-    group_name = ['Doctors', 'Administrators']
 
 class DoctorToTestModelViewSet(mixins.CreateModelMixin,
                                mixins.RetrieveModelMixin,
@@ -69,6 +61,9 @@ class UserModelViewSet(mixins.CreateModelMixin,
         banned_user.is_active = True
         banned_user.save()
         return Response({'detail': f'User: {banned_user.email} has been unbanned.'}, status=status.HTTP_200_OK)
+
+    def list(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
