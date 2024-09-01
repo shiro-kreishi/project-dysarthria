@@ -11,6 +11,10 @@ run:
 stop:
 	docker compose stop 
 
+react-rebuild:
+	docker compose build --no-cache react
+
+
 logs:
 	docker compose logs
 

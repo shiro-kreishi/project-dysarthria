@@ -23,48 +23,54 @@ function App() {
 
   if (error) {
     // Показать сообщение об ошибке
-    return <div>Error: {error.message}</div>;
+    console.log("url: ", process.env.REACT_APP_BASE_URL)
+    return <>
+      <div>Error: {error.message}</div>
+      <p>URL: {process.env.REACT_APP_BASE_URL}</p>
+    </>;
   }
 
   return (
-    <>
-      <Navbar collapseOnSelect expand="md" bg="light" variant="light" className="custom-navbar">
-        <Container className="center-nav">
-          <Navbar.Toggle aria-controls="responsive-navbar-nav" className="custom-nav-toggle" />
-          <Navbar.Collapse id="responsive-navbar-nav" style={{ position: "relative" }}>
-            <Nav className="mx-auto">
-              <Nav.Link href="/" className="custom-nav-link">Главная</Nav.Link>
-              <Nav.Link href="/tests" className="custom-nav-link">Тесты</Nav.Link>
-              {isAllowed && (
+      <>
+        <p>URL: {process.env.REACT_APP_BASE_URL}</p>
+        <Navbar collapseOnSelect expand="md" bg="light" variant="light" className="custom-navbar">
+          <Container className="center-nav">
+            <Navbar.Toggle aria-controls="responsive-navbar-nav" className="custom-nav-toggle"/>
+            <Navbar.Collapse id="responsive-navbar-nav" style={{position: "relative"}}>
+              <Nav className="mx-auto">
+                <Nav.Link href="/" className="custom-nav-link">Главная</Nav.Link>
+                <Nav.Link href="/tests" className="custom-nav-link">Тесты</Nav.Link>
+                {isAllowed && (
+                    <>
+                      <Nav.Link href="/library" className="custom-nav-link">Библиотека</Nav.Link>
+                      <Nav.Link href="/my-tests" className="custom-nav-link">Мои тесты</Nav.Link>
+                    </>
+                )}
+                <Nav.Link href="/profile" className="custom-nav-link">Профиль</Nav.Link>
+              </Nav>
+            </Navbar.Collapse>
+          </Container>
+        </Navbar>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home/>}/>
+            <Route path="/tests" element={<Tests/>}/>
+            {isAllowed && (
                 <>
-                  <Nav.Link href="/library" className="custom-nav-link">Библиотека</Nav.Link>
-                  <Nav.Link href="/my-tests" className="custom-nav-link">Мои тесты</Nav.Link>
+                  <Route path='/my-tests/edit-test/test/:id' element={<EditTest/>}/>
+                  <Route path="/library" element={<Library/>}/>
+                  <Route path="/my-tests" element={<MyTests/>}/>
+                  <Route path="/my-tests/add-test" element={<AddTest/>}/>
+                  <Route path="/my-tests/add-exercise" element={<AddExercise/>}/>
+                  <Route path="/my-tests/test/:id" element={<TestPassing/>}/>
                 </>
-              )}
-              <Nav.Link href="/profile" className="custom-nav-link">Профиль</Nav.Link>
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/tests" element={<Tests />} />
-          {isAllowed && (
-            <>
-              <Route path='/my-tests/edit-test/test/:id' element={<EditTest />} />
-              <Route path="/library" element={<Library />} />
-              <Route path="/my-tests" element={<MyTests />} />
-              <Route path="/my-tests/add-test" element={<AddTest />} />
-              <Route path="/my-tests/add-exercise" element={<AddExercise />} />
-              <Route path="/my-tests/test/:id" element={<TestPassing />} />
-            </>
-          )}
-          <Route path="/profile/*" element={<Profile />} />
-          <Route path="/public-tests/test/:id" element={<TestPassing />} />
-        </Routes>
-      </BrowserRouter>
-    </>
+            )}
+            <Route path="/profile/*" element={<Profile/>}/>
+            <Route path="/public-tests/test/:id" element={<TestPassing/>}/>
+          </Routes>
+        </BrowserRouter>
+      </>
   );
 }
+
 export default App;
