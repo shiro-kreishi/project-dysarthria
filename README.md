@@ -71,7 +71,7 @@ EMAIL_HOST_USER=projectdysarthria@gmail.com
 EMAIL_HOST_PASSWORD=password
 EMAIL_CONFIRMATION_TOKEN_LIFETIME=15
 ADMIN_EMAIL=vadas25@yandex.ru
-ADMIN_PASSWORD=$P@ssOrD!KmaIDLWs@hDR$
+ADMIN_PASSWORD=password
 ```
 ### .env.docker
 file location: ./.env.docker
@@ -92,7 +92,7 @@ EMAIL_HOST_USER=projectdysarthria@gmail.com
 EMAIL_HOST_PASSWORD=password
 EMAIL_CONFIRMATION_TOKEN_LIFETIME=15
 ADMIN_EMAIL=vadas25@yandex.ru
-ADMIN_PASSWORD=$P@ssOrD!KmaIDLWs@hDR$
+ADMIN_PASSWORD=password
 ```
 ## .env file for frontend
 file location: frontend/
