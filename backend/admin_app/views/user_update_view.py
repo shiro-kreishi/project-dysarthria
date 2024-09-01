@@ -18,7 +18,7 @@ class UserUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         # Проверяем, что пользователь аутентифицирован и является администратором или суперпользователем
         return self.request.user.is_authenticated and (
-            self.request.user.is_superuser or self.request.user.groups.filter(name='Administrator').exists()
+            self.request.user.is_superuser or self.request.user.groups.filter(name='Administrators').exists()
         )
 
     def get(self, request, *args, **kwargs):

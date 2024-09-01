@@ -20,7 +20,7 @@ const TestPassing = () => {
       setAnswers(test.exercises.map(ex => ({
         id: ex.id,
         type: ex.type,
-        answer: ex.type === 1 ? [] : null
+        answer: ex.type === 1 || ex.type === 3 ? [] : null
       })));
     }
   }, [test]);
@@ -99,7 +99,7 @@ const TestPassing = () => {
           {selectedExercise ? (
             <div className='text-center'>
               <h1>{selectedExercise.name}</h1>
-              {selectedExercise.type === 1 ? (
+              {selectedExercise.type === 1 || selectedExercise.type === 3 ? (
                 <div>
                   <h2>
                     {selectedExercise.king_json?.content.split(/_+/).map((part, idx) => (

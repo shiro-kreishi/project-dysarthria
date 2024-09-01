@@ -41,7 +41,7 @@ const Register = () => {
         first_name: firstName,
         patronymic: patronymic,
         password: password1,
-        });
+      });
       navigate('/profile/confirmation');
     } catch (error) {
       console.error('Error registering new user: ', error);
@@ -52,8 +52,8 @@ const Register = () => {
     <Box mt="10" textAlign="center">
       <form onSubmit={handleSubmit}>
         <FormControl id="formBasicEmail" mb="4">
-          <FormLabel>Электронная почта</FormLabel>
-          <Input type="email" placeholder="Введите электронную почту" value={email} onChange={e => setEmail(e.target.value)} />
+          <FormLabel>Email</FormLabel>
+          <Input type="email" placeholder="Введите Email" value={email} onChange={e => setEmail(e.target.value)} />
         </FormControl>
         <FormControl id="formBasicLastName" mb="4">
           <FormLabel>Фамилия</FormLabel>
@@ -69,14 +69,14 @@ const Register = () => {
         </FormControl>
         <FormControl id="formBasicPassword" mb="4">
           <FormLabel>Пароль</FormLabel>
-          <Input type={showPassword1 ? 'text' : 'password'} placeholder="Введите пароль" value={password1} onChange={e => setPassword1(e.target.value)} />
+          <Input type={showPassword1 ? 'text' : 'password'} placeholder=" Введите пароль" value={password1} onChange={e => setPassword1(e.target.value)} />
           <Button variant={'ghost'} onClick={() => setShowPassword1((showPassword1) => !showPassword1)}>
             {showPassword1 ? <ViewIcon /> : <ViewOffIcon />}
           </Button>
         </FormControl>
         <FormControl id="formBasicPassword2" mb="4">
-          <FormLabel>Повторите пароль</FormLabel>
-          <Input type={showPassword2 ? 'text' : 'password'} placeholder="Повторите пароль" value={password2} onChange={e => setPassword2(e.target.value)} />
+          <FormLabel>Подтверждение пароля</FormLabel>
+          <Input type={showPassword2 ? 'text' : 'password'} placeholder="Подтвердите пароль" value={password2} onChange={e => setPassword2(e.target.value)} />
           <Button variant={'ghost'} onClick={() => setShowPassword2((showPassword2) => !showPassword2)}>
             {showPassword2 ? <ViewIcon /> : <ViewOffIcon />}
           </Button>
