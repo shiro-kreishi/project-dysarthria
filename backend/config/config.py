@@ -22,4 +22,4 @@ EMAIL_HOST_PASSWORD_CONFIG = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_CONFIRMATION_TOKEN_LIFETIME_CONFIG = int(os.getenv('EMAIL_CONFIRMATION_TOKEN_LIFETIME'))
 ADMIN_EMAIL_CONFIG = os.getenv('ADMIN_EMAIL')
 ADMIN_PASSWORD_CONFIG = os.getenv('ADMIN_PASSWORD')
-EXERCISE_TYPES_CONFIG = ['Пропущенные слова', 'Что на изображении']
+EXERCISE_TYPES_CONFIG = ['Пропущенные слова', 'Что на изображении', 'Пропущенные буквы']
