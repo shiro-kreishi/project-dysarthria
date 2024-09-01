@@ -12,6 +12,8 @@ const TestPassing = () => {
   const { data: test, isLoading, error } = useQuery(['test', id], () => fetchTestById(id));
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [answers, setAnswers] = useState([]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   const exercises = test?.exercises || [];
 
@@ -20,8 +22,9 @@ const TestPassing = () => {
       setAnswers(test.exercises.map(ex => ({
         id: ex.id,
         type: ex.type,
-        answer: ex.type === 1 ? [] : null
+        answer: ex.type === 1 || ex.type === 3 ? [] : null
       })));
+      setStartDate(new Date().toISOString()); // Запуск таймера при загрузке теста
     }
   }, [test]);
 
@@ -40,28 +43,41 @@ const TestPassing = () => {
     }
   };
 
-  const handleOptionSelect = (index) => {
+  const handleOptionSelect = (option) => {
     if (selectedExercise) {
       const updatedAnswers = [...answers];
       const answerObj = updatedAnswers.find(a => a.id === selectedExercise.id);
       if (answerObj) {
-        answerObj.answer = index;
+        answerObj.answer = option;
         setAnswers(updatedAnswers);
       }
     }
   };
 
   const submitAnswers = async () => {
+    setEndDate(new Date().toISOString()); // Остановка таймера при отправке ответов
+  
+    const jsonResult = answers.map(answer => {
+      const exercise = exercises.find(ex => ex.id === answer.id);
+      return {
+        exercise_id: answer.id,
+        user_answer: answer.answer,
+        correct_answer: (exercise.type === 1 || exercise.type === 3) ? (exercise.king_json.missing_words || []).map(wordObj => wordObj.word) : exercise.king_json.correct_answer
+      };
+    });
+  
     const responseTest = {
       test: id,
       user: null,
-      json_result: JSON.stringify(answers)
+      json_result: JSON.stringify(jsonResult),
+      start_date: startDate,
+      end_date: endDate
     };
-
+  
     try {
       await axiosConfig.post('/api/v0/response-tests/', responseTest);
       console.log('Ответы успешно отправлены');
-      navigate('/my-tests');
+      navigate(`/public-tests/test/result/${id}`, { state: { results: jsonResult } });
     } catch (error) {
       console.error('Ошибка при отправке ответов', error);
     }
@@ -99,7 +115,7 @@ const TestPassing = () => {
           {selectedExercise ? (
             <div className='text-center'>
               <h1>{selectedExercise.name}</h1>
-              {selectedExercise.type === 1 ? (
+              {selectedExercise.type === 1 || selectedExercise.type === 3 ? (
                 <div>
                   <h2>
                     {selectedExercise.king_json?.content.split(/_+/).map((part, idx) => (
@@ -130,8 +146,8 @@ const TestPassing = () => {
                         {selectedExercise.king_json.answers.map((answ, index) => (
                           <Button
                             key={index}
-                            onClick={() => handleOptionSelect(index)}
-                            className={`mx-2 ${answers.find(a => a.id === selectedExercise.id)?.answer === index ? 'selected' : ''}`}
+                            onClick={() => handleOptionSelect(answ)}
+                            className={`mx-2 ${answers.find(a => a.id === selectedExercise.id)?.answer === answ ? 'selected' : ''}`}
                           >
                             {answ}
                           </Button>

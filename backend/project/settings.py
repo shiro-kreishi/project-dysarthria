@@ -37,7 +37,8 @@ SECRET_KEY = SECRET_KEY_CONFIG
 DEBUG = True
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = DJANGO_ALLOWED_HOSTS_CONFIG
+# ALLOWED_HOSTS = DJANGO_ALLOWED_HOSTS_CONFIG
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -64,12 +65,13 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+
 ]
 
 REST_FRAMEWORK = {
@@ -89,21 +91,17 @@ REST_FRAMEWORK = {
     ],
 }
 
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS_CONFIG
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:3030',
-#     'http://tpbook2.shgpi'
-# ]
-# CORS_ALLOWED_ORIGINS = CORS_ALLOWED_ORIGINS_CONFIG
-
-CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:3000']
 
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1',
+    'https://dysarthria.shspu.ru',
+]
 
 ROOT_URLCONF = 'project.urls'
 
@@ -189,7 +187,8 @@ AUTH_USER_MODEL = "users.User"
 
 STATIC_URL = 'static/'
 # STATICFILES_DIRS = [
-#     BASE_DIR / 'static',
+#     BASE_DIR / 'static/admin',
+#     BASE_DIR / 'static/rest_framework'
 # ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
@@ -308,6 +307,8 @@ SITE_URL = SITE_URL_CONFIG
 
 # Время жизни токена на подтверждения почты (В МИНУТАХ)
 EMAIL_CONFIRMATION_TOKEN_LIFETIME = EMAIL_CONFIRMATION_TOKEN_LIFETIME_CONFIG
+
+
 
 # Как получать ошибки проекта на Django на свою почту?
 # ADMINS = (

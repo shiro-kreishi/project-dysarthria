@@ -1,5 +1,6 @@
 import re
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView
@@ -85,7 +86,7 @@ class BaseAdminView(ListView):
         return queryset
 
 
-def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         # Обязательно использовать во всех шаблонах!!!!!
         if not AccessUtils.user_has_access(request.user):
             return HttpResponseRedirect(f'{SITE_URL}/profile/login')

@@ -1,5 +1,8 @@
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+
+from project import settings
 from users.views.views import HomeStub
 
 urlpatterns = [
@@ -10,5 +13,7 @@ urlpatterns = [
     path('api/user/', include('user_api.urls')),
     path('', HomeStub.as_view(), name='homepage'),
     path('api/v0/', include('api_v0.urls')),
-    path('administrator/', include('admin_app.urls'))
+    path('administrator/', include('admin_app.urls')),
 ]
+
+urlpatterns += static(settings.STATIC_URL, document_root = settings.STATIC_ROOT)
