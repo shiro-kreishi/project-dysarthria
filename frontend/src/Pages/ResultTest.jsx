@@ -8,6 +8,14 @@ import { useQuery } from "react-query";
 const ResultTest = () => {
     const { data: responseTest, isLoading, error } = useQuery('response', getResponseTest);
 
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>Error: {error.message}</div>;
+    }
+
     return (
         <div>
             <div className='color-2'>
@@ -26,7 +34,7 @@ const ResultTest = () => {
                             <Result
                                 key={index}
                                 test={result.test}
-                                user={result.user}
+                                user={result.user.first_name}
                                 json_result={result.json_result}
                                 link={`/result-test/test/${result.id}/`}
                             />

@@ -41,11 +41,11 @@ const Login = ({ setCurrentUser }) => {
       <form onSubmit={handleSubmit}>
         <FormControl id="formBasicEmail" mb="4">
           <FormLabel>Email</FormLabel>
-          <Input type="email" placeholder="Enter email" value={email} onChange={e => setEmail(e.target.value)} />
+          <Input type="email" placeholder="Введите Email" value={email} onChange={e => setEmail(e.target.value)} />
         </FormControl>
         <FormControl id="formBasicPassword" mb="4">
           <FormLabel>Пароль</FormLabel>
-          <Input type={showPassword ? 'text' : 'password'} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+          <Input type={showPassword ? 'text' : 'password'} placeholder="Введите пароль" value={password} onChange={e => setPassword(e.target.value)} />
           <Button variant={'ghost'} onClick={() => setShowPassword((showPassword) => !showPassword)}>
             {showPassword ? <ViewIcon /> : <ViewOffIcon />}
           </Button>

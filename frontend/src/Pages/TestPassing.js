@@ -22,7 +22,7 @@ const TestPassing = () => {
       setAnswers(test.exercises.map(ex => ({
         id: ex.id,
         type: ex.type,
-        answer: ex.type === 1 ? [] : null
+        answer: ex.type === 1 || ex.type === 3 ? [] : null
       })));
       setStartDate(new Date().toISOString()); // Запуск таймера при загрузке теста
     }
@@ -62,7 +62,7 @@ const TestPassing = () => {
       return {
         exercise_id: answer.id,
         user_answer: answer.answer,
-        correct_answer: exercise.type === 1 ? exercise.king_json.missing_words.map(wordObj => wordObj.word) : exercise.king_json.correct_answer
+        correct_answer: (exercise.type === 1 || exercise.type === 3) ? (exercise.king_json.missing_words || []).map(wordObj => wordObj.word) : exercise.king_json.correct_answer
       };
     });
   
@@ -115,7 +115,7 @@ const TestPassing = () => {
           {selectedExercise ? (
             <div className='text-center'>
               <h1>{selectedExercise.name}</h1>
-              {selectedExercise.type === 1 ? (
+              {selectedExercise.type === 1 || selectedExercise.type === 3 ? (
                 <div>
                   <h2>
                     {selectedExercise.king_json?.content.split(/_+/).map((part, idx) => (

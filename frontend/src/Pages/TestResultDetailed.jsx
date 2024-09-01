@@ -36,7 +36,7 @@ const FinallResult = () => {
   if (!results) {
     return <h1>Результаты не найдены</h1>;
   }
-
+  
   const totalAnswers = results.length;
   const correctAnswers = results.filter(result => JSON.stringify(result.user_answer) === JSON.stringify(result.correct_answer)).length;
   const percentageCorrect = totalAnswers > 0 ? ((correctAnswers / totalAnswers) * 100).toFixed(2) : 0;
@@ -62,7 +62,7 @@ const FinallResult = () => {
                     <strong>Упражнение {index + 1}:</strong>
                   </div>
                   <div>
-                    <span>Ваш ответ: {JSON.stringify(result.user_answer)}</span>
+                    <span>ответ : {JSON.stringify(result.user_answer)}</span>
                   </div>
                   <div>
                     <span>Правильный ответ: {JSON.stringify(result.correct_answer)}</span>

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Dropdown, DropdownButton, Toast } from 'react-bootstrap';
 import './style.css';
@@ -39,6 +39,9 @@ const AddExercise = () => {
     if (exercise?.type === '2' && !exercise.correctAnswer) {
       validationErrors.push({ message: 'Необходимо выбрать правильный ответ.', variant: 'danger' });
     }
+    if (exercise?.type === '3' && exercise.missingWords.length === 0) {
+      validationErrors.push({ message: 'Должна быть выбрана хотя бы одна пропущенная буква.', variant: 'danger' });
+    }
 
     return validationErrors;
   };
@@ -54,7 +57,8 @@ const AddExercise = () => {
     const exerciseData = {
       name: exercise.name,
       type: exercise.type,
-      king_json: exercise.type === '1' ? {
+      description: exercise.description,
+      king_json: exercise.type === '1' || exercise.type === '3' ? {
         content: exercise.content,
         missing_words: exercise.missingWords
       } : {
@@ -85,6 +89,8 @@ const AddExercise = () => {
       newExercise = { id: 1, type: type, content: '', missingWords: [], name: '', description: '' };
     } else if (type === '2') {
       newExercise = { id: 1, type: type, content: '', answers: [], correctAnswer: '', name: '', description: '' };
+    } else if (type === '3') {
+      newExercise = { id: 1, type: type, content: '', missingWords: [], name: '', description: '' };
     }
     setExercise(newExercise);
     closeModal();
@@ -105,22 +111,40 @@ const AddExercise = () => {
     setExercise(updatedExercise);
   };
 
-  const renderContentWithButtons = (content) => {
-    const words = content.split(/(\s+|[.,!?])/).filter(word => word.trim() !== '');
-    return words.map((word, index) => {
-      if (/[.,!?]/.test(word)) {
-        return <span key={index}>{word}</span>;
+  const renderContentWithButtonsType1 = (content) => {
+    return content.split(' ').map((word, index) => {
+      let cleanedWord = word;
+      if (".,?!/\\'\"[]()@#$%^&*№;:".includes(word[word.length - 1])) {
+        cleanedWord = word.slice(0, -1);
       }
+  
       return (
-        <Button
-          key={index}
-          onClick={() => handleWordClick(word, index)}
-          style={{ margin: '5px' }}
-        >
-          {word}
-        </Button>
+        <Fragment key={index}>
+          <Button
+            onClick={() => handleWordClick(cleanedWord, index)}
+            style={{ margin: '5px' }}
+          >
+            {cleanedWord}
+          </Button>
+        </Fragment>
       );
     });
+  };
+
+  const renderContentWithButtonsType3 = (content) => {
+    return (
+      <>
+        {content.split('').map((word, index) => (
+          <Button
+            key={index}
+            onClick={() => handleWordClick(word, index)}
+            style={{ margin: '5px' }}
+          >
+            {word}
+          </Button>
+        ))}
+      </>
+    );
   };
 
   const addAnswer = () => {
@@ -184,7 +208,7 @@ const AddExercise = () => {
                 </Button>
                 {showWordButtons && (
                   <div>
-                    {renderContentWithButtons(exercise.content)}
+                    {renderContentWithButtonsType1(exercise.content)}
                   </div>
                 )}
               </div>
@@ -232,6 +256,28 @@ const AddExercise = () => {
                   </Col>
                 </Row>
               </div>
+            ) : exercise.type === '3' ? (
+              <div>
+                <h3>Редактор упражнения {exercise.id}</h3>
+                <p>Название упражнения <input value={exercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
+                <p>Описание упражнения <input value={exercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
+                <textarea
+                  className=' input-style area-1'
+                  value={exercise.content}
+                  onChange={(e) => {
+                    const updatedExercise = { ...exercise, content: e.target.value };
+                    setExercise(updatedExercise);
+                  }}
+                />
+                <Button onClick={() => setShowWordButtons(!showWordButtons)}>
+                  {showWordButtons ? 'Скрыть' : 'Выбрать пропущенные'}
+                </Button>
+                {showWordButtons && (
+                  <div>
+                    {renderContentWithButtonsType3(exercise.content)}
+                  </div>
+                )}
+              </div>
             ) : null
           ) : (
             <p>Выберите тип упражнения</p>
@@ -244,7 +290,7 @@ const AddExercise = () => {
         <DropdownButton id="dropdown-basic-button" title="Тип">
           <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
           <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
-          <Dropdown.Item onClick={() => handleSelectType('other')}>Something else</Dropdown.Item>
+          <Dropdown.Item onClick={() => handleSelectType('3')}>Пропущенные буквы</Dropdown.Item>
         </DropdownButton>
       </Modal>
       <div className="toast-container">

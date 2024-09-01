@@ -4,6 +4,7 @@ from api_v0.serializers import ExerciseSerializer
 from testing.models.test import \
     Test, DoctorToTest, Whitelist, PublicTest, \
     ResponseTest, Exercise, ResponseExercise, ExerciseToTest
+from user_api.serializers import UserSerializer
 from users.models import User
 
 
@@ -67,6 +68,7 @@ class PublicTestSerializer(serializers.ModelSerializer):
 
 class PublicDetailSerializer(serializers.ModelSerializer):
     test = TestDetailSerializer()
+
     class Meta:
         model = PublicTest
         fields = ['id', 'test']
@@ -74,6 +76,26 @@ class PublicDetailSerializer(serializers.ModelSerializer):
 
 class ResponseTestSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = ResponseTest
+        fields = ['id', 'test', 'user', 'json_result']
+
+    def validate(self, data):
+        # Получаем пользователя из контекста
+        user = self.context['request'].user
+
+        # Проверяем, авторизован ли пользователь
+        if user and user.is_authenticated:
+            data['user'] = user
+        else:
+            data['user'] = None
+
+        return data
+
+
+class ResponseDetailTestSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
 
     class Meta:
         model = ResponseTest

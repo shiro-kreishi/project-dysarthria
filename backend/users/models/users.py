@@ -65,7 +65,8 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
-    username = models.CharField(_('username'), max_length=32, unique=True)
+    # поле не обязательно, но нужно для работы системы
+    username = models.CharField(_('username'), max_length=32, unique=False, null=True, blank=True)
     first_name = models.CharField(_('first name'), max_length=100, blank=True)
     last_name = models.CharField(_('last name'), max_length=100, blank=True)
     patronymic = models.CharField(_('Отчество'), max_length=100, blank=True)

@@ -1,4 +1,5 @@
 from api_v0.permissions import IsMemberOfGroupsOrAdmin
+from api_v0.serializers import ResponseDetailTestSerializer
 from project.settings import DEBUG as debug_settings
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import generics, mixins, views, permissions
@@ -42,6 +43,7 @@ class PublicTestModelViewSet(DetailedParamRetrieveModelViewSet):
 class ResponseTestModelViewSet(BaseModelViewSet):
     queryset = ResponseTest.objects.all()
     BaseSerializer = ResponseTestSerializer
+    BaseDetailSerializer = ResponseDetailTestSerializer
 
     def get_permissions(self):
         if self.action in ['create', 'list', 'retrieve']:
@@ -49,6 +51,12 @@ class ResponseTestModelViewSet(BaseModelViewSet):
         else:
             permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
         return [permission() for permission in permission_classes]
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return self.BaseDetailSerializer
+        return self.BaseSerializer
+
 
 
 class WhitelistModelViewSet(ListAndRetrieveForAnyUserModelViewSet):
