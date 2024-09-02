@@ -4,12 +4,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ title }}</title>
     {% bootstrap_css %}
     {% bootstrap_javascript %}
     <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        div.container-fluid {
+            padding-right: 0;
+            padding-left: 0;
+            width: 100%;
+        }
+
+        nav {
+            padding-left: 1rem;
+        }
+
+        /* Кастомные стили для навигационной панели */
+        .navbar-custom {
+            background-color: #0D6EFD; /* Голубой цвет */
+        }
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link {
+            color: #ffffff; /* Белый цвет текста */
+        }
+        .navbar-brand:hover {
+            color: #f0f0f0; /* Цвет текста при наведении */
+        }
+
+        .navbar-custom {
+            border-bottom: 1px solid #e5e5e5; /* Легкая тень снизу */
+        }
+
+        .link-container {
+            margin: 0 10px; /* Пространство вокруг каждого контейнера ссылок */
+        }
+
+        a.navbar-brand {
+            color: black;
+        }
+
+
+    </style>
 </head>
 <body>
+<div class="container-fluid">
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+        <div class="d-flex justify-content-between w-100">
+            <div class="d-flex">
+                <!-- Линковый контейнер для навигационных ссылок -->
+                <div class="link-container mr-3">
+                    <a class="navbar-brand" href="{% url 'admin_homepage' %}">Поиск пользователей</a>
+                </div>
+                <div class="link-container mr-3">
+                    <a class="navbar-brand" href="{% url 'blocked-users' %}">Заблокированные пользователи</a>
+                </div>
+                <div class="link-container">
+                    <a class="navbar-brand" href="{% url 'unverified-users' %}">Незарегистрированные пользователи</a>
+                </div>
+            </div>
+
+            <div class="link-container">
+                <a class="navbar-brand" href="{{ SITE_URL }}">Вернуться на сайт</a>
+            </div>
+        </div>
+    </nav>
+</div>
+
 <div class="container">
 
 {% block content %}

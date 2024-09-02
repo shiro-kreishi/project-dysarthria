@@ -2,10 +2,10 @@
 {% load static %}
 {% block content %}
 <div class="container mt-4">
-    <h2>Список пользователей</h2>
+    <h2>Пользователи не подтвердившие свою почту</h2>
 
     <!-- Форма поиска -->
-    <form method="get" action="{% url 'admin_homepage' %}">
+    <form method="get" action="{% url 'unverified-users' %}">
         <div class="input-group mb-3">
             <input type="text" class="form-control" name="search" placeholder="Поиск пользователей" value="{{ request.GET.search }}">
             <button class="btn btn-primary" type="submit">Поиск</button>
@@ -14,7 +14,6 @@
 
     <!-- Вывод информации о текущем пользователе -->
     <p>Вы вошли как: {{ current_user.last_name }} {{ current_user.first_name }}</p>
-
 
     <table class="table table-striped">
         <thead>
@@ -25,13 +24,13 @@
                 <th>Отчество</th>
                 <th>Email</th>
                 <th>Дата регистрации</th>
-                <th>Заблокирован</th>
-                <th>Действия</th>
+                <th>Подтвержден Email</th>
+                <th>Активен</th>
             </tr>
         </thead>
         <tbody>
             {% for user in users %}
-                <tr {% if not user.is_active %} style="background-color: #F28A8A; color: black;" {% endif %}>
+                <tr>
                     <td>{{ user.id }}</td>
                     <td>{{ user.first_name }}</td>
                     <td>{{ user.last_name }}</td>
@@ -39,14 +38,18 @@
                     <td>{{ user.email }}</td>
                     <td>{{ user.date_joined }}</td>
                     <td>
-                        {% if not user.is_active %}
-                            Да
-                        {% else %}
+                        {% if not user.email_confirmed %}
                             Нет
+                        {% else %}
+                            Да
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'user_edit' user.pk %}" class="btn btn-primary">Редактировать</a>
+                        {% if not user.is_active %}
+                            Нет
+                        {% else %}
+                            Да
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}
@@ -72,4 +75,5 @@
         </span>
     </div>
     {% endif %}
+</div>
 {% endblock %}

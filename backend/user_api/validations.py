@@ -6,60 +6,62 @@ UserModel = get_user_model()
 
 
 def custom_validation(data):
-    email = data['email'].strip()
-    # username = data['username'].strip()
-    password = data['password'].strip()
-    ##
-    if not email or UserModel.objects.filter(email=email).exists():
-        raise ValidationError('choose another email')
-    ##
-    if not password or len(password) < 8:
-        raise ValidationError('choose another password, min 8 characters')
-    ##
-    # if not username:
-    #     raise ValidationError('choose another username')
+    """
+    Выполняет общую валидацию данных пользователя.
+    """
+    email = data.get('email', '')
+    password = data.get('password', '')
+
+    # Валидация email
+    custom_validate_email(email)
+
+    # Валидация пароля
+    validate_password(password)
+
     return data
 
-
 def custom_validate_email(email):
-    email = email.strip()  # Убираем пробелы
+    """
+    Проверяет корректность и уникальность email.
+    """
+    email = email.strip()
 
-    # Проверка на пустой email
     if not email:
         raise ValidationError('Поле почты пустое.')
 
-    # Проверка формата email
     try:
         validate_email(email)
     except ValidationError:
         raise ValidationError('Неправильный формат почты.')
 
-    # Проверка уникальности email
     if UserModel.objects.filter(email=email).exists():
         raise ValidationError('Эта почта уже используется.')
 
-    # Проверка на запрещенные или одноразовые домены
     blocked_domains = ['tempmail.com', 'mailinator.com']
     domain = email.split('@')[-1]
     if domain in blocked_domains:
         raise ValidationError(f'Почта с доменом {domain} запрещена.')
 
-    return True
+    return email
 
 
-
-def validate_password(data):
-    password = data['password'].strip()
+def validate_password(password):
+    """
+    Проверяет валидность пароля.
+    """
+    password = password.strip()
     if not password:
-        raise ValidationError('a password is needed')
-    return True
+        raise ValidationError('Пароль не должен быть пустым.')
 
-def validate_password_change(data):
-    old_password = data.get('old_password', '').strip()
-    new_password = data.get('new_password', '').strip()
+    if len(password) < 8:
+        raise ValidationError('Выберите пароль длиной не менее 8 символов.')
 
-    if not old_password or not new_password:
-        raise ValidationError('Нужно заполнить все поля')
+    # Проверка на наличие хотя бы одной цифры
+    if not any(char.isdigit() for char in password):
+        raise ValidationError('Пароль должен содержать хотя бы одну цифру.')
 
-    if len(new_password) < 8:
-        raise ValidationError('Выберете пароль больше 8 символов')
+    # Проверка на наличие хотя бы одной буквы
+    if not any(char.isalpha() for char in password):
+        raise ValidationError('Пароль должен содержать хотя бы одну букву.')
+    return password
+

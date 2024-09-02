@@ -1,5 +1,4 @@
 import re
-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponseRedirect
@@ -10,7 +9,6 @@ from admin_app.utils.filter_users import filter_users
 from users.models.users import User
 from admin_app.utils.access_rights import AccessUtils
 from project.settings import SITE_URL
-
 
 MONTHS_RU_TO_NUM = {
     'январ': 1, 'феврал': 2, 'март': 3, 'апрел': 4, 'ма': 5, 'июн': 6,
@@ -26,17 +24,16 @@ def normalize_month_name(month_name):
             return month
     return None
 
-class BaseAdminView(ListView):
+class BlockedUsersView(ListView):
     model = User
-    template_name = 'admin_app/admin_homepage_page.html'
+    template_name = 'admin_app/blocked_users_page.html'
     context_object_name = 'users'
     paginate_by = 10
 
     def get_queryset(self):
-        queryset = User.objects.filter(email_confirmed=True).order_by('-date_joined')
+        queryset = User.objects.filter(is_active=False, email_confirmed=True).order_by('-date_joined')
         search_query = self.request.GET.get('search', '')
         return filter_users(queryset, search_query)  # Используем функцию фильтрации
-
 
     def get(self, request, *args, **kwargs):
         # Обязательно использовать во всех шаблонах!!!!!
