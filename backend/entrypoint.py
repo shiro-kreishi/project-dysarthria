@@ -58,6 +58,7 @@ try:
             first_name='Admin',
             last_name='Admin',
             patronymic='Admin',
+            email_confirmed=True,
         )
         print(f"Суперпользователь с электронной почтой {superuser_email} успешно создан.")
     else:

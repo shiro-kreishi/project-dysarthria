@@ -9,13 +9,13 @@ User = get_user_model()
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('email', 'username', 'first_name', 'last_name', )
+    list_display = ('email','first_name', 'last_name', 'patronymic', 'is_active','email_confirmed',)
     fieldsets = (
-        (None, {'fields': ('email', 'username', 'password')}),
+        (None, {'fields': ('email',  'password')}),
         ('Personal info', {'fields': ('last_name', 'first_name', 'patronymic')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
+    readonly_fields = ('last_login', 'date_joined', 'username', 'email_confirmed',)
 
 
 @admin.register(EmailConfirmationToken)
