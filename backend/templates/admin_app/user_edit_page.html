@@ -1,20 +1,219 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block content %}
 <h1>Редактирование данных пользователя</h1>
 
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">Сохранить</button>
-    <a href="{% url 'admin_homepage' %}" class="btn btn-secondary">Отмена</a>
+    <div class="form-group">
+        {{ form.first_name.label_tag }}
+        <input disabled type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" class="form-control" value="{{ form.first_name.value|default_if_none:'' }}">
+    </div>
+    <div class="form-group">
+        {{ form.last_name.label_tag }}
+        <input disabled type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" class="form-control" value="{{ form.last_name.value|default_if_none:'' }}">
+    </div>
+    <div class="form-group">
+        {{ form.patronymic.label_tag }}
+        <input disabled type="text" name="{{ form.patronymic.name }}" id="{{ form.patronymic.id_for_label }}" class="form-control" value="{{ form.patronymic.value|default_if_none:''}}">
+    </div>
+    <div class="form-group">
+        <label for="id_email">Email:</label>
+        <input type="text" id="id_email" value="{{ user.email }}" class="form-control" disabled>
+    </div>
+    <div class="form-group">
+        <label for="id_date_joined">Дата регистрации:</label>
+        <input type="text" id="id_date_joined" value="{{ user.date_joined }}" class="form-control" disabled>
+    </div>
+{#    <div class="btn-save text-center">#}
+{#        <button type="submit" class="btn btn-success btn-save">Сохранить</button>#}
+{#    </div>#}
 </form>
 
 <div class="text-center mt-4">
     <div class="btn-group" role="group" aria-label="Basic example">
-        <button type="button" class="btn btn-primary">Сделать пользователя администратором.</button>
-        <button type="button" class="btn btn-primary">Дать возможность пользователю создавать тестирования.</button>
-        <button type="button" class="btn btn-primary">Забанить/разбанить пользователя.</button>
+        <button type="button" id="assign-doctor-group" class="btn {% if user.is_doctor %}btn-danger{% else %}btn-primary{% endif %}">
+            {% if user.is_doctor %}
+                Убрать возможность пользователю создавать тестирования.
+            {% else %}
+                Дать возможность пользователю создавать тестирования.
+            {% endif %}
+        </button>
+
+        {% if current_user_id != user.id %}
+            <button type="button" id="assign-administrator-group" class="btn {% if user.is_administrator %}btn-danger{% else %}btn-primary{% endif %}">
+                {% if user.is_administrator %}
+                    Убрать возможность пользователю быть администратором.
+                {% else %}
+                    Дать возможность пользователю быть администратором.
+                {% endif %}
+            </button>
+
+
+            <button type="button" id="ban-unban-user" class="btn {% if user.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                {% if user.is_active %}
+                    Забанить пользователя
+                {% else %}
+                    Разбанить пользователя
+                {% endif %}
+            </button>
+
+        {% else %}
+
+            <button type="button" class="btn btn-success">
+                Вы не можете снять с себя права администратора сами :)
+            </button>
+
+            <button type="button" class="btn btn-success">
+                Вы не можете забанить сами себя :)
+            </button>
+        {% endif %}
     </div>
 </div>
+
+<div class="text-center mt-4">
+    <button type="button" class="btn btn-secondary" onclick="window.history.back();">Назад</button>
+</div>
+
+<script src="{% static 'rest_framework/js/jquery-3.7.1.min.js' %}"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#assign-doctor-group').click(function() {
+            $.ajax({
+                url: '/api/user/assign-doctor-group/',
+                type: 'POST',
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                data: JSON.stringify({
+                    user_id: {{user.id}},
+                }),
+                success: function(response) {
+                    if (response.user_in_group) {
+                        $('#assign-doctor-group').removeClass('btn-primary').addClass('btn-danger').text('Убрать возможность пользователю создавать тестирования.');
+                    } else {
+                        $('#assign-doctor-group').removeClass('btn-danger').addClass('btn-primary').text('Дать возможность пользователю создавать тестирования.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ошибка:', status, error);
+                }
+            });
+        });
+
+
+        $('#assign-administrator-group').click(function() {
+            $.ajax({
+                url: '/api/user/assign-administrator-group/',
+                type: 'POST',
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                data: JSON.stringify({
+                    user_id: {{ user.id }},
+                }),
+                success: function(response) {
+                    if (response.user_in_group) {
+                        $('#assign-administrator-group').removeClass('btn-primary').addClass('btn-danger').text('Убрать возможность пользователю быть администратором.');
+                    } else {
+                        $('#assign-administrator-group').removeClass('btn-danger').addClass('btn-primary').text('Дать возможность пользователю быть администратором.');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ошибка:', status, error);
+                }
+            });
+        });
+
+        $('#ban-unban-user').click(function() {
+            var is_active = $(this).hasClass('btn-danger');
+            var url = is_active ? '/api/user/users/{{ user.id }}/ban/' : '/api/user/users/{{ user.id }}/unban/';
+            var new_class = is_active ? 'btn-success' : 'btn-danger';
+            var new_text = is_active ? 'Разбанить пользователя' : 'Забанить пользователя';
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    $('#ban-unban-user').removeClass('btn-danger btn-success').addClass(new_class).text(new_text);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ошибка:', status, error);
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    form {
+        background: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .btn-group {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: #fff;
+    }
+
+    .btn-save {
+        margin-top: 0.2rem;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+</style>
+
 {% endblock %}
+

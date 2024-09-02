@@ -180,4 +180,15 @@ export const updateTest = async (testId, testData) => {
     console.error('Ошибка при обновлении теста', error);
     throw error;
   }
-}
+};
+
+export const getResponseTest = async () => {
+  try{
+    const response = await axiosConfig.get('/api/v0/response-tests/');
+    return response.data;
+  }catch(error){
+    console.error('Ошибка при получении результатов', error);
+    throw error;
+  }
+}; 
+

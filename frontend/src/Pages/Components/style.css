@@ -49,6 +49,53 @@
   color:white;    
 }
 
+.result-item{
+  background-color: #4178bf;
+  width: 100%;
+  margin: 5px;
+  border-radius: 10px;
+  
+}
+
+.result-item:hover{
+  transition: 0.5s;
+  background-color:#f2b29b; 
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.result-header-content {
+  flex: 1;
+}
+
+.result-header-percentage {
+  margin-left: 20px;
+}
+
+.result-body {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.result-square {
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.green {
+  background-color: green;
+}
+
+.red {
+  background-color: red;
+}
+
 .test-button{
   border:none;
   background: none;

@@ -75,6 +75,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(_('active'), default=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
+    email_confirmed = models.BooleanField(
+        default=False,
+        verbose_name='Подтверждение почты',
+        blank=True,
+        null=True,
+        help_text='Прошел ли пользователь проверку почты после регистрации.'
+    )
+
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
@@ -102,6 +110,23 @@ class User(AbstractBaseUser, PermissionsMixin):
         Sends an email to this User.
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+    def is_doctor(self) -> bool:
+        return self.groups.filter(name='Doctors').exists()
+
+    def is_administrator(self) -> bool:
+        return self.groups.filter(name='Administrators').exists()
+
+    def check_delete_if_inactive_unconfirmed(self) -> bool:
+        """
+        Удаляет текущего пользователя, если он неактивен и у него отсутствует подтверждение email.
+        """
+        if not self.email_confirmed and not self.is_active:
+            tokens = EmailConfirmationToken.objects.filter(user=self)
+            if not tokens.exists() or all(token.has_expired() for token in tokens):
+                self.delete()
+                return True
+        return False
 
 class EmailConfirmationToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

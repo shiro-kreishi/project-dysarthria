@@ -1,30 +1,23 @@
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
-from django.core.mail import send_mail
-from django.core.signing import Signer, BadSignature
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
-from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from project import settings
 from project.settings import DEBUG
+from user_api.permissions.is_member_group_or_admin import IsSuperUserOrAdminPermission, \
+    IsSuperUserOrDoctorOrAdminPermission
 from user_api.serializers.user import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, \
     ChangePasswordSerializer, ChangeNameSerializer, UserChangeEmailSerializer
 from rest_framework import permissions, status, viewsets
 
 from user_api.utils.creating_email_message import send_confirmation_email
 from user_api.utils.token_generator import verify_signed_token, create_confirmation_token
-from user_api.validations import custom_validation, validate_email, validate_password
+from user_api.validations import custom_validation
 from users.models import User
-from user_api.serializers.doctor_serializers import AssignDoctorSerializer
+from user_api.serializers.doctor_serializers import AssignGroupSerializer
 from django.contrib.auth.models import Group
-from user_api.permissions import IsMemberOfGroupsOrAdmin
-
-class IsSuperUserOrDoctorOrAdminPermission(IsMemberOfGroupsOrAdmin):
-    group_names = ['Doctors', 'Administrators']
-
 from users.models.users import EmailConfirmationToken
 
 
@@ -33,12 +26,6 @@ class ConfirmEmailView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     http_method_names = ['get', 'head', 'options', 'list']
 
-    """
-     Подтверждение почты Вообще здесь нужна особая логика, так как удалять
-     пользователей не стоит!
-     Нужно спросить хочет ли пользователь перегенерировать
-     токен почты.
-    """
     def list(self, request, *args, **kwargs):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -64,11 +51,12 @@ class ConfirmEmailView(viewsets.ModelViewSet):
 
         user = email_token.user
 
-        # TODO: Тут по моему уязвимость с тем что можно удалить существующего пользователя
         # Проверка на то что токен просрочен
         if email_token.has_expired():
             # Удаляем токен
             email_token.delete()
+            user.check_delete_if_inactive_unconfirmed()
+
             if DEBUG:
                 return Response({"error": "Token has expired. Token has deleted"}, status=status.HTTP_400_BAD_REQUEST)
             else:
@@ -91,6 +79,7 @@ class ConfirmEmailView(viewsets.ModelViewSet):
             # Если пользователь не активен (только зарегистрировался)
             # Делаем пользователя активным
             user.is_active = True
+            user.email_confirmed = True
 
         email_token.delete()
         user.save()
@@ -120,12 +109,21 @@ class UserRegistrationModelViewSet(viewsets.ModelViewSet):
     http_method_names = ['post']
 
     def create(self, request, *args, **kwargs):
+        clean_data = request.data
+        email = clean_data.get('email').strip()
+
+        # Попытка удалить существующего неактивного пользователя с таким email
+        existing_user = User.objects.filter(email=email).first()
+        if existing_user:
+            existing_user.check_delete_if_inactive_unconfirmed()
+
         try:
-            clean_data = custom_validation(request.data)
-        except:
-            return Response({"error": 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = self.get_serializer(data=clean_data)
-        if serializer.is_valid():
+            validated_data = custom_validation(clean_data)
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(data=validated_data)
+        if serializer.is_valid(raise_exception=True):
             user = serializer.save()
             if user is not None:
                 response_data = {
@@ -144,8 +142,6 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        # assert validate_email(data)
-        # assert validate_password(data)
         serializer = self.serializer_class(data=data)
         if serializer.is_valid(raise_exception=True):
             try:
@@ -155,6 +151,12 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
             if user is None:
                 return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
             login(request, user)
+
+            # Вызов метода проверки и удаления, если это необходимо
+            if user.check_delete_if_inactive_unconfirmed():
+                return Response({"error": "Аккаунт был удалён так как не подтвердил свою почту."},
+                                status=status.HTTP_403_FORBIDDEN)
+
             response_data = {
                 'email': user.email,
             }
@@ -196,23 +198,23 @@ class UserChangePasswordModelViewSet(viewsets.ModelViewSet):
         user = self.request.user
         serializer = self.serializer_class(data=request.data, context={'request': request})
 
-        if serializer.is_valid():
-            # Check old password
-            if not user.check_password(serializer.validated_data.get("old_password")):
-                return Response({"old_password": ["Неверный пароль."]}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Set new password
-            user.password = make_password(serializer.validated_data.get("new_password"))
+        if serializer.is_valid(raise_exception=True):
+            # Установите новый пароль для пользователя
+            new_password = serializer.validated_data.get("new_password")
+            user.set_password(new_password)
             user.save()
             return Response({"detail": "Пароль изменён."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class AssignDoctorGroupModelViewSet(viewsets.ModelViewSet):
-    serializer_class = AssignDoctorSerializer
+    serializer_class = AssignGroupSerializer
     permission_classes = [IsSuperUserOrDoctorOrAdminPermission]
     http_method_names = ['post']
+
+    def get_group(self):
+        user_group, _ = Group.objects.get_or_create(name='Doctors')
+        return user_group
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -225,10 +227,44 @@ class AssignDoctorGroupModelViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Пользователь не найден."}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            doctor_group, created = Group.objects.get_or_create(name='Doctors')
-            user.groups.add(doctor_group)
+            if user.is_doctor():
+                user.groups.remove(self.get_group())
+                return Response({"detail": "Группа снята", "user_in_group": False}, status=status.HTTP_200_OK)
+
+            user.groups.add(self.get_group())
             user.save()
-            return Response({"detail": "Группа назначена."}, status=status.HTTP_200_OK)
+            return Response({"detail": "Группа назначена.", "user_in_group": True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class AssignAdministratorGroupModelViewSet(viewsets.ModelViewSet):
+    serializer_class = AssignGroupSerializer
+    permission_classes = [IsSuperUserOrAdminPermission]
+    http_method_names = ['post']
+
+    def get_group(self):
+        user_group, _ = Group.objects.get_or_create(name='Administrators')
+        return user_group
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_id = serializer.validated_data['user_id']
+
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "Пользователь не найден."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            if user.is_administrator():
+                user.groups.remove(self.get_group())
+                return Response({"detail": "Группа снята", "user_in_group": False}, status=status.HTTP_200_OK)
+
+            user.groups.add(self.get_group())
+            user.save()
+            return Response({"detail": "Группа назначена.", "user_in_group": True}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
