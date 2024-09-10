@@ -66,8 +66,7 @@ const Library = () => {
           {exercises && exercises.length > 0 ? (
             exercises.map((exercise) => (
               <Col key={exercise.id} sm={12} md={6} lg={2}>
-                <Button className='btn-delete' onClick={() => handleDeleteExercise(exercise.id)}>X</Button>
-                <ExerciseItem name={exercise.name} description={exercise.description} id={exercise.id} />
+                <ExerciseItem name={exercise.name} description={exercise.description} id={exercise.id} onDelete={() => handleDeleteExercise(exercise.id)} />
               </Col>
             ))
           ) : (

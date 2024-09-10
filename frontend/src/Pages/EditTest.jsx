@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { Button, Col, Container, Dropdown, DropdownButton, Form, Row } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import useModal from '../hooks/useModal';
@@ -21,12 +21,11 @@ const EditTest = () => {
   const { isActive, openModal, closeModal } = useModal();
   const [selectedType, setSelectedType] = useState('1');
   const [showWordButtons, setShowWordButtons] = useState(false);
-  const [selectedWords, setSelectedWords] = useState([]);
   const [isChecked, setIsChecked] = useState(false);
   const [testTitle, setTestTitle] = useState('');
   const [testDescription, setTestDescription] = useState('');
   const { data: test, isLoading, error } = useQuery(['test', id], () => fetchTestById(id));
-  const queryClient = useQueryClient(); 
+  const queryClient = useQueryClient();
 
   const updateExerciseMutation = useMutation(
     (exerciseData) => updateExercise(selectedExercise.id, exerciseData),
@@ -46,58 +45,57 @@ const EditTest = () => {
     const testId = updatedTest.id;
 
     const exercisePromises = exercises.map(async (exercise) => {
-      const existingExercise = test.exercises.find(ex => ex.id === exercise.id);
+      const existingExercise = await findExerciseByName(exercise.name);
       if (existingExercise) {
         const exerciseData = {
           name: exercise.name,
           type: exercise.type,
           description: exercise.description,
-          king_json: exercise.type === '1' || exercise.type === '3' ? {
+          king_json: {
             content: exercise.king_json.content,
-            missing_words: exercise.king_json.missing_words || [] // Проверка и инициализация
-          } : {
-            content: exercise.king_json.content,
-            answers: exercise.king_json.answers || [],
-            correct_answer: exercise.correctAnswer
+            ...(parseInt(exercise.type) === 1 ? { missing_words: exercise.king_json.missing_words } :
+            parseInt(exercise.type) === 3 ? { missing_letters: exercise.king_json.missing_letters } :
+                { answers: exercise.king_json.answers, correct_answer: exercise.correctAnswer })
           },
-          correct_answers: parseInt(exercise.type) === 1 ? (
+          correct_answer: parseInt(exercise.type) === 1 ? (
             exercise.king_json.missing_words?.map(missingWord => missingWord.word) || []
+          ) : parseInt(exercise.type) === 1 ? (
+            exercise.king_json.missing_letters?.map(missingLetter => missingLetter.word) || []
           ) : (
             [exercise.correctAnswer]
           )
         };
-        await updateExercise(exercise.id, exerciseData);
-      } else {
+        await updateExercise(existingExercise.id, exerciseData);
+      } else {  
         const exerciseData = {
           name: exercise.name,
           type: exercise.type,
           description: exercise.description,
-          king_json: exercise.type === '1' || exercise.type === '3' ? {
+          king_json: {
             content: exercise.king_json.content,
-            missing_words: exercise.king_json.missing_words || [] // Проверка и инициализация
-          } : {
-            content: exercise.king_json.content,
-            answers: exercise.king_json.answers || [],
-            correct_answer: exercise.correctAnswer
+            ...(exercise.type === '1' ? { missing_words: exercise.king_json.missing_words } :
+              exercise.type === '3' ? { missing_letters: exercise.king_json.missing_letters } :
+                { answers: exercise.king_json.answers, correct_answer: exercise.correctAnswer })
           },
-          correct_answers: parseInt(exercise.type) === 1 ? (
+          correct_answers: exercise.type === '1' ? (
             exercise.king_json.missing_words?.map(missingWord => missingWord.word) || []
+          ) : exercise.type === '3' ? (
+            exercise.king_json.missing_letters?.map(missingLetter => missingLetter.word) || []
           ) : (
             [exercise.correctAnswer]
           )
         };
         const createdExercise = await createExercise(exerciseData);
-        console.log(createExercise);
         await linkExerciseToTest(createdExercise.id, testId);
       }
     });
-
     await Promise.all(exercisePromises);
     if (isChecked) {
-      await addPublicTest(testId);
+      await addPublicTest(updatedTest.id);
     }
 
     console.log('Тест и упражнения успешно сохранены');
+    localStorage.setItem('testCreated', 'true');
     navigate(`/my-tests/`);
   }, {
     onSuccess: () => {
@@ -107,16 +105,18 @@ const EditTest = () => {
 
   useEffect(() => {
     if (test && test.name) {
-        setTestTitle(test.name);
-        setTestDescription(test.description);
-        setExercises(test.exercises || []);
-        if (test.exercises && test.exercises.length > 0) {
-            const firstExercise = test.exercises[0];
-            if (firstExercise.type === '1' && !firstExercise.king_json.missing_words) {
-                firstExercise.king_json.missing_words = [];
-            }
-            setSelectedExercise(firstExercise);
+      setTestTitle(test.name);
+      setTestDescription(test.description);
+      setExercises(test.exercises || []);
+      if (test.exercises && test.exercises.length > 0) {
+        const firstExercise = test.exercises[0];
+        if (firstExercise.type === '1' && !firstExercise.king_json.missing_words) {
+          firstExercise.king_json.missing_words = [];
+        } else if (firstExercise.type === '3' && !firstExercise.king_json.missing_letters) {
+          firstExercise.king_json.missing_letters = [];
         }
+        setSelectedExercise(firstExercise);
+      }
     }
   }, [test]);
 
@@ -127,20 +127,20 @@ const EditTest = () => {
   const addExercise = (type) => {
     let newExercise;
     if (type === '1') {
-      newExercise = { 
-        id: exercises.length + 1, 
-        type: type, 
-        king_json: { 
-          content: '', 
-          missing_words: [] 
-        }, 
-        name: '', 
-        description: '' 
+      newExercise = {
+        id: exercises.length + 1,
+        type: type,
+        king_json: {
+          content: '',
+          missing_words: []
+        },
+        name: '',
+        description: ''
       };
     } else if (type === '2') {
       newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', answers: [] }, answers: [], correctAnswer: '', name: '', description: '' };
     } else if (type === '3') {
-      newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', missing_words: [] }, name: '', description: '', answers: [] };
+      newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', missing_letters: [] }, name: '', description: '', answers: [] };
     }
     setExercises([...exercises, newExercise]);
     setSelectedExercise(newExercise);
@@ -159,22 +159,34 @@ const EditTest = () => {
 
   const handleWordClick = (word, index) => {
     if (!selectedExercise || !selectedExercise.king_json) return;
-    
+  
     // Обновляем контент, заменяя выбранное слово подчеркиваниями
     const updatedContent = selectedExercise.king_json.content.replace(word, '_'.repeat(word.length));
-
-    // Убеждаемся, что поле missing_words не пропадает
+  
+    // Убеждаемся, что поле missing_words или missing_letters не пропадает
     const updatedExercise = {
-        ...selectedExercise,
-        king_json: {
-            ...selectedExercise.king_json,
-            content: updatedContent,
-            missing_words: [...(selectedExercise.king_json.missing_words || []), { word, index }]
-        }
+      ...selectedExercise,
+      king_json: {
+        ...selectedExercise.king_json,
+        content: updatedContent,
+        ...(parseInt(selectedExercise.type) === 1 ? {
+          missing_words: selectedExercise.king_json.missing_words.map(missingWord =>
+            missingWord.index === index ? { word, index } : missingWord
+          ).filter(missingWord => missingWord.index !== index).concat({ word, index })
+        } : {
+          missing_letters: selectedExercise.king_json.missing_letters.map(missingLetter =>
+            missingLetter.index === index ? { word, index } : missingLetter
+          ).filter(missingLetter => missingLetter.index !== index).concat({ word, index })
+        })
+      }
     };
-
+  
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise);
+  
+    // Вывод в консоль для отладки
+    console.log('Exercises:', exercises);
+    console.log('Selected Exercise:', selectedExercise);
   };
 
   const renderContentWithButtonsType1 = (content) => {
@@ -183,7 +195,7 @@ const EditTest = () => {
       if (".,?!/\\'\"[]()@#$%^&*№;:".includes(word[word.length - 1])) {
         cleanedWord = word.slice(0, -1);
       }
-  
+
       return (
         <Fragment key={index}>
           <Button
@@ -256,21 +268,9 @@ const EditTest = () => {
   };
 
   const addExerciseFromLibrary = (exercise) => {
-    const convertedExercise = {
-      id: exercise.id,
-      type: exercise.type,
-      king_json: {
-        content: exercise.king_json.content,
-        missing_words: exercise.king_json.missing_words || [],
-        answers: exercise.king_json.answers || []
-      },
-      correctAnswer: exercise.king_json.correct_answer || '',
-      name: exercise.name,
-      description: exercise.description
-    };
-    setExercises([...exercises, convertedExercise]);
-    setSelectedExercise(convertedExercise);
-    setSelectedType(convertedExercise.type);
+    setExercises([...exercises, exercise]);
+    setSelectedExercise(exercise);
+    setSelectedType(exercise.type);
     closeModal();
   };
 
@@ -281,7 +281,8 @@ const EditTest = () => {
       type: selectedExercise.type,
       king_json: selectedExercise.type === '1' || selectedExercise.type === '3' ? {
         content: selectedExercise.king_json.content,
-        missing_words: selectedExercise.king_json.missing_words || []
+        missing_words: selectedExercise.king_json.missing_words || [],
+        missing_letters: selectedExercise.king_json.missing_letters || []
       } : {
         content: selectedExercise.king_json.content,
         answers: selectedExercise.king_json.answers || [],
@@ -289,6 +290,8 @@ const EditTest = () => {
       },
       correct_answers: selectedExercise.type === '1' ? (
         selectedExercise.king_json.missing_words?.map(missingWord => missingWord.word) || []
+      ) : selectedExercise.type === '3' ? (
+        selectedExercise.king_json.missing_letters?.map(missingLetter => missingLetter.word) || []
       ) : (
         [selectedExercise.correctAnswer]
       )
@@ -320,12 +323,12 @@ const EditTest = () => {
                 value={testTitle}
                 onChange={(e) => setTestTitle(e.target.value)}
               />
-              <textarea 
+              <textarea
                 className='description-test'
                 placeholder='Введите описание теста'
                 value={testDescription}
                 onChange={(e) => setTestDescription(e.target.value)}
-                >
+              >
               </textarea>
               <p><Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить тест и выйти</Button></p>
               <div className='checkbox'>

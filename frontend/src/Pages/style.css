@@ -1,8 +1,8 @@
-  /* style.css */
+/* style.css */
 
 .color {
   background-color: #4178bf;
-  height: 400px;
+  height: 100%;
   max-width: 100%;
   display: flex;
   align-items: center;
@@ -45,6 +45,7 @@ body {
   background-color: #d95252;
   color: white;
   font-family: "Roboto Black";
+  margin: 6px;
 }
 
 .btn:hover {
@@ -80,6 +81,23 @@ body {
   color: black;
   font-family: 'Roboto Black';
   font-size: 36px;
+}
+
+.exercise-btn{
+  transform: scale(1.3);
+  margin: 10px;
+  border: solid white 1px;
+}
+
+.save-btn{
+  border-radius: 50px;
+  border: none;
+  background-image: url("https://img.icons8.com/?size=100&id=18765&format=png&color=000000");
+  background-position: center;
+  background-size:26px;
+  background-repeat: no-repeat;
+  width: 35px;
+  height: 35px;
 }
 
 .textarea {
@@ -124,10 +142,15 @@ body {
   color: white;
 }
 
-.btn-delete {
-  position: absolute;
+.delete-btn {
   border-radius: 50px;
   border: none;
+  background-image: url("https://img.icons8.com/?size=30&id=67884&format=png");
+  background-position: center;
+  background-size:30px;
+  background-repeat: no-repeat;
+  width: 35px;
+  height: 35px;
 }
 
 .btn-exercise {
@@ -160,12 +183,11 @@ body {
 }
 
 .area-1 {
-  width: 50%;
+  width: 100%;
   height: 200px;
 }
 
 .img-style {
-  transform: scale(1);
   position: relative;
   left: -80px;
   top: 70px;
@@ -185,6 +207,11 @@ body {
   right: 20px;
   z-index: 9999;
 }
+
+.bg-footer{
+  background-color: #6f86ab;
+}
+
 
 /*мобильные устройства в портретном режиме*/
 @media (max-width: 575.98px) {
@@ -219,12 +246,12 @@ body {
 }
 
 .correct {
-  background-color: green !important;
+  background-color: rgb(117, 207, 99) !important;
   color: white !important;
 }
 
 .incorrect {
-  background-color: red !important;
+  background-color: rgb(199, 60, 60) !important;
   color: white !important;
 }
 
@@ -245,7 +272,7 @@ body {
   }
 
   .img-style {
-    transform: scale(4);
+    transform: scale(2);
     left: -200px;
     top: 550px;
 
@@ -272,7 +299,7 @@ body {
 /*планшеты и всякое говно фром чайна*/
 @media ((min-width:768px) and (max-width: 991.98px)) {
   .img-style {
-    transform: scale(2);
+    transform: scale(1);
   }
   .home-list {
     font-size: 20px;
@@ -285,7 +312,7 @@ body {
 /*cumпьютеры и noтбуки*/
 @media ((min-width:992px) and (max-width: 1199.98px)) {
   .img-style {
-    transform: scale(1.41);
+    width:500px;
   }
   .home-list {
     font-size: 20px;
@@ -298,7 +325,7 @@ body {
 /*бальшой кампьютер с кучей игр*/
 @media (min-width:1200px) {
   .img-style {
-    transform: scale(1.1);
+    width: 800px;
   }
   .home-list {
     font-size: 20px;
@@ -307,3 +334,5 @@ body {
     font-size: 26px;
   }
 }
+
+/* Добавляем новые стили для кнопок */

@@ -62,9 +62,11 @@ const TestPassing = () => {
       return {
         exercise_id: answer.id,
         user_answer: answer.answer,
-        correct_answer: (exercise.type === 1 || exercise.type === 3) ? (exercise.king_json.missing_words || []).map(wordObj => wordObj.word) : exercise.king_json.correct_answer
-      };
-    });
+        correct_answer: exercise.type === 1 ? (exercise.king_json.missing_words || []).map(wordObj => wordObj.word) :
+        exercise.type === 3 ? (exercise.king_json.missing_letters || []).map(letterObj => letterObj.word) :
+        exercise.king_json.correct_answer
+};
+});
   
     const responseTest = {
       test: id,

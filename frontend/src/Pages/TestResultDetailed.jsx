@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, ListGroup, Button } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import axiosConfig from "./Components/AxiosConfig";
+import './style.css';
 
 const FinallResult = () => {
   const navigate = useNavigate();

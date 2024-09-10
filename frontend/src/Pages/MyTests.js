@@ -16,6 +16,8 @@ const MyTests = () => {
   const [show, setShow] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [testsPerPage] = useState(12); // Количество тестов на странице
 
   const deleteTestMutation = useMutation(deleteTest, {
     onSuccess: () => {
@@ -80,6 +82,14 @@ const MyTests = () => {
   if (isLoading) return <p>Загрузка...</p>;
   if (error) return <p>Ошибка: {error.message}</p>;
 
+  // Получаем индексы первого и последнего теста на текущей странице
+  const indexOfLastTest = currentPage * testsPerPage;
+  const indexOfFirstTest = indexOfLastTest - testsPerPage;
+  const currentTests = filteredTests?.slice(indexOfFirstTest, indexOfLastTest);
+
+  // Изменяем страницу
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div>
       <div className='color'>
@@ -112,22 +122,17 @@ const MyTests = () => {
                 )}
               </Form>
             </Col>
-            <Col lg={2} sm={3} className="d-flex justify-content-end">
-              <Button variant='outline-info'>Поиск</Button>
-            </Col>
-            <Col lg={2} className="d-flex justify-content-end">
-              <Link to='/my-tests/add-test' className='btn btn-red '>Добавить тест</Link>
-            </Col>
-            <Col lg={2} className="d-flex justify-content-end">
-              <Link to='/my-tests/add-exercise' className='btn btn-red'>Добавить упражнение</Link>
+            <Col lg={3} className="d-flex ">
+              <Link to='/my-tests/add-test' className='btn'>Добавить тест</Link>
+              <Link to='/my-tests/add-exercise' className='btn'>Добавить упр.</Link>
             </Col>
           </Row>
         </Container>
       </div>
       <Container>
-        <Row clas>
-          {filteredTests?.length > 0 ? (
-            filteredTests.map((test, index) => (
+        <Row>
+          {currentTests?.length > 0 ? (
+            currentTests.map((test, index) => (
               <Col key={index} sm={12} md={6} lg={2}>
                 <Test 
                   name={test.name} 
@@ -147,6 +152,16 @@ const MyTests = () => {
               </p>
             </div>
           )}
+        </Row>
+        <Row className="mt-4">
+          <Col className="d-flex justify-content-center">
+            <Pagination
+              testsPerPage={testsPerPage}
+              totalTests={filteredTests?.length}
+              paginate={paginate}
+              currentPage={currentPage}
+            />
+          </Col>
         </Row>
       </Container>
       <Modal isActive={isActive} closeModal={closeModal}>
@@ -170,3 +185,26 @@ const MyTests = () => {
 };
 
 export default MyTests;
+
+// Компонент Pagination
+const Pagination = ({ testsPerPage, totalTests, paginate, currentPage }) => {
+  const pageNumbers = [];
+
+  for (let i = 1; i <= Math.ceil(totalTests / testsPerPage); i++) {
+    pageNumbers.push(i);
+  }
+
+  return (
+    <nav>
+      <ul className="pagination">
+        {pageNumbers.map(number => (
+          <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+            <Button onClick={() => paginate(number)} className="page-link">
+              {number}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};

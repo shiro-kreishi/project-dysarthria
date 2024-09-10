@@ -9,11 +9,8 @@ function Home() {
     <div>
       <div className='color'>
         <Container>
-          <Row className='align-items-center'>
-            <Col xs={12} md={6}>
-              <img src={img} className='img-style img-fluid' alt='изображение'/>
-            </Col>
-            <Col xs={12} md={6} className='text-center'>
+          <Row className='align-items-center text-center'>
+
               <h1 className='white-text'>Добро пожаловать в "НАЗВАНИЕ"</h1>
               <span className='white-text'>
                 «НАЗВАНИЕ» — это инновационное веб-приложение,
@@ -21,7 +18,7 @@ function Home() {
                 вам в работе с пациентами, страдающими дизартрией.
               </span>
               <p><Button onClick={() => navigate('/tests/')}>Начать проходить тесты</Button></p>
-            </Col>
+
           </Row>
         </Container>
       </div>

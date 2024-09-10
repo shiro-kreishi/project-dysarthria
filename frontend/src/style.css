@@ -4,6 +4,7 @@ body {
   font-style: normal;
 }
 
+
 .custom-nav-link {
   font-family: "Roboto";
   display: inline-block;
@@ -71,5 +72,48 @@ body {
   color: white;
 }
 
+/* style.css */
 
+/* Общий контейнер для всего приложения */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
 
+/* Контейнер для основного контента */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Основной контент */
+.main-content {
+  flex: 1;
+}
+
+/* Футер */
+.bg-footer {
+  background-color: #2d333d; /* Цвет фона футера */
+  padding: 20px 0;
+  text-align: center;
+  border-top: 1px solid #e7e7e7; /* Граница сверху */
+  color: white; /* Цвет текста в футере */
+}
+
+/* Адаптивные стили для футера */
+@media (max-width: 768px) {
+  .bg-footer .row {
+    flex-direction: column;
+  }
+
+  .bg-footer .col {
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 769px) {
+  .bg-footer .col {
+    padding: 0 20px;
+  }
+}

@@ -1,3 +1,4 @@
+import React from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 import './style.css';
@@ -16,6 +17,7 @@ import EditTest from './Pages/EditTest';
 import ResultTest from './Pages/ResultTest';
 import TestResults from './Pages/TestResultDetailed';
 import FinallResult from './Pages/Components/FinallResult';
+import Footer from './Footer';
 
 function App() {
   const { isAllowed, isLoading, error } = usePermissions();
@@ -31,7 +33,7 @@ function App() {
   }
 
   return (
-    <>
+    <div className="app-container">
       <Navbar collapseOnSelect expand="md" bg="light" variant="light" className="custom-navbar">
         <Container className="center-nav">
           <Navbar.Toggle aria-controls="responsive-navbar-nav" className="custom-nav-toggle" />
@@ -51,29 +53,33 @@ function App() {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/tests" element={<Tests />} />
-          {isAllowed && (
-            <>
-              <Route path='/my-tests/edit-test/test/:id' element={<EditTest />} />
-              <Route path="/library" element={<Library />} />
-              <Route path="/my-tests" element={<MyTests />} />
-              <Route path="/my-tests/add-test" element={<AddTest />} />
-              <Route path="/my-tests/add-exercise" element={<AddExercise />} />
-              <Route path="/my-tests/test/:id" element={<TestPassing />} />
-              <Route path="/result-test" element={<ResultTest />} />
-              <Route path="/result-test/test/:id" element={<TestResults />} />
-              <Route path="/exercise/:id" element={<ExercisePassing />} />
-            </>
-          )}
-          <Route path="/profile/*" element={<Profile />} />
-          <Route path="/public-tests/test/:id" element={<TestPassing />} />
-          <Route path="/public-tests/test/result/:id" element={<FinallResult/>} />
-        </Routes>
-      </BrowserRouter>
-    </>
+      <div className="main-content">
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/tests" element={<Tests />} />
+            {isAllowed && (
+              <>
+                <Route path='/my-tests/edit-test/test/:id' element={<EditTest />} />
+                <Route path="/library" element={<Library />} />
+                <Route path="/my-tests" element={<MyTests />} />
+                <Route path="/my-tests/add-test" element={<AddTest />} />
+                <Route path="/my-tests/add-exercise" element={<AddExercise />} />
+                <Route path="/my-tests/test/:id" element={<TestPassing />} />
+                <Route path="/result-test" element={<ResultTest />} />
+                <Route path="/result-test/test/:id" element={<TestResults />} />
+                <Route path="/exercise/:id" element={<ExercisePassing />} />
+              </>
+            )}
+            <Route path="/profile/*" element={<Profile />} />
+            <Route path="/public-tests/test/:id" element={<TestPassing />} />
+            <Route path="/public-tests/test/result/:id" element={<FinallResult />} />
+          </Routes>
+        </BrowserRouter>
+      </div>
+      <Footer />
+    </div>
   );
 }
+
 export default App;

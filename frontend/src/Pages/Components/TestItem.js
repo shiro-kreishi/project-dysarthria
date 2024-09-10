@@ -12,8 +12,8 @@ const Test = ({ name, description, id, link, onDelete, onEdit }) => {
 
   return (
     <div className="test-item" onClick={handleClick}>
-      <Button className="edit-button" onClick={(e) => { e.stopPropagation(); onEdit(); }}>E</Button>
-      <Button className="delete-button" onClick={(e) => { e.stopPropagation(); onDelete(); }}>X</Button>
+      <Button className="edit-button" onClick={(e) => { e.stopPropagation(); onEdit(); }}></Button>
+      <Button className="delete-button" onClick={(e) => { e.stopPropagation(); onDelete(); }}></Button>
       <div className="test-header">
         <h3 className="test-title">{name}</h3>
         <p className="test-description">{description}</p>
