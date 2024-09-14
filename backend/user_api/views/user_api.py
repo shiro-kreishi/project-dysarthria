@@ -131,6 +131,7 @@ class UserRegistrationModelViewSet(viewsets.ModelViewSet):
                     # "username": user.username,
                 }
                 return Response(response_data, status=status.HTTP_201_CREATED)
+            serializer.send_confirmation_email(user)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

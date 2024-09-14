@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from user_api.utils.creating_email_message import send_confirmation_email
 from user_api.utils.token_generator import create_confirmation_token
 from user_api.validations import custom_validate_email, validate_password
+from users.models import EmailConfirmationToken
 
 UserModel = get_user_model()
 
@@ -28,6 +29,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
     def send_confirmation_email(self, user):
+        existing_token = EmailConfirmationToken.objects.filter(user=user).first()
+        if existing_token:
+            raise ValidationError("Токен уже существует для данного пользователя")
+
         confirmation_token = create_confirmation_token(user)
         send_confirmation_email(user, confirmation_token)
 
