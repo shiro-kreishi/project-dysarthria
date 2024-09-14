@@ -7,15 +7,15 @@
     {% csrf_token %}
     <div class="form-group">
         {{ form.first_name.label_tag }}
-        <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" class="form-control" value="{{ form.first_name.value|default_if_none:'' }}">
+        <input disabled type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" class="form-control" value="{{ form.first_name.value|default_if_none:'' }}">
     </div>
     <div class="form-group">
         {{ form.last_name.label_tag }}
-        <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" class="form-control" value="{{ form.last_name.value|default_if_none:'' }}">
+        <input disabled type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" class="form-control" value="{{ form.last_name.value|default_if_none:'' }}">
     </div>
     <div class="form-group">
         {{ form.patronymic.label_tag }}
-        <input type="text" name="{{ form.patronymic.name }}" id="{{ form.patronymic.id_for_label }}" class="form-control" value="{{ form.patronymic.value|default_if_none:''}}">
+        <input disabled type="text" name="{{ form.patronymic.name }}" id="{{ form.patronymic.id_for_label }}" class="form-control" value="{{ form.patronymic.value|default_if_none:''}}">
     </div>
     <div class="form-group">
         <label for="id_email">Email:</label>
@@ -25,9 +25,9 @@
         <label for="id_date_joined">Дата регистрации:</label>
         <input type="text" id="id_date_joined" value="{{ user.date_joined }}" class="form-control" disabled>
     </div>
-    <div class="btn-save text-center">
-        <button type="submit" class="btn btn-success btn-save">Сохранить</button>
-    </div>
+{#    <div class="btn-save text-center">#}
+{#        <button type="submit" class="btn btn-success btn-save">Сохранить</button>#}
+{#    </div>#}
 </form>
 
 <div class="text-center mt-4">
@@ -91,7 +91,6 @@
                     user_id: {{user.id}},
                 }),
                 success: function(response) {
-                    console.log('Успех:', response);
                     if (response.user_in_group) {
                         $('#assign-doctor-group').removeClass('btn-primary').addClass('btn-danger').text('Убрать возможность пользователю создавать тестирования.');
                     } else {
@@ -117,7 +116,6 @@
                     user_id: {{ user.id }},
                 }),
                 success: function(response) {
-                    console.log('Успех:', response);
                     if (response.user_in_group) {
                         $('#assign-administrator-group').removeClass('btn-primary').addClass('btn-danger').text('Убрать возможность пользователю быть администратором.');
                     } else {
@@ -143,7 +141,6 @@
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
                 success: function(response) {
-                    console.log('Успех:', response);
                     $('#ban-unban-user').removeClass('btn-danger btn-success').addClass(new_class).text(new_text);
                 },
                 error: function(xhr, status, error) {
@@ -155,18 +152,6 @@
 </script>
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        padding: 20px;
-    }
-
-    h1 {
-        color: #333;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
     form {
         background: #fff;
         padding: 20px;

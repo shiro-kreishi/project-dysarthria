@@ -15,7 +15,6 @@
     <!-- Вывод информации о текущем пользователе -->
     <p>Вы вошли как: {{ current_user.last_name }} {{ current_user.first_name }}</p>
 
-
     <table class="table table-striped">
         <thead>
             <tr>
@@ -31,7 +30,7 @@
         </thead>
         <tbody>
             {% for user in users %}
-                <tr {% if not user.is_active %} style="background-color: #F28A8A; color: black;" {% endif %}>
+                <tr>
                     <td>{{ user.id }}</td>
                     <td>{{ user.first_name }}</td>
                     <td>{{ user.last_name }}</td>
@@ -46,7 +45,11 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'user_edit' user.pk %}" class="btn btn-primary">Редактировать</a>
+                        {% if not user.is_active %}
+                            <a href="#" class="btn btn-success btn-action" data-action="unban" data-user-id="{{ user.id }}">Разблокировать</a>
+                        {% else %}
+                            <a href="#" class="btn btn-danger btn-action" data-action="ban" data-user-id="{{ user.id }}">Заблокировать</a>
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}
@@ -72,4 +75,44 @@
         </span>
     </div>
     {% endif %}
+</div>
+
+
+<script src="{% static 'rest_framework/js/jquery-3.7.1.min.js' %}"></script>
+
+
+<script>
+$(document).ready(function() {
+    $('.btn-action').on('click', function(event) {
+        event.preventDefault();
+
+        var userId = $(this).data('user-id');
+        var action = $(this).data('action');
+        var url = '/api/user/users/' + userId + '/' + action + '/';
+        var self = $(this); // Сохраняем ссылку на текущую кнопку
+
+        $.ajax({
+            url: url,
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({}),
+            success: function() {
+                if (action === 'unban') {
+                    self.removeClass('btn-success').addClass('btn-danger').text('Заблокировать');
+                    self.data('action', 'ban');
+                } else {
+                    self.removeClass('btn-danger').addClass('btn-success').text('Разблокировать');
+                    self.data('action', 'unban');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Ошибка:', status, error);
+            },
+        });
+    });
+});
+</script>
 {% endblock %}

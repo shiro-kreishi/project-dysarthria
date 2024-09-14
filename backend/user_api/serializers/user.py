@@ -1,16 +1,12 @@
 from django.contrib.auth.models import Group
-from django.core.signing import Signer
 from django.contrib.auth.hashers import make_password
-from rest_framework import serializers, status
+from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
-from django.core.mail import send_mail
 from django.core.exceptions import ValidationError
-from rest_framework.response import Response
-from project import settings
 from user_api.utils.creating_email_message import send_confirmation_email
 from user_api.utils.token_generator import create_confirmation_token
-from user_api.validations import validate_password_change, custom_validate_email
-from django.contrib.auth.hashers import check_password
+from user_api.validations import custom_validate_email, validate_password
+from users.models import EmailConfirmationToken
 
 UserModel = get_user_model()
 
@@ -33,6 +29,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
     def send_confirmation_email(self, user):
+        existing_token = EmailConfirmationToken.objects.filter(user=user).first()
+        if existing_token:
+            raise ValidationError("Токен уже существует для данного пользователя")
+
         confirmation_token = create_confirmation_token(user)
         send_confirmation_email(user, confirmation_token)
 
@@ -78,24 +78,23 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = request.user if request else None
 
         if not user:
-            raise serializers.ValidationError("User not authenticated")
+            raise serializers.ValidationError("Вы не зашли в аккаунт.")
 
         if not user.check_password(data.get('old_password')):
             raise serializers.ValidationError({"old_password": "Wrong password."})
 
+        old_password = data.get('old_password')
         new_password = data.get('new_password')
 
-        # Проверка на длину пароля (минимум 8 символов)
-        if len(new_password) < 8:
-            raise serializers.ValidationError({"new_password": "Password should be at least 8 characters long"})
+        # Проверка правильности старого пароля
+        if not user.check_password(old_password):
+            raise serializers.ValidationError({"old_password": "Неверный старый пароль."})
 
-        # Проверка на наличие хотя бы одной цифры
-        if not any(char.isdigit() for char in new_password):
-            raise serializers.ValidationError({"new_password": "Password should include at least one digit"})
-
-        # Проверка на наличие хотя бы одной буквы
-        if not any(char.isalpha() for char in new_password):
-            raise serializers.ValidationError({"new_password": "Password should include at least one letter"})
+        # Использование функции validate_password для проверки нового пароля
+        try:
+            validate_password(new_password)
+        except ValidationError as e:
+            raise serializers.ValidationError({"new_password": str(e)})
 
         return data
 

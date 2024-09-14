@@ -26,12 +26,6 @@ class ConfirmEmailView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     http_method_names = ['get', 'head', 'options', 'list']
 
-    """
-     Подтверждение почты Вообще здесь нужна особая логика, так как удалять
-     пользователей не стоит!
-     Нужно спросить хочет ли пользователь перегенерировать
-     токен почты.
-    """
     def list(self, request, *args, **kwargs):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -57,11 +51,12 @@ class ConfirmEmailView(viewsets.ModelViewSet):
 
         user = email_token.user
 
-        # TODO: Тут по моему уязвимость с тем что можно удалить существующего пользователя
         # Проверка на то что токен просрочен
         if email_token.has_expired():
             # Удаляем токен
             email_token.delete()
+            user.check_delete_if_inactive_unconfirmed()
+
             if DEBUG:
                 return Response({"error": "Token has expired. Token has deleted"}, status=status.HTTP_400_BAD_REQUEST)
             else:
@@ -84,6 +79,7 @@ class ConfirmEmailView(viewsets.ModelViewSet):
             # Если пользователь не активен (только зарегистрировался)
             # Делаем пользователя активным
             user.is_active = True
+            user.email_confirmed = True
 
         email_token.delete()
         user.save()
@@ -113,12 +109,21 @@ class UserRegistrationModelViewSet(viewsets.ModelViewSet):
     http_method_names = ['post']
 
     def create(self, request, *args, **kwargs):
+        clean_data = request.data
+        email = clean_data.get('email').strip()
+
+        # Попытка удалить существующего неактивного пользователя с таким email
+        existing_user = User.objects.filter(email=email).first()
+        if existing_user:
+            existing_user.check_delete_if_inactive_unconfirmed()
+
         try:
-            clean_data = custom_validation(request.data)
-        except:
-            return Response({"error": 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = self.get_serializer(data=clean_data)
-        if serializer.is_valid():
+            validated_data = custom_validation(clean_data)
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(data=validated_data)
+        if serializer.is_valid(raise_exception=True):
             user = serializer.save()
             if user is not None:
                 response_data = {
@@ -126,6 +131,7 @@ class UserRegistrationModelViewSet(viewsets.ModelViewSet):
                     # "username": user.username,
                 }
                 return Response(response_data, status=status.HTTP_201_CREATED)
+            serializer.send_confirmation_email(user)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -137,8 +143,6 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        # assert validate_email(data)
-        # assert validate_password(data)
         serializer = self.serializer_class(data=data)
         if serializer.is_valid(raise_exception=True):
             try:
@@ -148,6 +152,12 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
             if user is None:
                 return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
             login(request, user)
+
+            # Вызов метода проверки и удаления, если это необходимо
+            if user.check_delete_if_inactive_unconfirmed():
+                return Response({"error": "Аккаунт был удалён так как не подтвердил свою почту."},
+                                status=status.HTTP_403_FORBIDDEN)
+
             response_data = {
                 'email': user.email,
             }
@@ -189,13 +199,10 @@ class UserChangePasswordModelViewSet(viewsets.ModelViewSet):
         user = self.request.user
         serializer = self.serializer_class(data=request.data, context={'request': request})
 
-        if serializer.is_valid():
-            # Check old password
-            if not user.check_password(serializer.validated_data.get("old_password")):
-                return Response({"old_password": ["Неверный пароль."]}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Set new password
-            user.password = make_password(serializer.validated_data.get("new_password"))
+        if serializer.is_valid(raise_exception=True):
+            # Установите новый пароль для пользователя
+            new_password = serializer.validated_data.get("new_password")
+            user.set_password(new_password)
             user.save()
             return Response({"detail": "Пароль изменён."}, status=status.HTTP_200_OK)
 
