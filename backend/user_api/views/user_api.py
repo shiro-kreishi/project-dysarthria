@@ -119,7 +119,7 @@ class UserRegistrationModelViewSet(viewsets.ModelViewSet):
 
         try:
             validated_data = custom_validation(clean_data)
-        except ValidationError as e:
+        except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(data=validated_data)

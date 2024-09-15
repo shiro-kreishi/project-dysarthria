@@ -151,7 +151,6 @@ class EmailConfirmationToken(models.Model):
     )
 
     changed_email = models.EmailField(
-        unique=True,
         blank=True,
         help_text='Почта на которую пользователь хочет изменить свою текущую.'
     )
