@@ -13,10 +13,15 @@ def custom_validation(data):
     password = data.get('password', '')
 
     # Валидация email
-    custom_validate_email(email)
-
+    try:
+        custom_validate_email(email)
+    except ValidationError as e:
+        raise ValidationError(e.message)
     # Валидация пароля
-    validate_password(password)
+    try:
+        validate_password(password)
+    except ValidationError as e:
+        raise ValidationError(e.message)
 
     return data
 

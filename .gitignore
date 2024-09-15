@@ -59,6 +59,7 @@ docker/dev-db/postgres/2.\ Init\ Database
 .env.development.local
 .env.test.local
 .env.production.local
+frontend/.env
 
 npm-debug.log*
 yarn-debug.log*

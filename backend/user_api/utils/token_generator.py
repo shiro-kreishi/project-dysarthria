@@ -21,6 +21,7 @@ def create_confirmation_token(user, is_changing_email=False, changed_email=''):
     try:
         # Генерация токена и сохранение
         token = generate_signed_token(user)
+        print(user.email, token)
         email_token = EmailConfirmationToken.objects.create(
             user=user,
             token=token,
