@@ -22,8 +22,9 @@ function Profile() {
     const user = localStorage.getItem('currentUser');
     if (user) {
       setCurrentUser(JSON.parse(user));
-    } else {
-      axiosConfig.get("/api/user/user/")
+    }
+    else {
+      axiosConfig.get("/api/user/current-user/")
         .then(res => {
           console.log('User is authenticated');
           setCurrentUser(true);
