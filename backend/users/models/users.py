@@ -55,6 +55,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault('email_confirmed', True)
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
@@ -155,9 +156,19 @@ class EmailConfirmationToken(models.Model):
         help_text='Почта на которую пользователь хочет изменить свою текущую.'
     )
 
-    def has_expired(self):
+    def has_expired(self) -> bool:
+        """
+        Проверка действительности токена подтверждения почты
+        Метод удалит токен если он уже был просрочен
+        :return: Возвращает True если токен просрочен и уже недействителен
+        """
+
         expiration_time = timedelta(minutes=settings.EMAIL_CONFIRMATION_TOKEN_LIFETIME)
-        return timezone.now() > self.created_at + expiration_time
+        response = timezone.now() > self.created_at + expiration_time
+
+        if response:
+            self.delete()
+        return response
 
     def __str__(self):
         return f"Token for {self.user.email}"

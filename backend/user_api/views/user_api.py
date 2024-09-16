@@ -13,6 +13,7 @@ from user_api.serializers.user import UserRegistrationSerializer, UserLoginSeria
 from rest_framework import permissions, status, viewsets
 
 from user_api.utils.creating_email_message import send_confirmation_email
+from user_api.utils.format_serializer_answer import format_serializer_answers
 from user_api.utils.token_generator import verify_signed_token, create_confirmation_token
 from user_api.validations import custom_validation
 from users.models import User
@@ -54,7 +55,6 @@ class ConfirmEmailView(viewsets.ModelViewSet):
         # Проверка на то что токен просрочен
         if email_token.has_expired():
             # Удаляем токен
-            email_token.delete()
             user.check_delete_if_inactive_unconfirmed()
 
             if DEBUG:
@@ -116,7 +116,6 @@ class UserRegistrationModelViewSet(viewsets.ModelViewSet):
         existing_user = User.objects.filter(email=email).first()
         if existing_user:
             existing_user.check_delete_if_inactive_unconfirmed()
-
         try:
             validated_data = custom_validation(clean_data)
         except Exception as e:
@@ -147,10 +146,10 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             try:
                 user = serializer.check_user(data)
-            except ValidationError as e:
-                return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            except ValidationError:
+                return Response({"error": "Неправильная почта или пароль"}, status=status.HTTP_401_UNAUTHORIZED)
             if user is None:
-                return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"error": "Неправильная почта или пароль"}, status=status.HTTP_401_UNAUTHORIZED)
             login(request, user)
 
             # Вызов метода проверки и удаления, если это необходимо
@@ -199,14 +198,15 @@ class UserChangePasswordModelViewSet(viewsets.ModelViewSet):
         user = self.request.user
         serializer = self.serializer_class(data=request.data, context={'request': request})
 
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
             # Установите новый пароль для пользователя
             new_password = serializer.validated_data.get("new_password")
             user.set_password(new_password)
             user.save()
             return Response({"detail": "Пароль изменён."}, status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Преобразование ошибок сериализатора в строки сообщений
+        return Response(format_serializer_answers(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
 class AssignDoctorGroupModelViewSet(viewsets.ModelViewSet):
     serializer_class = AssignGroupSerializer
@@ -312,11 +312,20 @@ class UserChangeEmailModelViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)  # Проверяет данные
-        new_email = serializer.validated_data.get('new_email')
-        self.send_confirmation_email(request.user, new_email)
-        return Response(status=status.HTTP_200_OK)
+        if serializer.is_valid():  # Проверяет данные
+            new_email = serializer.validated_data.get('new_email')
+            try:
+                self.send_confirmation_email(request.user, new_email)
+            except ValidationError as e:
+                return Response(format_serializer_answers(e), status=status.HTTP_400_BAD_REQUEST)
+            except Exception as ex:
+                # Общая обработка ошибок
+                return Response(format_serializer_answers(ex), status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_200_OK)
 
+        # Преобразование ошибок сериализатора в строки сообщений
+        formatted_errors = format_serializer_answers(serializer.errors)
+        return Response(formatted_errors, status=status.HTTP_400_BAD_REQUEST)
     def send_confirmation_email(self, user, new_email):
         confirmation_token = create_confirmation_token(user=user, is_changing_email=True, changed_email=new_email)
         send_confirmation_email(user, confirmation_token)

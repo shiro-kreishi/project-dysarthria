@@ -38,11 +38,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def validate_password(self, value):
         if len(value) < 8:
-            raise serializers.ValidationError("Password should be at least 8 characters long")
+            raise serializers.ValidationError("Пароль должен быть больше 8 символов")
         if not any(char.isdigit() for char in value):
-            raise serializers.ValidationError("Password should include at least one digit")
+            raise serializers.ValidationError("Пароль должен содержать хотя бы одну цифру")
         if not any(char.isalpha() for char in value):
-            raise serializers.ValidationError("Password should include at least one letter")
+            raise serializers.ValidationError("Пароль должен содержать хотя бы одну букву")
         return value
 
 
@@ -81,7 +81,7 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError("Вы не зашли в аккаунт.")
 
         if not user.check_password(data.get('old_password')):
-            raise serializers.ValidationError({"old_password": "Wrong password."})
+            raise serializers.ValidationError({"old_password": "Неправильный пароль."})
 
         old_password = data.get('old_password')
         new_password = data.get('new_password')
@@ -113,16 +113,16 @@ class ChangeNameSerializer(serializers.ModelSerializer):
 
     def validate_first_name(self, value):
         if not value:
-            raise serializers.ValidationError("Имя не может быть пустым")
+            raise serializers.ValidationError("Имя не может быть пустым.")
         if not value.isalpha():
-            raise serializers.ValidationError("Имя должно содержать только буквы")
+            raise serializers.ValidationError("Имя должно содержать только буквы.")
         return value
 
     def validate_last_name(self, value):
         if not value:
-            raise serializers.ValidationError("Фамилия не может быть пустой")
+            raise serializers.ValidationError("Фамилия не может быть пустой.")
         if not value.isalpha():
-            raise serializers.ValidationError("Фамилия должна содержать только буквы")
+            raise serializers.ValidationError("Фамилия должна содержать только буквы.")
         return value
 
     def validate_patronymic(self, value):
@@ -154,12 +154,15 @@ class UserChangeEmailSerializer(serializers.Serializer):
         user = request.user if request else None
 
         if not user:
-            raise serializers.ValidationError("User not authenticated")
+            raise ValidationError("Пользователь не вошёл в систему.")
 
         if not user.check_password(data.get('password')):
-            raise serializers.ValidationError({"password": "Wrong password."})
+            raise ValidationError({"password": "Неправильный пароль."})
 
         new_email = data.get('new_email')
+
+        if user.email == new_email:
+            raise ValidationError({'new_email': 'Новая почта не может быть такая же, как старая.'})
 
         try:
             custom_validate_email(new_email)
