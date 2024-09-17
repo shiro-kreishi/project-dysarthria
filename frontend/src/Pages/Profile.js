@@ -56,7 +56,11 @@ function Profile() {
     <ChakraProvider>
       <Box>
         <Flex as="nav" bg="blue.500" p="4" color="white" justifyContent="space-between" alignItems="center">
-          <Heading as="h1" size="lg">Вход или регистрация</Heading>
+          {currentUser ? (
+            <Heading as="h1" size="lg">Профиль</Heading>
+          ) : (
+            <Heading as="h1" size="lg">Вход или регистрация</Heading>
+          )}
           <Flex>
             {currentUser ? (
               <form onSubmit={handleLogout}>
@@ -80,7 +84,7 @@ function Profile() {
           <Route path="/login" element={<Login setCurrentUser={setCurrentUser} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/confirmation" element={<Confirmation/>} />
-          <Route path="/change_data" element={<ChangeData currentUser={currentUser} client={axiosConfig}/>} />
+          <Route path="/change-data" element={<ChangeData currentUser={currentUser} client={axiosConfig}/>} />
         </Routes>
       </Box>
     </ChakraProvider>

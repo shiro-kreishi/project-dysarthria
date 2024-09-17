@@ -10,7 +10,8 @@ import {
   Stack,
   Alert,
   AlertIcon,
-  useToast,
+  InputRightElement,
+  InputGroup,
 } from "@chakra-ui/react";
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { Toast, ToastContainer } from 'react-bootstrap';
@@ -187,10 +188,14 @@ const ChangeData = ({ currentUser, client }) => {
               </FormControl>
               <FormControl id="password" isRequired>
                 <FormLabel>Пароль</FormLabel>
-                <Input placeholder="Пароль" _placeholder={{ color: 'gray.500' }} type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} />
-                <Button variant={'ghost'} onClick={() => setShowPassword((showPassword) => !showPassword)}>
-                  {showPassword ? <ViewIcon /> : <ViewOffIcon />}
-                </Button>
+                <InputGroup>
+                  <Input placeholder="Пароль" _placeholder={{ color: 'gray.500' }} type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} />
+                  <InputRightElement h={'full'}>
+                    <Button variant={'ghost'} onClick={() => setShowPassword((showPassword) => !showPassword)}>
+                      {showPassword ? <ViewIcon /> : <ViewOffIcon />}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
               </FormControl>
               {emailError && (
                   <Alert status="error" mb="4">
@@ -232,17 +237,25 @@ const ChangeData = ({ currentUser, client }) => {
               </Stack>
               <FormControl id="password1" isRequired>
                 <FormLabel>Старый пароль</FormLabel>
-                <Input placeholder="Старый пароль" _placeholder={{ color: 'gray.500' }} type={showPassword1 ? 'text' : 'password'} value={password1} onChange={e => setPassword1(e.target.value)} />
-                <Button variant={'ghost'} onClick={() => setShowPassword1((showPassword1) => !showPassword1)}>
-                  {showPassword1 ? <ViewIcon /> : <ViewOffIcon />}
-                </Button>
+                <InputGroup>
+                  <Input placeholder="Пароль" _placeholder={{ color: 'gray.500' }} type={showPassword1 ? 'text' : 'password'} value={password1} onChange={e => setPassword1(e.target.value)} />
+                  <InputRightElement h={'full'}>
+                    <Button variant={'ghost'} onClick={() => setShowPassword1((showPassword1) => !showPassword1)}>
+                      {showPassword1 ? <ViewIcon /> : <ViewOffIcon />}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
               </FormControl>
               <FormControl id="password2" isRequired>
                 <FormLabel>Новый пароль</FormLabel>
-                <Input placeholder="Новый пароль" _placeholder={{ color: 'gray.500' }} type={showPassword2 ? 'text' : 'password'} value={password2} onChange={e => setPassword2(e.target.value)} />
-                <Button variant={'ghost'} onClick={() => setShowPassword2((showPassword2) => !showPassword2)}>
-                  {showPassword2 ? <ViewIcon /> : <ViewOffIcon />}
-                </Button>
+                <InputGroup>
+                  <Input placeholder="Пароль" _placeholder={{ color: 'gray.500' }} type={showPassword2 ? 'text' : 'password'} value={password2} onChange={e => setPassword2(e.target.value)} />
+                  <InputRightElement h={'full'}>
+                    <Button variant={'ghost'} onClick={() => setShowPassword2((showPassword2) => !showPassword2)}>
+                      {showPassword2 ? <ViewIcon /> : <ViewOffIcon />}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
               </FormControl>
               {passwordError && (
                 <Alert status="error" mb="4">

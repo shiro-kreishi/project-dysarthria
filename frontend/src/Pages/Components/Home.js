@@ -79,7 +79,7 @@ const Home = ({ currentUser, client }) => {
                 <FormLabel>Отчество</FormLabel>
                 <Input value={patronymic} readOnly />
               </FormControl>
-              <Link to="/profile/change_data">
+              <Link to="/profile/change-data">
                 <Button bg={'blue.400'} color={'white'} w="full" _hover={{ bg: 'blue.500' }}>Редактировать профиль</Button>
               </Link>
             </Stack>

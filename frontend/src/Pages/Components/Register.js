@@ -1,6 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, FormControl, FormLabel, Input, Alert, AlertIcon } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  Flex,
+  Stack,
+  Alert,
+  AlertIcon,
+  InputGroup,
+  InputRightElement,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import axiosConfig from './AxiosConfig';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 
@@ -20,8 +33,8 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    if (!email || !lastName || !firstName || !patronymic || !password1 || !password2) {
-      setError('Заполните все поля');
+    if (!email || !password1 || !password2) {
+      setError('Заполните все обязательные поля');
       return;
     } else if (password1 !== password2) {
       setError('Пароли не совпадают');
@@ -49,47 +62,63 @@ const Register = () => {
   };
 
   return (
-    <Box mt="10" textAlign="center">
-      <form onSubmit={handleSubmit}>
-        <FormControl id="formBasicEmail" mb="4">
-          <FormLabel>Email</FormLabel>
-          <Input type="email" placeholder="Введите Email" value={email} onChange={e => setEmail(e.target.value)} />
-        </FormControl>
-        <FormControl id="formBasicLastName" mb="4">
-          <FormLabel>Фамилия</FormLabel>
-          <Input type="text" placeholder="Введите фамилию" value={lastName} onChange={e => setLastName(e.target.value)} />
-        </FormControl>
-        <FormControl id="formBasicFirstName" mb="4">
-          <FormLabel>Имя</FormLabel>
-          <Input type="text" placeholder="Введите имя" value={firstName} onChange={e => setFirstName(e.target.value)} />
-        </FormControl>
-        <FormControl id="formBasicPatronimyc" mb="4">
-          <FormLabel>Отчетсво</FormLabel>
-          <Input type="text" placeholder="Введите отчество" value={patronymic} onChange={e => setPatronymic(e.target.value)} />
-        </FormControl>
-        <FormControl id="formBasicPassword" mb="4">
-          <FormLabel>Пароль</FormLabel>
-          <Input type={showPassword1 ? 'text' : 'password'} placeholder=" Введите пароль" value={password1} onChange={e => setPassword1(e.target.value)} />
-          <Button variant={'ghost'} onClick={() => setShowPassword1((showPassword1) => !showPassword1)}>
-            {showPassword1 ? <ViewIcon /> : <ViewOffIcon />}
-          </Button>
-        </FormControl>
-        <FormControl id="formBasicPassword2" mb="4">
-          <FormLabel>Подтверждение пароля</FormLabel>
-          <Input type={showPassword2 ? 'text' : 'password'} placeholder="Подтвердите пароль" value={password2} onChange={e => setPassword2(e.target.value)} />
-          <Button variant={'ghost'} onClick={() => setShowPassword2((showPassword2) => !showPassword2)}>
-            {showPassword2 ? <ViewIcon /> : <ViewOffIcon />}
-          </Button>
-        </FormControl>
-        {error && (
-          <Alert status="error" mb="4">
-            <AlertIcon />
-            {error}
-          </Alert>
-        )}
-        <Button type="submit" colorScheme="teal">Зарегистрироваться</Button>
-      </form>
-    </Box>
+    <Flex minH={'100vh'} align={'center'} justify={'center'} bg={useColorModeValue('gray.50', 'gray.800')}>
+      <Stack spacing={8} mx={'auto'} maxW={'lg'} w={'full'} py={12} px={6}>
+        <Box rounded={'lg'} bg={useColorModeValue('white', 'gray.700')} boxShadow={'lg'} p={8}>
+          <Stack spacing={4} >
+            <form onSubmit={handleSubmit}>
+              <FormControl id="formBasicEmail" mb="4" isRequired>
+                <FormLabel>Email</FormLabel>
+                <Input type="email" placeholder="Введите Email" value={email} onChange={e => setEmail(e.target.value)} />
+              </FormControl>
+              <FormControl id="formBasicLastName" mb="4">
+                <FormLabel>Фамилия</FormLabel>
+                <Input type="text" placeholder="Введите фамилию" value={lastName} onChange={e => setLastName(e.target.value)} />
+              </FormControl>
+              <FormControl id="formBasicFirstName" mb="4">
+                <FormLabel>Имя</FormLabel>
+                <Input type="text" placeholder="Введите имя" value={firstName} onChange={e => setFirstName(e.target.value)} />
+              </FormControl>
+              <FormControl id="formBasicPatronimyc" mb="4">
+                <FormLabel>Отчетсво</FormLabel>
+                <Input type="text" placeholder="Введите отчество" value={patronymic} onChange={e => setPatronymic(e.target.value)} />
+              </FormControl>
+              <FormControl id="formBasicPassword" mb="4" isRequired>
+                <FormLabel>Пароль</FormLabel>
+                <InputGroup>
+                  <Input type={showPassword1 ? 'text' : 'password'} placeholder=" Введите пароль" value={password1} onChange={e => setPassword1(e.target.value)} />
+                  <InputRightElement h={'full'}>
+                    <Button variant={'ghost'} onClick={() => setShowPassword1((showPassword1) => !showPassword1)}>
+                      {showPassword1 ? <ViewIcon /> : <ViewOffIcon />}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
+              </FormControl>
+              <FormControl id="formBasicPassword2" mb="4" isRequired>
+                <FormLabel>Подтверждение пароля</FormLabel>
+                <InputGroup>
+                  <Input type={showPassword2 ? 'text' : 'password'} placeholder="Подтвердите пароль" value={password2} onChange={e => setPassword2(e.target.value)} />
+                  <InputRightElement h={'full'}>
+                    <Button variant={'ghost'} onClick={() => setShowPassword2((showPassword2) => !showPassword2)}>
+                      {showPassword2 ? <ViewIcon /> : <ViewOffIcon />}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
+              </FormControl>
+              <Stack spacing={10}>
+                {error && (
+                  <Alert status="error" mb="4">
+                    <AlertIcon />
+                    {error}
+                  </Alert>
+                )}
+                <Button type="submit" bg={'blue.400'} color={'white'} _hover={{ bg: 'blue.500', }}>Зарегистрироваться</Button>
+              </Stack>
+            </form>
+          </Stack>
+        </Box>
+      </Stack>
+    </Flex>
   );
 };
 
