@@ -19,23 +19,8 @@ const MyTests = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [testsPerPage] = useState(12); // Количество тестов на странице
 
-  const deleteTestMutation = useMutation(deleteTest, {
-    onSuccess: () => {
-      queryClient.invalidateQueries('tests');
-    },
-  });
-
+ 
   const navigate = useNavigate();
-  const handleDeleteTest = (testId) => {
-    setTestToDelete(testId);
-    openModal();
-  };
-
-  const confirmDeleteTest = () => {
-    deleteTestMutation.mutate(testToDelete);
-    setTestToDelete(null);
-    closeModal();
-  };
 
   useEffect(() => {
     const testCreated = localStorage.getItem('testCreated');
@@ -82,12 +67,11 @@ const MyTests = () => {
   if (isLoading) return <p>Загрузка...</p>;
   if (error) return <p>Ошибка: {error.message}</p>;
 
-  // Получаем индексы первого и последнего теста на текущей странице
+  
   const indexOfLastTest = currentPage * testsPerPage;
   const indexOfFirstTest = indexOfLastTest - testsPerPage;
   const currentTests = filteredTests?.slice(indexOfFirstTest, indexOfLastTest);
 
-  // Изменяем страницу
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
@@ -96,7 +80,7 @@ const MyTests = () => {
         <Container className="h-100">
           <Row className="h-100 align-items-center justify-content-between">
             <Col className='aling-items-center justify-content-'>
-              <h1 className="h-white ml-100">Мои тесты</h1>
+              <h1 className=" ml-100 h-white">Мои тесты</h1>
             </Col>
             <Col>
               <Form inline>
@@ -133,13 +117,12 @@ const MyTests = () => {
         <Row>
           {currentTests?.length > 0 ? (
             currentTests.map((test, index) => (
-              <Col key={index} sm={12} md={6} lg={2}>
+              <Col key={index} sm={12} md={6} lg={4}>
                 <Test 
                   name={test.name} 
                   description={test.description} 
                   id={test.id} 
                   link={`/my-tests/test/${test.id}`} 
-                  onDelete={() => handleDeleteTest(test.id)}
                   onEdit={() => navigate(`/my-tests/edit-test/test/${test.id}`)}
                 />
               </Col>
@@ -164,13 +147,6 @@ const MyTests = () => {
           </Col>
         </Row>
       </Container>
-      <Modal isActive={isActive} closeModal={closeModal}>
-        <h1>Удалить выбранный тест?</h1>
-        <p>
-          <Button onClick={confirmDeleteTest}>Да</Button>
-          <Button onClick={closeModal}>Нет</Button>
-        </p>
-      </Modal>
 
       <div className="toast-container">
         <Toast onClose={() => setShow(false)} show={show} delay={3000} autohide bg='success'>

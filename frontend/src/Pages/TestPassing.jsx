@@ -92,9 +92,9 @@ const TestPassing = () => {
 
   return (
     <div>
-      <div className='color-2'>
+      <div className='tale'>
         <Container>
-          <div className='white-text text-center'>
+          <div className='text-center'>
             <h1>{test.name}</h1>
             <div className="d-flex justify-content-center">
               {exercises.map((exercise, index) => (
@@ -113,7 +113,7 @@ const TestPassing = () => {
         </Container>
       </div>
       <div>
-        <Container className='d-flex justify-content-center align-items-center flex-column container-exercise'>
+        <Container className='d-flex justify-content-center align-items-center flex-column container-exercise tale'>
           {selectedExercise ? (
             <div className='text-center'>
               <h1>{selectedExercise.name}</h1>

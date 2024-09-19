@@ -63,7 +63,7 @@ const FinallResult = () => {
                     <strong>Упражнение {index + 1}:</strong>
                   </div>
                   <div>
-                    <span>ответ : {JSON.stringify(result.user_answer)}</span>
+                    <span>ответ: {JSON.stringify(result.user_answer)}</span>
                   </div>
                   <div>
                     <span>Правильный ответ: {JSON.stringify(result.correct_answer)}</span>

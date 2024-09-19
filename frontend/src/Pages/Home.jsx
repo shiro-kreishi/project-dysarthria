@@ -7,12 +7,12 @@ function Home() {
   const navigate =useNavigate();
   return (
     <div>
-      <div className='color'>
-        <Container>
+      <div>
+        <Container className='tale'>
           <Row className='align-items-center text-center'>
 
-              <h1 className='white-text'>Добро пожаловать в "НАЗВАНИЕ"</h1>
-              <span className='white-text'>
+              <h1 className=''>Добро пожаловать в "НАЗВАНИЕ"</h1>
+              <span>
                 «НАЗВАНИЕ» — это инновационное веб-приложение,
                 созданное специально для логопедов, чтобы помочь
                 вам в работе с пациентами, страдающими дизартрией.
@@ -22,7 +22,7 @@ function Home() {
           </Row>
         </Container>
       </div>
-      <Container className='text-center'>
+      <Container className='text-center tale'>
         <Row className='justify-content-center'>
           <Col xs={12} md={8}>
             <h1>Как начать?</h1>

@@ -110,7 +110,7 @@ const Tests = () => {
             <p>Загрузка тестов...</p>
           ) : currentTests.length > 0 ? (
             currentTests.map((test) => (
-              <Col key={test.id} sm={12} md={6} lg={2}>
+              <Col key={test.id} sm={12} md={6} lg={4}>
                 <PublicTest
                   name={test.test.name} 
                   description={test.description} 

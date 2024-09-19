@@ -10,7 +10,8 @@ import {
   createTest, createExercise, linkExerciseToTest, findExerciseByName, addPublicTest,
   fetchExercises, fetchTestById, fetchPublicTests, updateExercise,
   updateTest,
-  unLinkExerciseToTest
+  unLinkExerciseToTest,
+  deleteTest // Добавьте это
 } from './Components/api';
 
 const EditTest = () => {
@@ -97,6 +98,15 @@ const EditTest = () => {
     console.log('Тест и упражнения успешно сохранены');
     localStorage.setItem('testCreated', 'true');
     navigate(`/my-tests/`);
+  }, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('tests');
+    }
+  });
+
+  const deleteTestMutation = useMutation(async () => {
+    await deleteTest(id);
+    navigate('/my-tests/');
   }, {
     onSuccess: () => {
       queryClient.invalidateQueries('tests');
@@ -312,17 +322,17 @@ const EditTest = () => {
 
   return (
     <div>
-      <div className='color-2'>
-        <Container>
+      <Container className='tale'>
+        <Container >
           <Row>
-            <Col></Col>
-            <Col>
+            <h3>Название теста</h3>
               <input
                 className='title-test'
                 placeholder='введите название теста'
                 value={testTitle}
                 onChange={(e) => setTestTitle(e.target.value)}
               />
+              <h3>Описание теста</h3>
               <textarea
                 className='description-test'
                 placeholder='Введите описание теста'
@@ -330,7 +340,6 @@ const EditTest = () => {
                 onChange={(e) => setTestDescription(e.target.value)}
               >
               </textarea>
-              <p><Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить тест и выйти</Button></p>
               <div className='checkbox'>
                 <Form.Check
                   type={'checkbox'}
@@ -340,10 +349,12 @@ const EditTest = () => {
                   onChange={handleCheckboxChange}
                 />
               </div>
-            </Col>
+              <p>
+                <Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить изменения и выйти</Button>
+                <Button className='btn-red' onClick={() => deleteTestMutation.mutate()}>Удалить тест и выйти</Button>
+              </p>
           </Row>
           <Row>
-            <Col>
               <div className="exercise-nav">
                 {exercises.map((exercise, index) => (
                   <div key={exercise.id} className="exercise-btn-wrapper">
@@ -357,10 +368,9 @@ const EditTest = () => {
                 ))}
                 <Button className='add-btn' onClick={openModal}>Добавить</Button>
               </div>
-            </Col>
           </Row>
         </Container>
-      </div>
+
 
       <div className='exercise-editor'>
         <Container>
@@ -370,6 +380,7 @@ const EditTest = () => {
                 <h3>Редактор упражнения {selectedExercise.id}</h3>
                 <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
                 <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
+                <Button onClick={handleSaveExercise}>Сохранить изменения</Button>
                 <textarea
                   className=' input-style area-1'
                   value={selectedExercise.king_json.content}
@@ -395,7 +406,7 @@ const EditTest = () => {
                 )}
                 <Row>
                   <Col>
-                    <Button onClick={handleSaveExercise}>Сохранить изменения</Button>
+                    
                     <Button
                       variant="danger"
                       onClick={() => removeExercise(selectedExercise.id)}
@@ -514,6 +525,7 @@ const EditTest = () => {
           )}
         </Container>
       </div>
+      </Container>
 
       <Modal isActive={isActive} closeModal={closeModal}>
         <Container className='text-center'>
@@ -521,15 +533,15 @@ const EditTest = () => {
           <Row>
             <Col>
               <DropdownButton id="dropdown-basic-button" title="Создать">
-                <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleSelectType('3')}>Пропущенные буквы</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('1')} className='btn-blue'>Пропущенные слова</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('2')} className='btn-blue'>Что на изображении</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('3')} className='btn-blue'>Пропущенные буквы</Dropdown.Item>
               </DropdownButton>
             </Col>
             <Col>
               <DropdownButton id="dropdown-basic-button" title="Выбрать из библиотеки">
                 {libraryExercises?.map((exercise, index) => (
-                  <Dropdown.Item key={index} onClick={() => addExerciseFromLibrary(exercise)}>
+                  <Dropdown.Item key={index} onClick={() => addExerciseFromLibrary(exercise)} className='btn-blue'>
                     {exercise.name}
                   </Dropdown.Item>
                 ))}

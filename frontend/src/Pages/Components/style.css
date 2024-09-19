@@ -30,20 +30,21 @@
   justify-content: center;
 }
 
-.test-item, exer{
-
+.test-item{
+  border: 1px solid rgba(0, 0, 0, 0.151);
   position: relative; /* Добавлено для позиционирования кнопок */
-  background-color: #4178bf;
+  background-color: white;
   width: 100%;
   height: 100px;
   margin-top: 20px;
   border-radius: 10px;
-  text-align: center;
-  color:white;
+  text-align: left;
+  color:black;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 10px;
+  box-shadow: 0px 8px 7px 2px rgba(0, 0, 0, 0.151);
 }
 
 .exercise-item{
@@ -63,16 +64,16 @@
 }
 
 .result-item{
-  background-color: #4178bf;
+  background-color: white;
   width: 100%;
   margin: 5px;
   border-radius: 10px;
-
+  border: 1px solid blue;
 }
 
 .result-item:hover{
   transition: 0.5s;
-  background-color:#f2b29b; 
+  background-color:rgba(0, 0, 0, 0.062); 
 }
 
 .result-header {

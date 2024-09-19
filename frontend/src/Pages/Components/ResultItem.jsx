@@ -31,13 +31,13 @@ const Result = ({ test, user = 'No name', json_result, link }) => {
     const percentageCorrect = totalAnswers > 0 ? ((correctAnswers / totalAnswers) * 100).toFixed(2) : 0;
 
     return (
-        <div className="result-item" onClick={handleClick}>
+        <div className="result-item tale" onClick={handleClick}>
             <div className="result-header">
                 <div className="result-header-content">
-                    <p><h1 className="white-text">{testName} {user}</h1></p>
-                    <p className="white-text">Правильных ответов: {correctAnswers} из {totalAnswers}</p>
+                    <p><h1>{testName} {user}</h1></p>
+                    <p>Правильных ответов: {correctAnswers} из {totalAnswers}</p>
                 </div>
-                <div className="result-header-percentage white-text">
+                <div className="result-header-percentage">
                     <h1>{percentageCorrect}%</h1>
                 </div>
             </div>

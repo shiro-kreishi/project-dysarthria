@@ -270,23 +270,24 @@ const AddTest = () => {
 
   return (
     <div>
-      <div className='color-2'>
-        <Container className="d-flex flex-column align-items-center justify-content-center">
+      <Container className='tale'>
+      <Container className="d-flex flex-column align-items-center justify-content-center">
           <Row>
+            <h3>Название теста</h3>
             <input className='title-test ' placeholder={'Введите название теста'}></input>
+            <h3>Описание теста</h3>
             <textarea className='description-test' placeholder='Введите описание теста'>
             </textarea>
-            <p><Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить тест и выйти</Button></p>
             <div className='checkbox'>
               <Form.Check
                 type={'checkbox'}
                 id={'default-chekbox'}
                 label={'Сделать публичным'}
-                checked={isChecked}
+                checked={isChecked} 
                 onChange={handleCheckboxChange}
               />
             </div>
-
+            <p><Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить тест и выйти</Button></p>
           </Row>
           <Row>
             <div className="exercise-nav">
@@ -303,8 +304,6 @@ const AddTest = () => {
             </div>
           </Row>
         </Container>
-      </div>
-
       <div className='exercise-editor'>
         <Container>
           {selectedExercise ? (
@@ -328,8 +327,8 @@ const AddTest = () => {
                   >
                   </Button>
                 </div>
-                <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
-                <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
+                <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} className='input-exercise'/></p>
+                <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} className='input-exercise'/></p>
                 <textarea
                   className=' input-style area-1'
                   value={selectedExercise.content}
@@ -343,7 +342,7 @@ const AddTest = () => {
                   {showWordButtons ? 'Скрыть' : 'Выбрать пропущенные'}
                 </Button>
                 {showWordButtons && (
-                  <div>
+                  <div className='tale'>
                     {renderContentWithButtonsType1(selectedExercise.content)}
                   </div>
                 )}
@@ -367,8 +366,8 @@ const AddTest = () => {
                   >
                   </Button>
                 </div>
-                <p>Название упражнения <input value={selectedExercise.name} onChange={e => handleExerciseFieldChange(e, "name")} /></p>
-                <p>Описание упражнения <input value={selectedExercise.description} onChange={e => handleExerciseFieldChange(e, "description")} /></p>
+                <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} className='input-exercise'/></p>
+                <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} className='input-exercise'/></p>
                 <Row className="align-items-center">
                   {selectedExercise.content && (
                     <img src={selectedExercise.content} alt="Загруженное изображение" className="half-size" />
@@ -426,8 +425,8 @@ const AddTest = () => {
                   >
                   </Button>
                 </div>
-                <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
-                <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
+                <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} className='input-exercise'/></p>
+                <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} className='input-exercise'/></p>
                 <textarea
                   className=' input-style area-1'
                   value={selectedExercise.content}
@@ -452,6 +451,7 @@ const AddTest = () => {
           )}
         </Container>
       </div>
+      </Container>
 
       <Modal isActive={isActive} closeModal={closeModal}>
         <Container className='text-center'>
@@ -459,9 +459,9 @@ const AddTest = () => {
           <Row>
             <Col>
               <DropdownButton id="dropdown-basic-button" title="Создать">
-                <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleSelectType('3')}>Пропущенные буквы</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('1')} className='btn-blue'>Пропущенные слова</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('2')} className='btn-blue'>Что на изображении</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('3')} className='btn-blue'>Пропущенные буквы</Dropdown.Item>
               </DropdownButton>
             </Col>
             <Col>
