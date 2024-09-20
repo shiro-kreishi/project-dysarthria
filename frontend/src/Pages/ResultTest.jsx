@@ -1,5 +1,4 @@
 import React from "react";
-import './style.css'
 import { Container, Row, Col, Button } from 'react-bootstrap'
 import { getResponseTest } from "./Components/api";
 import Result from "./Components/ResultItem";

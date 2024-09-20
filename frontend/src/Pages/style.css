@@ -253,6 +253,16 @@
   box-shadow: black ;
 }
 
+.a-correct{
+  border: 3px solid rgb(57, 231, 51);
+  background-color: white;
+}
+
+.a-incorrect{
+  border: 3px solid rgb(238, 2, 2);
+  background-color: white;
+}
+
 /*мобильные устройства в портретном режиме*/
 @media (max-width: 575.98px) {
   .img-style {

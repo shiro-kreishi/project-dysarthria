@@ -1,7 +1,7 @@
 import React from "react";
 import { Container, Row, Col, ListGroup, Button } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import './style.css'
 const FinallResult = () => {
   const navigate = useNavigate()
   const location = useLocation();
@@ -31,7 +31,7 @@ const FinallResult = () => {
           <Col>
             <ListGroup>
               {results.map((result, index) => (
-                <ListGroup.Item key={index} className={`result-item ${JSON.stringify(result.user_answer) === JSON.stringify(result.correct_answer) ? 'correct' : 'incorrect'}`}>
+                <ListGroup.Item key={index} className={`result-item ${JSON.stringify(result.user_answer) === JSON.stringify(result.correct_answer) ? 'a-correct' : 'a-incorrect'}`}>
                   <div>
                     <strong>Упражнение {index + 1}:</strong>
                   </div>
