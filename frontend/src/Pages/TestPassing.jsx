@@ -117,7 +117,7 @@ const TestPassing = () => {
           {selectedExercise ? (
             <div className='text-center'>
               <h1>{selectedExercise.name}</h1>
-              {selectedExercise.type === 1 || selectedExercise.type === 3 ? (
+              {selectedExercise.type === 1 ? (
                 <div>
                   <h2>
                     {selectedExercise.king_json?.content.split(/_+/).map((part, idx) => (
@@ -157,6 +157,25 @@ const TestPassing = () => {
                       </div>
                     </div>
                   ) : null}
+                </div>
+              ) : selectedExercise.type === 3 ? (
+                <div>
+                  <h2>
+                    {selectedExercise.king_json?.content.split(/_+/).map((part, idx) => (
+                      <span key={idx}>
+                        {console.log(selectedExercise.king_json?.content.split(''))}
+                        {part}
+                        {idx < selectedExercise.king_json?.content.match(/_+/g)[0]?.length && (
+                          <input
+                            type="text"
+                            className="input-answer"
+                            value={answers.find(a => a.id === selectedExercise.id)?.answer[idx] || ''}
+                            onChange={(e) => handleInputChange(e, idx)}
+                          />
+                        )}
+                      </span>
+                    ))}
+                  </h2>
                 </div>
               ) : null}
               {selectedExercise.id === exercises[exercises.length - 1].id && (
