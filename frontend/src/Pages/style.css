@@ -232,6 +232,21 @@
   
 
 }
+.image-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.image-item {
+  max-width: 100px;
+  margin: 5px;
+  cursor: grab;
+}
+
+.image-item:active {
+  cursor: grabbing;
+}
 
 .home-list {
   font-size: 32px;
@@ -261,6 +276,22 @@
 .a-incorrect{
   border: 3px solid rgb(238, 2, 2);
   background-color: white;
+}
+
+.image-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.image-item {
+  max-width: 100px;
+  margin: 5px;
+  cursor: grab;
+}
+
+.image-item:active {
+  cursor: grabbing;
 }
 
 /*мобильные устройства в портретном режиме*/

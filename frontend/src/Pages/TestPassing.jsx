@@ -5,6 +5,8 @@ import { Container, Button } from 'react-bootstrap';
 import { useQuery } from 'react-query';
 import { fetchTestById } from './Components/api';
 import axiosConfig from './Components/AxiosConfig';
+import { v4 as uuidv4 } from 'uuid';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const TestPassing = () => {
   const { id } = useParams();
@@ -14,31 +16,57 @@ const TestPassing = () => {
   const [answers, setAnswers] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [shuffledImages, setShuffledImages] = useState([]);
+  const [imageIds, setImageIds] = useState([]);
 
   const exercises = test?.exercises || [];
 
   useEffect(() => {
     if (test) {
+      console.log('Test loaded:', test);
       setAnswers(test.exercises.map(ex => ({
         id: ex.id,
         type: ex.type,
-        answer: ex.type === 1 || ex.type === 3 ? [] : null
+        answer: ex.type === 1 || ex.type === 3 ? [] : ex.type === 4 ? {} : null
       })));
-      setStartDate(new Date().toISOString()); // Запуск таймера при загрузке теста
+      setStartDate(new Date().toISOString());
     }
   }, [test]);
 
+  useEffect(() => {
+    if (selectedExercise && selectedExercise.type === 4) {
+      const images = shuffle(selectedExercise.king_json.images);
+      console.log('Shuffled images:', images);
+      setShuffledImages(images);
+      const ids = images.map((_, index) => `img${index + 1}`);
+      setImageIds(ids);
+      console.log('Generated image IDs:', ids);
+    }
+  }, [selectedExercise]);
+
+  const shuffle = (array) => {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex !== 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+      [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+  };
+
   const selectExercise = (exercise) => {
+    console.log('Selected exercise:', exercise);
     setSelectedExercise(exercise);
   };
 
-  const handleInputChange = (event, index) => {
+  const handleInputChange = (event, key) => {
     if (selectedExercise) {
       const updatedAnswers = [...answers];
       const answerObj = updatedAnswers.find(a => a.id === selectedExercise.id);
       if (answerObj) {
-        answerObj.answer[index] = event.target.value;
+        answerObj.answer[key] = parseInt(event.target.value, 10); // Преобразуем строку в число
         setAnswers(updatedAnswers);
+        console.log('Updated answers:', updatedAnswers);
       }
     }
   };
@@ -50,12 +78,34 @@ const TestPassing = () => {
       if (answerObj) {
         answerObj.answer = option;
         setAnswers(updatedAnswers);
+        console.log('Selected option:', option);
+        console.log('Updated answers:', updatedAnswers);
       }
     }
   };
 
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const updatedImages = [...shuffledImages];
+    const [reorderedImage] = updatedImages.splice(result.source.index, 1);
+    updatedImages.splice(result.destination.index, 0, reorderedImage);
+
+    setShuffledImages(updatedImages);
+
+    const updatedAnswers = [...answers];
+    const answerObj = updatedAnswers.find(a => a.id === selectedExercise.id);
+    if (answerObj) {
+      answerObj.answer = updatedImages.reduce((acc, image, index) => {
+        acc[imageIds[index]] = index + 1;
+        return acc;
+      }, {});
+      setAnswers(updatedAnswers);
+    }
+  };
+
   const submitAnswers = async () => {
-    setEndDate(new Date().toISOString()); // Остановка таймера при отправке ответов
+    setEndDate(new Date().toISOString());
   
     const jsonResult = answers.map(answer => {
       const exercise = exercises.find(ex => ex.id === answer.id);
@@ -64,9 +114,12 @@ const TestPassing = () => {
         user_answer: answer.answer,
         correct_answer: exercise.type === 1 ? (exercise.king_json.missing_words || []).map(wordObj => wordObj.word) :
         exercise.type === 3 ? (exercise.king_json.missing_letters || []).map(letterObj => letterObj.word) :
+        exercise.type === 4 ? exercise.king_json.correct_order :
         exercise.king_json.correct_answer
-};
-});
+      };
+    });
+
+    console.log('Submitting answers:', jsonResult);
   
     const responseTest = {
       test: id,
@@ -78,10 +131,10 @@ const TestPassing = () => {
   
     try {
       await axiosConfig.post('/api/v0/response-tests/', responseTest);
-      console.log('Ответы успешно отправлены');
+      console.log('Answers submitted successfully');
       navigate(`/public-tests/test/result/${id}`, { state: { results: jsonResult } });
     } catch (error) {
-      console.error('Ошибка при отправке ответов', error);
+      console.error('Error submitting answers:', error);
     }
   };
 
@@ -157,6 +210,49 @@ const TestPassing = () => {
                       </div>
                     </div>
                   ) : null}
+                </div>
+              ) : selectedExercise.type === 4 ? (
+                <div>
+                  <h2>Расположите изображения в правильном порядке</h2>
+                  {selectedExercise && shuffledImages.length > 0 && (
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                      <Droppable droppableId="images">
+                        {(provided) => (
+                          <div
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className="image-container"
+                          >
+                            {shuffledImages.map((image, index) => (
+                              <Draggable key={imageIds[index]} draggableId={imageIds[index]} index={index}>
+                                {(provided) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className="image-item"
+                                  >
+                                    <img
+                                      src={image}
+                                      alt={`Image ${index}`}
+                                      className="image-item"
+                                    />
+                                    <input
+                                      type="number"
+                                      className="input-answer"
+                                      value={answers.find(a => a.id === selectedExercise.id)?.answer[imageIds[index]] || ''}
+                                      onChange={(e) => handleInputChange(e, imageIds[index])}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+                  )}
                 </div>
               ) : null}
               {selectedExercise.id === exercises[exercises.length - 1].id && (

@@ -43,7 +43,7 @@ function App() {
               <Nav.Link href="/tests" className="custom-nav-link">Тесты</Nav.Link>
               {isAllowed && (
                 <>
-                  <Nav.Link href="/library" className="custom-nav-link">Библиотека</Nav.Link>
+                  {/*<Nav.Link href="/library" className="custom-nav-link">Библиотека</Nav.Link>*/}
                   <Nav.Link href="/my-tests" className="custom-nav-link">Мои тесты</Nav.Link>
                   <Nav.Link href="/result-test" className="custom-nav-link">Результаты</Nav.Link>
                 </>
