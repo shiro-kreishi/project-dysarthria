@@ -144,144 +144,145 @@ const TestPassing = () => {
   if (!exercises || exercises.length === 0) return <h1>Упражнения не найдены</h1>;
 
   return (
-    <div>
-      <div className='tale'>
-        <Container>
-          <div className='text-center'>
-            <h1>{test.name}</h1>
-            <div className="d-flex justify-content-center">
-              {exercises.map((exercise, index) => (
-                <Button
-                  size="lg"
-                  className='btn-blue'
-                  variant="primary"
-                  key={exercise.id}
-                  onClick={() => selectExercise(exercise)}
-                >
-                  {index + 1}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </Container>
-      </div>
       <div>
-        <Container className='d-flex justify-content-center align-items-center flex-column container-exercise tale'>
-          {selectedExercise ? (
-            <div className='text-center'>
-              <h1>{selectedExercise.name}</h1>
-              {selectedExercise.type === 1 ? (
-                <div>
-                  <h2>
-                    {selectedExercise.king_json?.content.split(/_+/).map((part, idx) => (
-                      <span key={idx}>
-                        {part}
-                        {idx < (selectedExercise.king_json?.content.match(/_+/g)?.length || 0) && (
-                          <input
-                            type="text"
-                            className="input-answer"
-                            value={answers.find(a => a.id === selectedExercise.id)?.answer[idx] || ''}
-                            onChange={(e) => handleInputChange(e, idx)}
-                          />
-                        )}
-                      </span>
-                    ))}
-                  </h2>
-                </div>
-              ) : selectedExercise.type === 2 ? (
-                <div>
-                  {selectedExercise.king_json?.content ? (
-                    <div>
-                      <img
-                        src={selectedExercise.king_json.content}
-                        alt="Изображение упражнения"
-                        className="half-size"
+  <div className='tale'>
+    <Container>
+      <div className='text-center'>
+        <h1>{test.name}</h1>
+        <div className="d-flex justify-content-center">
+          {exercises.map((exercise, index) => (
+            <Button
+              size="lg"
+              className='btn-blue'
+              variant="primary"
+              key={exercise.id}
+              onClick={() => selectExercise(exercise)}
+            >
+              {index + 1}
+            </Button>
+          ))}
+        </div>
+      </div>
+    </Container>
+  </div>
+  <div>
+    <Container className='d-flex justify-content-center align-items-center flex-column container-exercise tale'>
+      {selectedExercise ? (
+        <div className='text-center'>
+          <h1>{selectedExercise.name}</h1>
+          {selectedExercise.type === 1 ? (
+            <div>
+              <h2>
+                {selectedExercise.king_json?.content.split(/_+/).map((part, idx) => (
+                  <span key={idx}>
+                    {part}
+                    {idx < (selectedExercise.king_json?.content.match(/_+/g)?.length || 0) && (
+                      <input
+                        type="text"
+                        className="input-answer"
+                        value={answers.find(a => a.id === selectedExercise.id)?.answer[idx] || ''}
+                        onChange={(e) => handleInputChange(e, idx)}
                       />
-                      <div className='d-flex justify-content-center mt-3'>
-                        {selectedExercise.king_json.answers.map((answ, index) => (
-                          <Button
-                            key={index}
-                            onClick={() => handleOptionSelect(answ)}
-                            className={`mx-2 ${answers.find(a => a.id === selectedExercise.id)?.answer === answ ? 'selected' : ''}`}
-                          >
-                            {answ}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              ) : selectedExercise.type === 4 ? (
+                    )}
+                  </span>
+                ))}
+              </h2>
+            </div>
+          ) : selectedExercise.type === 2 ? (
+            <div>
+              {selectedExercise.king_json?.content ? (
                 <div>
-                  <h2>Расположите изображения в правильном порядке</h2>
-                  {selectedExercise && shuffledImages.length > 0 && (
-                    <DragDropContext onDragEnd={handleDragEnd}>
-                      <Droppable droppableId="images">
-                        {(provided) => (
-                          <div
-                            {...provided.droppableProps}
-                            ref={provided.innerRef}
-                            className="image-container"
-                          >
-                            {shuffledImages.map((image, index) => (
-                              <Draggable key={imageIds[index]} draggableId={imageIds[index]} index={index}>
-                                {(provided) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    className="image-item"
-                                  >
-                                    <img
-                                      src={image}
-                                      alt={`Image ${index}`}
-                                      className="image-item"
-                                    />
-                                    <input
-                                      type="number"
-                                      className="input-answer"
-                                      value={answers.find(a => a.id === selectedExercise.id)?.answer[imageIds[index]] || ''}
-                                      onChange={(e) => handleInputChange(e, imageIds[index])}
-                                    />
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    </DragDropContext>
-                  )}
-              ) : selectedExercise.type === 3 ? (
-                <div>
-                  <h2>
-                    {selectedExercise.king_json?.content.split(/_+/).map((part, idx) => (
-                      <span key={idx}>
-                        {part}
-                        {idx < (selectedExercise.king_json?.content.match(/_+/g)?.length || 0) && (
-                          <input
-                            type="text"
-                            className="input-answer"
-                            value={answers.find(a => a.id === selectedExercise.id)?.answer[idx] || ''}
-                            onChange={(e) => handleInputChange(e, idx)}
-                          />
-                        )}
-                      </span>
+                  <img
+                    src={selectedExercise.king_json.content}
+                    alt="Изображение упражнения"
+                    className="half-size"
+                  />
+                  <div className='d-flex justify-content-center mt-3'>
+                    {selectedExercise.king_json.answers.map((answ, index) => (
+                      <Button
+                        key={index}
+                        onClick={() => handleOptionSelect(answ)}
+                        className={`mx-2 ${answers.find(a => a.id === selectedExercise.id)?.answer === answ ? 'selected' : ''}`}
+                      >
+                        {answ}
+                      </Button>
                     ))}
-                  </h2>
+                  </div>
                 </div>
               ) : null}
-              {selectedExercise.id === exercises[exercises.length - 1].id && (
-                <Button onClick={submitAnswers} className='mt-4'>
-                  Отправить ответы
-                </Button>
+            </div>
+          ) : selectedExercise.type === 4 ? (
+            <div>
+              <h2>Расположите изображения в правильном порядке</h2>
+              {selectedExercise && shuffledImages.length > 0 && (
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <Droppable droppableId="images">
+                    {(provided) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="image-container"
+                      >
+                        {shuffledImages.map((image, index) => (
+                          <Draggable key={imageIds[index]} draggableId={imageIds[index]} index={index}>
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className="image-item"
+                              >
+                                <img
+                                  src={image}
+                                  alt={`Image ${index}`}
+                                  className="image-item"
+                                />
+                                <input
+                                  type="number"
+                                  className="input-answer"
+                                  value={answers.find(a => a.id === selectedExercise.id)?.answer[imageIds[index]] || ''}
+                                  onChange={(e) => handleInputChange(e, imageIds[index])}
+                                />
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
               )}
             </div>
+          ) : selectedExercise.type === 3 ? (
+            <div>
+              <h2>
+                {selectedExercise.king_json?.content.split(/_+/).map((part, idx) => (
+                  <span key={idx}>
+                    {part}
+                    {idx < (selectedExercise.king_json?.content.match(/_+/g)?.length || 0) && (
+                      <input
+                        type="text"
+                        className="input-answer"
+                        value={answers.find(a => a.id === selectedExercise.id)?.answer[idx] || ''}
+                        onChange={(e) => handleInputChange(e, idx)}
+                      />
+                    )}
+                  </span>
+                ))}
+              </h2>
+            </div>
           ) : null}
-        </Container>
-      </div>
-    </div>
+          {selectedExercise.id === exercises[exercises.length - 1].id && (
+            <Button onClick={submitAnswers} className='mt-4'>
+              Отправить ответы
+            </Button>
+          )}
+        </div>
+      ) : null}
+    </Container>
+  </div>
+</div>
   );
 }
 
