@@ -60,7 +60,7 @@ const EditTest = () => {
           },
           correct_answer: parseInt(exercise.type) === 1 ? (
             exercise.king_json.missing_words?.map(missingWord => missingWord.word) || []
-          ) : parseInt(exercise.type) === 1 ? (
+          ) : parseInt(exercise.type) === 3 ? (
             exercise.king_json.missing_letters?.map(missingLetter => missingLetter.word) || []
           ) : (
             [exercise.correctAnswer]
