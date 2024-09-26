@@ -109,7 +109,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 class ChangeNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
-        fields = ['first_name', 'last_name', 'patronymic',]
+        fields = ['first_name', 'last_name', 'patronymic', ]
 
     def validate_first_name(self, value):
         if not value:
@@ -172,6 +172,16 @@ class UserChangeEmailSerializer(serializers.Serializer):
         return data
 
 
+class UserTryChangePasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
-
+    def validate_email(self, value):
+        """
+        Проверяем, существует ли пользователь с данным email.
+        """
+        try:
+            user = UserModel.objects.get(email=value)
+        except UserModel.DoesNotExist:
+            raise serializers.ValidationError("Пользователь с таким email не найден.")
+        return value
 

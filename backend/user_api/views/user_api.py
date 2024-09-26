@@ -9,7 +9,7 @@ from project.settings import DEBUG
 from user_api.permissions.is_member_group_or_admin import IsSuperUserOrAdminPermission, \
     IsSuperUserOrDoctorOrAdminPermission
 from user_api.serializers.user import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, \
-    ChangePasswordSerializer, ChangeNameSerializer, UserChangeEmailSerializer
+    ChangePasswordSerializer, ChangeNameSerializer, UserChangeEmailSerializer, UserTryChangePasswordSerializer
 from rest_framework import permissions, status, viewsets
 
 from user_api.utils.creating_email_message import send_confirmation_email
@@ -308,7 +308,7 @@ class UserChangeEmailModelViewSet(viewsets.ModelViewSet):
         return User.objects.filter(pk=user.pk)
 
     def list(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -331,5 +331,12 @@ class UserChangeEmailModelViewSet(viewsets.ModelViewSet):
         send_confirmation_email(user, confirmation_token)
 
 
+class UserTryChangePasswordViewSet(viewsets.ModelViewSet):
+    permission_classes = permissions.AllowAny
+    http_method_names = ['post']
+    serializer_class = UserTryChangePasswordSerializer
 
+
+    def list(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
 
