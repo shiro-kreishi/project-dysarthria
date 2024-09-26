@@ -17,7 +17,8 @@ from config.config import (
     DB_ENGINE, DB_DATABASE, DB_USER,
     DB_PASSWORD, DB_HOST, DB_PORT, CORS_ALLOWED_ORIGINS_CONFIG,
     SITE_URL_CONFIG, EMAIL_HOST_PASSWORD_CONFIG,
-    EMAIL_HOST_USER_CONFIG, EMAIL_CONFIRMATION_TOKEN_LIFETIME_CONFIG
+    EMAIL_HOST_USER_CONFIG, EMAIL_CONFIRMATION_TOKEN_LIFETIME_CONFIG,
+    PASSWORD_RESET_TOKEN_LIFETIME_CONFIG
 
 )
 from datetime import timedelta
@@ -25,7 +26,6 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -39,7 +39,6 @@ DEBUG = True
 # ALLOWED_HOSTS = []
 # ALLOWED_HOSTS = DJANGO_ALLOWED_HOSTS_CONFIG
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -96,7 +95,6 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_HTTPONLY = True
 
-
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:3000',
     'http://127.0.0.1',
@@ -123,7 +121,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'project.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -164,11 +161,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LOGOUT_REDIRECT_URL = "homepage"
 LOGIN_REDIRECT_URL = "homepage"
 LOGIN_URL = 'login'
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -240,9 +235,6 @@ LOGGING = {
     },
 }
 
-
-
-
 # Simple JWT
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
@@ -284,8 +276,6 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
-
-
 """
     Пока разрабатывается проект (в режиме DEBUG = True) можно вместо отправки почты через почтовый сервис,
     использовать консоль (т.е. все отправки писем будут выводится в консоли
@@ -295,7 +285,6 @@ if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
 
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
@@ -309,7 +298,7 @@ SITE_URL = SITE_URL_CONFIG
 # Время жизни токена на подтверждения почты (В МИНУТАХ)
 EMAIL_CONFIRMATION_TOKEN_LIFETIME = EMAIL_CONFIRMATION_TOKEN_LIFETIME_CONFIG
 
-
+PASSWORD_RESET_TOKEN_LIFETIME = PASSWORD_RESET_TOKEN_LIFETIME_CONFIG
 
 # Как получать ошибки проекта на Django на свою почту?
 # ADMINS = (
