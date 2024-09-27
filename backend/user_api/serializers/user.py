@@ -7,6 +7,7 @@ from user_api.utils.creating_email_message import send_confirmation_email
 from user_api.utils.token_generator import create_confirmation_token
 from user_api.validations import custom_validate_email, validate_password
 from users.models import EmailConfirmationToken
+from users.models.users import PasswordChangeToken
 
 UserModel = get_user_model()
 
@@ -171,9 +172,20 @@ class UserChangeEmailSerializer(serializers.Serializer):
 
         return data
 
+    def create(self, validated_data):
+        pass
 
-class UserTryChangePasswordSerializer(serializers.Serializer):
+    def update(self, instance, validated_data):
+        pass
+
+class UserForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
 
     def validate_email(self, value):
         """
@@ -185,3 +197,43 @@ class UserTryChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError("Пользователь с таким email не найден.")
         return value
 
+
+class ForgotPasswordConfirmChangeSerializer(serializers.Serializer):
+    url = serializers.CharField()
+    code = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate(self, attrs):
+        url = attrs.get('url')
+        code = attrs.get('code')
+
+        # Проверяем, существует ли токен с данным URL
+        token_exists = PasswordChangeToken.objects.filter(url=url).exists()
+        if not token_exists:
+            raise serializers.ValidationError({"url": "Адрес не существует."})  # Указываем поле 'url'
+
+        # Проверяем, существует ли токен с данным кодом
+        token_with_code = PasswordChangeToken.objects.filter(token=code, url=url).first()
+        if not token_with_code:
+            raise serializers.ValidationError({"code": "Неверный код или адрес."})  # Указываем поле 'code'
+
+        # Проверяем, истек ли токен
+        if token_with_code.has_expired():  # Вызов метода has_expired()
+            raise serializers.ValidationError({"code": "Токен истек."})  # Указываем поле 'code'
+
+        return attrs
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value  # Не забудьте вернуть значение
+
+    def create(self, validated_data):
+        # Логика изменения пароля
+        token = PasswordChangeToken.objects.get(token=validated_data['code'])
+        user = token.user
+        user.password = make_password(validated_data['new_password'])
+        user.save()
+
+        # Удаляем использованный токен
+        token.delete()
+        return user
