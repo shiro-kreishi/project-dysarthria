@@ -179,7 +179,7 @@ class EmailConfirmationToken(models.Model):
 
 class PasswordChangeToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.IntegerField(
+    token = models.CharField(
         verbose_name='Токен смены пароля.',
         help_text='6-ти значный код из цифр.'
     )
@@ -221,7 +221,7 @@ class PasswordChangeToken(models.Model):
         PasswordChangeToken.objects.filter(user=self.user).delete()
 
         if not self.token:
-            self.token = random.randint(100000, 999999)  # Генерируем 6-значный токен
+            self.token = str(random.randint(100000, 999999))  # Генерируем 6-значный токен
 
         if not self.url:
             self.url = self.url_generator()  # Генерируем URL
