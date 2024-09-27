@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -10,6 +10,7 @@ import {
   AlertIcon,
   Flex,
   Stack,
+  Text,
   Checkbox,
   InputRightElement,
   InputGroup,
@@ -74,6 +75,9 @@ const Login = ({ setCurrentUser }) => {
               <Stack spacing={10}>
                 <Stack direction={{ base: 'column', sm: 'row' }} align={'start'} justify={'space-between'}>
                   <Checkbox>Запомнить меня</Checkbox>
+                  <Link to="/profile/restore-password">
+                    <Text color={'blue.400'}>Забыли пароль?</Text>
+                  </Link>
                 </Stack>
                 {error && (
                   <Alert status="error" mb="4">
