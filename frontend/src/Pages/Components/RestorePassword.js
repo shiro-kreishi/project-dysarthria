@@ -12,8 +12,9 @@ import {
   Stack,
   useColorModeValue,
 } from "@chakra-ui/react";
+import axiosConfig from './AxiosConfig';
 
-const RestorePassword = ({ client }) => {
+const RestorePassword = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -28,16 +29,16 @@ const RestorePassword = ({ client }) => {
     }
 
     try {
-      const response = await client.post("/api/user/restore-password/", { email }); // Здесь должна быть рабочая api
-      if (response.status === 200) {
-        localStorage.setItem('email', email);
-        navigate('/profile/password-confirmation');
+      const response = await axiosConfig.post("/api/user/forgot-password/", { email });
+      if (response.status === 201) {
+        console.log("User forgot password");
+        navigate('/');
       } else {
-        setError('Не корректные данные');
+        setError('Пользователь с таким Email не существует');
       }
     } catch (error) {
       console.error('Error recovering password: ', error);
-      setError('Не корректные данные');
+      setError('Пользователь с таким Email не существует');
     }
   };
 

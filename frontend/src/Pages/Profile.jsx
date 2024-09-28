@@ -82,13 +82,13 @@ function Profile() {
         </Flex>
         <Routes>
           <Route path="/" element={<Home currentUser={currentUser} client={axiosConfig} />} />
-          <Route path='/confirm-email/:emailConfirmKey' element={<EmailConfirmation client={axiosConfig}/>} />
+          <Route path="/confirm-email/:emailConfirmKey" element={<EmailConfirmation client={axiosConfig}/>} />
           <Route path="/login" element={<Login setCurrentUser={setCurrentUser} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/confirmation" element={<Confirmation/>} />
           <Route path="/change-data" element={<ChangeData currentUser={currentUser} client={axiosConfig}/>} />
-          <Route path="/restore-password" element={<RestorePassword client={axiosConfig}/>} />
-          <Route path="/password-confirmation" element={<PasswordConfirmation/>} />
+          <Route path="/restore-password" element={<RestorePassword/>} />
+          <Route path="/confirm-password/:passwordConfirmKey" element={<PasswordConfirmation/>} />
         </Routes>
       </Box>
     </ChakraProvider>

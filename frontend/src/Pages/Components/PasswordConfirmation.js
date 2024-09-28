@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -24,9 +24,25 @@ const PasswordConfirmation = () => {
   const [showPassword1, setShowPassword1] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [error, setError] = useState('');
+  const url = "/api/user/confirm-password/";
+  let { passwordConfirmKey } = useParams();
   const navigate = useNavigate();
-  let email = localStorage.getItem('email');
-  localStorage.removeItem('email');
+
+  useEffect(() => {
+    const sendPasswordConfirmation = async () => {
+      if (passwordConfirmKey) {
+        try {
+          const response = await axiosConfig.get(`${url}${passwordConfirmKey}/`);
+          console.log(response);
+        }
+        catch (e) {
+          console.log(e);
+        }
+      }
+    };
+
+    sendPasswordConfirmation();
+}, [axiosConfig, passwordConfirmKey, url]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,8 +63,8 @@ const PasswordConfirmation = () => {
     }
 
     try {
-      const response = await axiosConfig.post("/api/user/password-confirmation/", { code, email, password: password1 }); // Здесь должна быть рабочая api
-      if (response.status === 200) {
+      const response = await axiosConfig.post("/api/user/forgot-password-change/", { url: passwordConfirmKey, code, new_password: password1 });
+      if (response.status === 201) {
         navigate('/');
       } else {
         setError('Не корректные данные');
