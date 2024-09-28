@@ -11,7 +11,7 @@ function Home() {
         <Container className='tale'>
           <Row className='align-items-center text-center'>
 
-              <h1 className=''>Добро пожаловать в "НАЗВАНИЕ"</h1>
+              <h1 className=''>Добро пожаловать в "Дикция+"</h1>
               <span>
                 «НАЗВАНИЕ» — это инновационное веб-приложение,
                 созданное специально для логопедов, чтобы помочь
