@@ -33,7 +33,7 @@ const ResultTest = () => {
                             <Result
                                 key={index}
                                 test={result.test}
-                                user={result.user.first_name}
+                                user={result.user?.first_name}
                                 json_result={result.json_result}
                                 link={`/result-test/test/${result.id}/`}
                             />
