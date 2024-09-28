@@ -1,4 +1,4 @@
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 from django.core.signing import Signer, BadSignature
 from users.models.users import EmailConfirmationToken, User
 
@@ -16,11 +16,16 @@ def generate_signed_token(user):
 def create_confirmation_token(user, is_changing_email=False, changed_email=''):
     # Проверка наличия пользователя
     if not user or not User.objects.filter(pk=user.pk).exists():
-        raise ValidationError("Пользователь не найден или не существует.")
+        raise ValidationError('Пользователь не найден или не существует.')
+
+    existing_token = EmailConfirmationToken.objects.filter(user=user)
+    if existing_token and not existing_token.has_expired():
+        raise ValidationError('Пользователь уже подтверждает свою почту.')
 
     try:
         # Генерация токена и сохранение
         token = generate_signed_token(user)
+        print(user.email, token)
         email_token = EmailConfirmationToken.objects.create(
             user=user,
             token=token,

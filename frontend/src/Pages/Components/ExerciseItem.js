@@ -1,19 +1,23 @@
-//Компонент объекта теста для списков на страницах Tests, MyTests 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Button } from 'react-bootstrap';
 import './style.css';
 
-const ExerciseItem = ({ name, description, id }) => {
+const ExerciseItem = ({ name, description, id, onDelete }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/exercise/${id}`);
+  };
+
   return (
-    <Link to={`/exercise/${id}`} >
-      <div className='exercise-item'>
-        <div className="test-header">
-          <h3 className="test-title">{name}</h3>
-          <p className="test-description">{description}</p>
-        </div>
+    <div className='exercise-item' onClick={handleClick}>
+      <Button className="delete-button" onClick={(e) => { e.stopPropagation(); onDelete(); }}></Button>
+      <div className="test-header">
+        <h3 className="test-title">{name}</h3>
+        <p className="test-description">{description}</p>
       </div>
-      
-    </Link>
+    </div>
   );
 };
 

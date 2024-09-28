@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
+import random
 from datetime import timedelta
 
 from django.contrib.auth.base_user import BaseUserManager
+from django.core.signing import Signer
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin, AbstractUser
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -55,6 +57,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault('email_confirmed', True)
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
@@ -128,6 +131,7 @@ class User(AbstractBaseUser, PermissionsMixin):
                 return True
         return False
 
+
 class EmailConfirmationToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.CharField(
@@ -151,15 +155,78 @@ class EmailConfirmationToken(models.Model):
     )
 
     changed_email = models.EmailField(
-        unique=True,
         blank=True,
         help_text='Почта на которую пользователь хочет изменить свою текущую.'
     )
 
-    def has_expired(self):
+    def has_expired(self) -> bool:
+        """
+        Проверка действительности токена подтверждения почты
+        Метод удалит токен если он уже был просрочен
+        :return: Возвращает True если токен просрочен и уже недействителен
+        """
+
         expiration_time = timedelta(minutes=settings.EMAIL_CONFIRMATION_TOKEN_LIFETIME)
-        return timezone.now() > self.created_at + expiration_time
+        response = timezone.now() > self.created_at + expiration_time
+
+        if response:
+            self.delete()
+        return response
 
     def __str__(self):
-        return f"Token for {self.user.email}"
+        return f"Email change token for {self.user.email}"
 
+
+class PasswordChangeToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(
+        verbose_name='Токен смены пароля.',
+        help_text='6-ти значный код из цифр.'
+    )
+
+    url = models.CharField(
+        verbose_name='URL для смены пароля.',
+        help_text='Уникальный url для смены пароля.'
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Время создания токена.'
+    )
+
+    def has_expired(self) -> bool:
+        """
+        Проверка действительности токена подтверждения пароля
+        Метод удалит токен если он уже был просрочен
+        :return: Возвращает True если токен просрочен и уже недействителен
+        """
+
+        expiration_time = timedelta(minutes=settings.EMAIL_CONFIRMATION_TOKEN_LIFETIME)
+        response = timezone.now() > self.created_at + expiration_time
+
+        if response:
+            self.delete()
+        return response
+
+    def url_generator(self):
+        signer = Signer()
+        self.url = signer.sign_object(f'{self.user.id}%{self.user.email}')
+        return f"{self.url}"
+
+    def save(self, *args, **kwargs):
+        """
+        Переопределяем метод save, чтобы автоматически генерировать
+        6-значный токен и URL перед сохранением объекта в базе данных.
+        """
+        PasswordChangeToken.objects.filter(user=self.user).delete()
+
+        if not self.token:
+            self.token = str(random.randint(100000, 999999))  # Генерируем 6-значный токен
+
+        if not self.url:
+            self.url = self.url_generator()  # Генерируем URL
+
+        super().save(*args, **kwargs)  # Вызываем стандартный метод сохранения
+
+    def __str__(self):
+        return f"Password change token for {self.user.email}"

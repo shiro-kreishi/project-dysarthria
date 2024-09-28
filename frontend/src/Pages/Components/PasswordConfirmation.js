@@ -1,40 +1,55 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
   FormControl,
   FormLabel,
   Input,
-  Flex,
-  Stack,
   Alert,
   AlertIcon,
-  InputGroup,
+  Flex,
+  Stack,
   InputRightElement,
+  InputGroup,
   useColorModeValue,
 } from "@chakra-ui/react";
 import axiosConfig from './AxiosConfig';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 
-const Register = () => {
-  const [email, setEmail] = useState('');
+const PasswordConfirmation = () => {
+  const [code, setCode] = useState('');
   const [password1, setPassword1] = useState('');
   const [password2, setPassword2] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [patronymic, setPatronymic] = useState('');
   const [showPassword1, setShowPassword1] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [error, setError] = useState('');
+  const url = "/api/user/forgot-password-change/";
+  let { passwordConfirmKey } = useParams();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const sendPasswordConfirmation = async () => {
+      if (passwordConfirmKey) {
+        try {
+          const response = await axiosConfig.get(`${url}${passwordConfirmKey}/`);
+          console.log(response);
+        }
+        catch (e) {
+          console.log(e);
+        }
+      }
+    };
+
+    sendPasswordConfirmation();
+}, [axiosConfig, passwordConfirmKey, url]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!email || !password1 || !password2) {
-      setError('Заполните все обязательные поля');
+    if (!code || !password1 || !password2) {
+      setError('Заполните поля');
       return;
     } else if (password1 !== password2) {
       setError('Пароли не совпадают');
@@ -48,16 +63,15 @@ const Register = () => {
     }
 
     try {
-      await axiosConfig.post("/api/user/register/", {
-        email: email,
-        last_name: lastName,
-        first_name: firstName,
-        patronymic: patronymic,
-        password: password1,
-      });
-      navigate('/profile/confirmation');
+      const response = await axiosConfig.post("/api/user/forgot-password-change/", { url: passwordConfirmKey, code, new_password: password1 });
+      if (response.status === 201) {
+        navigate('/');
+      } else {
+        setError('Не корректные данные');
+      }
     } catch (error) {
-      console.error('Error registering new user: ', error);
+      console.error('Error recovering password: ', error);
+      setError('Не корректные данные');
     }
   };
 
@@ -67,26 +81,14 @@ const Register = () => {
         <Box rounded={'lg'} bg={useColorModeValue('white', 'gray.700')} boxShadow={'lg'} p={8}>
           <Stack spacing={4} >
             <form onSubmit={handleSubmit}>
-              <FormControl id="formBasicEmail" mb="4" isRequired>
-                <FormLabel>Email</FormLabel>
-                <Input type="email" placeholder="Введите Email" value={email} onChange={e => setEmail(e.target.value)} />
+              <FormControl id="formBasicCode" mb="4">
+                <FormLabel>Код из письма на Email</FormLabel>
+                <Input type="text" placeholder="Введите код" value={code} onChange={e => setCode(e.target.value)} />
               </FormControl>
-              <FormControl id="formBasicLastName" mb="4">
-                <FormLabel>Фамилия</FormLabel>
-                <Input type="text" placeholder="Введите фамилию" value={lastName} onChange={e => setLastName(e.target.value)} />
-              </FormControl>
-              <FormControl id="formBasicFirstName" mb="4">
-                <FormLabel>Имя</FormLabel>
-                <Input type="text" placeholder="Введите имя" value={firstName} onChange={e => setFirstName(e.target.value)} />
-              </FormControl>
-              <FormControl id="formBasicPatronimyc" mb="4">
-                <FormLabel>Отчетсво</FormLabel>
-                <Input type="text" placeholder="Введите отчество" value={patronymic} onChange={e => setPatronymic(e.target.value)} />
-              </FormControl>
-              <FormControl id="formBasicPassword" mb="4" isRequired>
+              <FormControl id="formBasicPassword1" mb="4">
                 <FormLabel>Пароль</FormLabel>
                 <InputGroup>
-                  <Input type={showPassword1 ? 'text' : 'password'} placeholder=" Введите пароль" value={password1} onChange={e => setPassword1(e.target.value)} />
+                  <Input type={showPassword1 ? 'text' : 'password'} placeholder="Введите пароль" value={password1} onChange={e => setPassword1(e.target.value)} />
                   <InputRightElement h={'full'}>
                     <Button variant={'ghost'} onClick={() => setShowPassword1((showPassword1) => !showPassword1)}>
                       {showPassword1 ? <ViewIcon /> : <ViewOffIcon />}
@@ -94,7 +96,7 @@ const Register = () => {
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
-              <FormControl id="formBasicPassword2" mb="4" isRequired>
+              <FormControl id="formBasicPassword2" mb="4">
                 <FormLabel>Подтверждение пароля</FormLabel>
                 <InputGroup>
                   <Input type={showPassword2 ? 'text' : 'password'} placeholder="Подтвердите пароль" value={password2} onChange={e => setPassword2(e.target.value)} />
@@ -112,7 +114,7 @@ const Register = () => {
                     {error}
                   </Alert>
                 )}
-                <Button type="submit" bg={'blue.400'} color={'white'} _hover={{ bg: 'blue.500', }}>Зарегистрироваться</Button>
+                <Button type="submit" bg={'blue.400'} color={'white'} _hover={{ bg: 'blue.500', }}>Применить</Button>
               </Stack>
             </form>
           </Stack>
@@ -122,4 +124,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default PasswordConfirmation;

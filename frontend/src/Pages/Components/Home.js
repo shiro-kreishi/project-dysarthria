@@ -11,20 +11,15 @@ import {
   Avatar,
   Center,
 } from "@chakra-ui/react";
-import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
+import { Link } from 'react-router-dom';
+import AvatarProfile from './Avatar.jpg';
 
 const Home = ({ currentUser, client }) => {
   const [email, setEmail] = useState('');
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [patronymic, setPatronymic] = useState('');
-  const [password1, setPassword1] = useState('');
-  const [password2, setPassword2] = useState('');
-  const [password, setPassword] = useState('');
   const [admin, setAdmin] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPassword1, setShowPassword1] = useState(false);
-  const [showPassword2, setShowPassword2] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -33,7 +28,7 @@ const Home = ({ currentUser, client }) => {
         setEmail(response.data.email);
         setFirstname(response.data.first_name);
         setLastname(response.data.last_name);
-        setPatronymic(response.data.patronymic)
+        setPatronymic(response.data.patronymic);
       }
     };
 
@@ -54,137 +49,39 @@ const Home = ({ currentUser, client }) => {
     checkAdmin();
   }, [currentUser, client]);
 
-  const handleChangeEmail = async (e) => {
-    e.preventDefault();
-    try {
-      const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)[1];
-      if (!csrfToken) {
-        console.error('CSRF token is missing');
-        return;
-      }
-      await client.post("/api/user/change-email/", { new_email: email, password }, {
-        headers: {
-          'X-CSRFToken': csrfToken
-        }
-      });
-    } catch (error) {
-      console.error("Error change email: ", error.response ? error.response.data : error.message);
-    }
-  };
-
-  const handleChangeData = async (e) => {
-    e.preventDefault();
-    try {
-      const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)[1];
-      if (!csrfToken) {
-        console.error('CSRF token is missing');
-        return;
-      }
-      await client.post("/api/user/update-name/", {
-        first_name: firstname,
-        last_name: lastname,
-        patronymic: patronymic,
-      }, {
-        headers: {
-          'X-CSRFToken': csrfToken
-        }
-      });
-    } catch (error) {
-      console.error("Error change data: ", error.response ? error.response.data : error.message);
-    }
-  };
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    try {
-      const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)[1];
-      if (!csrfToken) {
-        console.error('CSRF token is missing');
-        return;
-      }
-      await client.post("/api/user/change-password/", { old_password: password1, new_password: password2 }, {
-        headers: {
-          'X-CSRFToken': csrfToken
-        }
-      });
-      await client.post("/api/user/login/", { email, password: password2 });
-    } catch (error) {
-      console.error("Error change password: ", error.response ? error.response.data : error.message);
-    }
-  };
-
   return (
     <Box textAlign="center" mt="10">
       {!currentUser ? <Heading>Пожалуйста зайдите или зарегистрируйтесь</Heading> : 
         <>
           {admin ? (
-            <Button href="admin_homepage_page.html">Панель администратора</Button> // На данный момент не работает
+            <a href="admin_homepage_page.html"><Button>Панель администратора</Button></a> // На данный момент не работает
           ) : <></>}
           <Flex minH={'100vh'} align={'center'} justify={'center'}>
             <Stack spacing={4} w={'full'} maxW={'md'} rounded={'xl'} boxShadow={'lg'} p={6} my={12}>
               <FormControl id="userName">
                 <Center>
-                  <Avatar size="xl" src="https://bit.ly/sage-adebayo"></Avatar>
+                  <Avatar size="xl" src={AvatarProfile}></Avatar>
                 </Center>
               </FormControl>
-              <FormControl id="email" isRequired>
+              <FormControl id="email">
                 <FormLabel>Email</FormLabel>
-                <Input placeholder="Email" _placeholder={{ color: 'gray.500' }} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input value={email} readOnly />
               </FormControl>
-              <FormControl id="password" isRequired>
-                <FormLabel>Пароль</FormLabel>
-                <Input placeholder="Пароль" _placeholder={{ color: 'gray.500' }} type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} />
-                <Button variant={'ghost'} onClick={() => setShowPassword((showPassword) => !showPassword)}>
-                  {showPassword ? <ViewIcon /> : <ViewOffIcon />}
-                </Button>
-              </FormControl>
-              <Stack spacing={6} direction={['column', 'row']}>
-                <form onSubmit={handleChangeEmail}>
-                  <Button type="submit" bg={'blue.400'} color={'white'} w="full" _hover={{ bg: 'blue.500' }}>
-                    Изменить почту
-                  </Button>
-                </form>
-              </Stack>
-              <FormControl id="firstName" isRequired>
+              <FormControl id="firstName">
                 <FormLabel>Имя</FormLabel>
-                <Input placeholder="Имя" _placeholder={{ color: 'gray.500' }} type="text" value={firstname} onChange={(e) => setFirstname(e.target.value)} />
+                <Input value={firstname} readOnly />
               </FormControl>
-              <FormControl id="lastName" isRequired>
+              <FormControl id="lastName">
                 <FormLabel>Фамилия</FormLabel>
-                <Input placeholder="Фамилия" _placeholder={{ color: 'gray.500' }} type="text" value={lastname} onChange={(e) => setLastname(e.target.value)} />
+                <Input value={lastname} readOnly />
               </FormControl>
-                <FormControl id="patronymic" isRequired>
+                <FormControl id="patronymic">
                 <FormLabel>Отчество</FormLabel>
-                <Input placeholder="Отчество" _placeholder={{ color: 'gray.500' }} type="text" value={patronymic} onChange={(e) => setPatronymic(e.target.value)} />
+                <Input value={patronymic} readOnly />
               </FormControl>
-              <Stack spacing={6} direction={['column', 'row']}>
-                <form onSubmit={handleChangeData}>
-                  <Button type="submit" bg={'blue.400'} color={'white'} w="full" _hover={{ bg: 'blue.500' }}>
-                    Изменить данные
-                  </Button>
-                </form>
-              </Stack>
-              <FormControl id="password1" isRequired>
-                <FormLabel>Старый пароль</FormLabel>
-                <Input placeholder="Старый пароль" _placeholder={{ color: 'gray.500' }} type={showPassword1 ? 'text' : 'password'} value={password1} onChange={e => setPassword1(e.target.value)} />
-                <Button variant={'ghost'} onClick={() => setShowPassword1((showPassword1) => !showPassword1)}>
-                  {showPassword1 ? <ViewIcon /> : <ViewOffIcon />}
-                </Button>
-              </FormControl>
-              <FormControl id="password2" isRequired>
-                <FormLabel>Новый пароль</FormLabel>
-                <Input placeholder="Новый пароль" _placeholder={{ color: 'gray.500' }} type={showPassword2 ? 'text' : 'password'} value={password2} onChange={e => setPassword2(e.target.value)} />
-                <Button variant={'ghost'} onClick={() => setShowPassword2((showPassword2) => !showPassword2)}>
-                  {showPassword2 ? <ViewIcon /> : <ViewOffIcon />}
-                </Button>
-              </FormControl>
-              <Stack spacing={6} direction={['column', 'row']}>
-                <form onSubmit={handleChangePassword}>
-                  <Button type="submit" bg={'blue.400'} color={'white'} w="full" _hover={{ bg: 'blue.500' }}>
-                    Изменить пароль
-                  </Button>
-                </form>
-              </Stack>
+              <Link to="/profile/change-data">
+                <Button bg={'blue.400'} color={'white'} w="full" _hover={{ bg: 'blue.500' }}>Редактировать профиль</Button>
+              </Link>
             </Stack>
           </Flex>
         </>

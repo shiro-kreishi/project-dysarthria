@@ -4,35 +4,30 @@ body {
   font-style: normal;
 }
 
-.custom-nav-link {
-  font-family: "Roboto";
-  display: inline-block;
-  width: 200px;
-  padding: 10px;
-  margin: 10px;
-  color: white;
-  background-color: #4178bf;
-  border-radius: 15px;
-  text-decoration: none;
-  transition: background-color 0.3s ease;
-  max-width: 200px;
-  text-align: center;
-  font-size: 17px;
-}
-
 .center-nav {
   display: flex;
   justify-content: center;
 }
 
-.custom-nav-link:hover {
-  background-color: #f2b29b;
-  color: white;
+.custom-navbar {
+  background-color: white; /* Белый фон для навигационной панели */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень для навигационной панели */
 }
 
 .custom-nav-toggle {
-  background-color: #4178bf;
+  background-color: white;
   border: 1px solid white;
+}
+
+.custom-nav-link {
+  background-color: white;
+  color: black;
+  border-bottom: 2px solid transparent; /* Прозрачная обводка для ссылок */
+  transition: border-bottom 0.3s ease;
+}
+
+.custom-nav-link:hover {
+  border-bottom: 2px solid #4178bf; /* Синяя обводка при наведении */
 }
 
 .test-item {
@@ -57,19 +52,67 @@ body {
   padding: 10px;
   margin: 10px;
   color: white;
-  background-color: #4178bf;
+  background-color: white;
+  border: 2px solid #4178bf; /* Синий контур */
   border-radius: 15px;
   text-decoration: none;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
   max-width: 200px;
   text-align: center;
   font-size: 17px;
 }
 
 .dropdown-item:hover {
-  background-color: #f2b29b;
-  color: white;
+  background-color: white; /* Белый фон при наведении */
+  color: #4178bf; /* Синий текст при наведении */
 }
 
+/* style.css */
 
+/* Общий контейнер для всего приложения */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
 
+/* Контейнер для основного контента */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Основной контент */
+.main-content {
+  flex: 1;
+}
+
+/* Футер */
+.bg-footer {
+  background-color: #33333356; /* Цвет фона футера */
+  padding: 20px 0;
+  text-align: center;
+  border-top: 1px solid #e7e7e7; /* Граница сверху */
+  color: white; /* Цвет текста в футере */
+}
+
+/* Адаптивные стили для футера */
+@media (max-width: 768px) {
+  .bg-footer .row {
+    flex-direction: column;
+  }
+
+  .bg-footer .col {
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 769px) {
+  .bg-footer .col {
+    padding: 0 20px;
+  }
+}
+
+.custom-navbar {
+  overflow-x: auto;
+}

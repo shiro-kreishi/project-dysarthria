@@ -2,11 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, ListGroup, Button } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import axiosConfig from "./Components/AxiosConfig";
+import './style.css';
+import { fetchTestById } from "./Components/api";
 
 const FinallResult = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [results, setResults] = useState(null);
+  const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -15,14 +18,20 @@ const FinallResult = () => {
       try {
         const response = await axiosConfig.get(`/api/v0/response-tests/${id}/`);
         setResults(JSON.parse(response.data.json_result));
+        setData(response.data)
+
+        
       } catch (err) {
         setError(err);
       } finally {
         setIsLoading(false);
       }
+      
     };
 
     fetchResults();
+    
+    console.log(results);
   }, [id]);
 
   if (isLoading) {
@@ -44,10 +53,9 @@ const FinallResult = () => {
   return (
     <div>
       <Container>
-        <Row>
-          <h1>Тест пройден</h1>
-        </Row>
-        <Row>
+        
+        <Row className="tale">
+          <h1>{data.test} пройден</h1>
           <Col>
             <h2>Правильных ответов: {correctAnswers} из {totalAnswers}</h2>
             <h2>Процент правильных ответов: {percentageCorrect}%</h2>
@@ -57,12 +65,12 @@ const FinallResult = () => {
           <Col>
             <ListGroup>
               {results.map((result, index) => (
-                <ListGroup.Item key={index} className={`result-item ${JSON.stringify(result.user_answer) === JSON.stringify(result.correct_answer) ? 'correct' : 'incorrect'}`}>
+                <ListGroup.Item key={index} className={`${JSON.stringify(result.user_answer) === JSON.stringify(result.correct_answer) ? 'a-correct tale' : 'a-incorrect tale'}`}>
                   <div>
                     <strong>Упражнение {index + 1}:</strong>
                   </div>
                   <div>
-                    <span>ответ : {JSON.stringify(result.user_answer)}</span>
+                    <span>Ответ {data.user?.email}: {JSON.stringify(result.user_answer)}</span>
                   </div>
                   <div>
                     <span>Правильный ответ: {JSON.stringify(result.correct_answer)}</span>

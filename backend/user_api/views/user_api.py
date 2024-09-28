@@ -2,6 +2,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
 from project import settings
@@ -9,13 +10,15 @@ from project.settings import DEBUG
 from user_api.permissions.is_member_group_or_admin import IsSuperUserOrAdminPermission, \
     IsSuperUserOrDoctorOrAdminPermission
 from user_api.serializers.user import UserRegistrationSerializer, UserLoginSerializer, UserSerializer, \
-    ChangePasswordSerializer, ChangeNameSerializer, UserChangeEmailSerializer
+    ChangePasswordSerializer, ChangeNameSerializer, UserChangeEmailSerializer, UserForgotPasswordSerializer, \
+    ForgotPasswordConfirmChangeSerializer
 from rest_framework import permissions, status, viewsets
 
-from user_api.utils.creating_email_message import send_confirmation_email
+from user_api.utils.creating_email_message import send_confirmation_email, send_confirmation_password
+from user_api.utils.format_serializer_answer import format_serializer_answers
 from user_api.utils.token_generator import verify_signed_token, create_confirmation_token
 from user_api.validations import custom_validation
-from users.models import User
+from users.models.users import User, PasswordChangeToken
 from user_api.serializers.doctor_serializers import AssignGroupSerializer
 from django.contrib.auth.models import Group
 from users.models.users import EmailConfirmationToken
@@ -54,7 +57,6 @@ class ConfirmEmailView(viewsets.ModelViewSet):
         # Проверка на то что токен просрочен
         if email_token.has_expired():
             # Удаляем токен
-            email_token.delete()
             user.check_delete_if_inactive_unconfirmed()
 
             if DEBUG:
@@ -116,10 +118,9 @@ class UserRegistrationModelViewSet(viewsets.ModelViewSet):
         existing_user = User.objects.filter(email=email).first()
         if existing_user:
             existing_user.check_delete_if_inactive_unconfirmed()
-
         try:
             validated_data = custom_validation(clean_data)
-        except ValidationError as e:
+        except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(data=validated_data)
@@ -147,10 +148,10 @@ class UserLoginModelViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             try:
                 user = serializer.check_user(data)
-            except ValidationError as e:
-                return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            except ValidationError:
+                return Response({"error": "Неправильная почта или пароль"}, status=status.HTTP_401_UNAUTHORIZED)
             if user is None:
-                return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"error": "Неправильная почта или пароль"}, status=status.HTTP_401_UNAUTHORIZED)
             login(request, user)
 
             # Вызов метода проверки и удаления, если это необходимо
@@ -199,14 +200,15 @@ class UserChangePasswordModelViewSet(viewsets.ModelViewSet):
         user = self.request.user
         serializer = self.serializer_class(data=request.data, context={'request': request})
 
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
             # Установите новый пароль для пользователя
             new_password = serializer.validated_data.get("new_password")
             user.set_password(new_password)
             user.save()
             return Response({"detail": "Пароль изменён."}, status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Преобразование ошибок сериализатора в строки сообщений
+        return Response(format_serializer_answers(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
 class AssignDoctorGroupModelViewSet(viewsets.ModelViewSet):
     serializer_class = AssignGroupSerializer
@@ -308,19 +310,99 @@ class UserChangeEmailModelViewSet(viewsets.ModelViewSet):
         return User.objects.filter(pk=user.pk)
 
     def list(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)  # Проверяет данные
-        new_email = serializer.validated_data.get('new_email')
-        self.send_confirmation_email(request.user, new_email)
-        return Response(status=status.HTTP_200_OK)
+        if serializer.is_valid():  # Проверяет данные
+            new_email = serializer.validated_data.get('new_email')
+            try:
+                self.send_confirmation_email(request.user, new_email)
+            except ValidationError as e:
+                return Response(format_serializer_answers(e), status=status.HTTP_400_BAD_REQUEST)
+            except Exception as ex:
+                # Общая обработка ошибок
+                return Response(format_serializer_answers(ex), status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_200_OK)
 
+        # Преобразование ошибок сериализатора в строки сообщений
+        formatted_errors = format_serializer_answers(serializer.errors)
+        return Response(formatted_errors, status=status.HTTP_400_BAD_REQUEST)
     def send_confirmation_email(self, user, new_email):
         confirmation_token = create_confirmation_token(user=user, is_changing_email=True, changed_email=new_email)
         send_confirmation_email(user, confirmation_token)
 
 
+class UserForgotPasswordModelViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    http_method_names = ['post']
+    serializer_class = UserForgotPasswordSerializer
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Логика создания токена и получения пользователя
+        user = User.objects.get(email=serializer.validated_data['email'])
+
+        # Удаляем старые токены для пользователя
+        PasswordChangeToken.objects.filter(user=user).delete()
+
+        # Создаём новый токен
+        token = PasswordChangeToken.objects.create(user=user)
+
+        # Формируем код для письма
+        code = token.token
+
+        # Отправляем письмо с подтверждением
+        try:
+            send_confirmation_password(user, token.url, code)
+        except ValidationError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Возвращаем email
+        return Response({'email': user.email}, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
+
+class ForgotPasswordConfirmChangeView(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    http_method_names = ['get', 'post']
+    serializer_class = ForgotPasswordConfirmChangeSerializer
+
+    def get_queryset(self, url=None):
+        # Filter tokens by the specified URL if provided
+        print(url)
+        if url:
+            return PasswordChangeToken.objects.filter(url=url)  # Only tokens with the specified URL
+        return PasswordChangeToken.objects.none()  # Return an empty queryset if no URL is provided
+
+    def retrieve(self, request, *args, **kwargs):
+        # Получаем токен из URL
+        url = kwargs.get('pk')  # Здесь предполагаем, что токен захватывается как 'pk'
+        try:
+            # Получаем токен из базы данных
+            password_change_token = PasswordChangeToken.objects.get(url=url)
+            # Проверяем, истек ли токен
+            if password_change_token.has_expired():
+                return Response({"detail": "Токен истек."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Возвращаем 200, если токен существует и не истек
+            return Response(status=status.HTTP_200_OK)
+
+        except PasswordChangeToken.DoesNotExist:
+            # Возвращаем 404, если токен не найден
+            return Response({"detail": "Страница не найдена."}, status=status.HTTP_404_NOT_FOUND)
+
+    def list(self, request, *args, **kwargs):
+        return Response({"detail": "Страница не найдена."},
+                        status=status.HTTP_404_NOT_FOUND)  # Возвращаем 404, если не найден
+
+    def create(self, request, *args, **kwargs):
+        serializer = ForgotPasswordConfirmChangeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)  # Валидация входящих данных
+
+        user = serializer.save()  # Сохранение данных
+        return Response({"detail": "Пароль успешно изменен."}, status=status.HTTP_201_CREATED)
 

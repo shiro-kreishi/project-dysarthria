@@ -8,6 +8,9 @@ import Register from './Components/Register';
 import Confirmation from './Components/Confirmation';
 import axiosConfig from './Components/AxiosConfig';
 import EmailConfirmation from "./Components/EmailConfirmation";
+import ChangeData from "./Components/ChangeData";
+import RestorePassword from "./Components/RestorePassword"
+import PasswordConfirmation from "./Components/PasswordConfirmation"
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -22,7 +25,7 @@ function Profile() {
     if (user) {
       setCurrentUser(JSON.parse(user));
     } else {
-      axiosConfig.get("/api/user/user/")
+      axiosConfig.get("/api/user/current-user/")
         .then(res => {
           console.log('User is authenticated');
           setCurrentUser(true);
@@ -55,7 +58,11 @@ function Profile() {
     <ChakraProvider>
       <Box>
         <Flex as="nav" bg="blue.500" p="4" color="white" justifyContent="space-between" alignItems="center">
-          <Heading as="h1" size="lg">Вход или регистрация</Heading>
+          {currentUser ? (
+            <Heading as="h1" size="lg">Профиль</Heading>
+          ) : (
+            <Heading as="h1" size="lg">Вход или регистрация</Heading>
+          )}
           <Flex>
             {currentUser ? (
               <form onSubmit={handleLogout}>
@@ -75,10 +82,13 @@ function Profile() {
         </Flex>
         <Routes>
           <Route path="/" element={<Home currentUser={currentUser} client={axiosConfig} />} />
-          <Route path='/confirm-email/:emailConfirmKey' element={<EmailConfirmation client={axiosConfig}/>} />
+          <Route path="/confirm-email/:emailConfirmKey" element={<EmailConfirmation client={axiosConfig}/>} />
           <Route path="/login" element={<Login setCurrentUser={setCurrentUser} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/confirmation" element={<Confirmation/>} />
+          <Route path="/change-data" element={<ChangeData currentUser={currentUser} client={axiosConfig}/>} />
+          <Route path="/restore-password" element={<RestorePassword/>} />
+          <Route path="/confirm-password/:passwordConfirmKey" element={<PasswordConfirmation/>} />
         </Routes>
       </Box>
     </ChakraProvider>

@@ -31,7 +31,6 @@ class CreatingChangeEmailTokenViewTestCase(APITestCase):
             "password": 'eX@2mplePassWorD'
         }
         response = self.client.post(url, data, format='json')
-        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(EmailConfirmationToken.objects.filter(user=self.user, is_changing_email=True).exists())
 
@@ -53,6 +52,7 @@ class CreatingChangeEmailTokenViewTestCase(APITestCase):
             "password": "eX@2mplePassWorD"
         }
         response = self.client.post(url, data, format='json')
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('new_email', response.data)
         self.assertFalse(EmailConfirmationToken.objects.filter(user=self.user).exists())

@@ -64,7 +64,7 @@ DB_ENGINE=django.db.backends.postgresql
 POSTGRES_DB=project-db
 POSTGRES_USER=user-db
 POSTGRES_PASSWORD=password-project-db
-DB_HOST=postgres
+DB_HOST=localhost
 DB_PORT=5432
 SITE_URL=http://127.0.0.1:3000
 EMAIL_HOST_USER=projectdysarthria@gmail.com
@@ -72,6 +72,7 @@ EMAIL_HOST_PASSWORD=password
 EMAIL_CONFIRMATION_TOKEN_LIFETIME=15
 ADMIN_EMAIL=vadas25@yandex.ru
 ADMIN_PASSWORD=password
+PASSWORD_RESET_TOKEN_LIFETIME=15
 ```
 ### .env.docker
 file location: ./.env.docker
@@ -93,6 +94,7 @@ EMAIL_HOST_PASSWORD=password
 EMAIL_CONFIRMATION_TOKEN_LIFETIME=15
 ADMIN_EMAIL=vadas25@yandex.ru
 ADMIN_PASSWORD=password
+PASSWORD_RESET_TOKEN_LIFETIME=15
 ```
 ## .env file for frontend
 file location: frontend/

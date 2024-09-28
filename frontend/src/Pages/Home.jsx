@@ -7,25 +7,22 @@ function Home() {
   const navigate =useNavigate();
   return (
     <div>
-      <div className='color'>
-        <Container>
-          <Row className='align-items-center'>
-            <Col xs={12} md={6}>
-              <img src={img} className='img-style img-fluid' alt='изображение'/>
-            </Col>
-            <Col xs={12} md={6} className='text-center'>
-              <h1 className='white-text'>Добро пожаловать в "НАЗВАНИЕ"</h1>
-              <span className='white-text'>
+      <div>
+        <Container className='tale'>
+          <Row className='align-items-center text-center'>
+
+              <h1 className=''>Добро пожаловать в "Дикция+"</h1>
+              <span>
                 «НАЗВАНИЕ» — это инновационное веб-приложение,
                 созданное специально для логопедов, чтобы помочь
                 вам в работе с пациентами, страдающими дизартрией.
               </span>
               <p><Button onClick={() => navigate('/tests/')}>Начать проходить тесты</Button></p>
-            </Col>
+
           </Row>
         </Container>
       </div>
-      <Container className='text-center'>
+      <Container className='text-center tale'>
         <Row className='justify-content-center'>
           <Col xs={12} md={8}>
             <h1>Как начать?</h1>

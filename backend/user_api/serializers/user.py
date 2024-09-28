@@ -7,6 +7,7 @@ from user_api.utils.creating_email_message import send_confirmation_email
 from user_api.utils.token_generator import create_confirmation_token
 from user_api.validations import custom_validate_email, validate_password
 from users.models import EmailConfirmationToken
+from users.models.users import PasswordChangeToken
 
 UserModel = get_user_model()
 
@@ -38,11 +39,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def validate_password(self, value):
         if len(value) < 8:
-            raise serializers.ValidationError("Password should be at least 8 characters long")
+            raise serializers.ValidationError("Пароль должен быть больше 8 символов")
         if not any(char.isdigit() for char in value):
-            raise serializers.ValidationError("Password should include at least one digit")
+            raise serializers.ValidationError("Пароль должен содержать хотя бы одну цифру")
         if not any(char.isalpha() for char in value):
-            raise serializers.ValidationError("Password should include at least one letter")
+            raise serializers.ValidationError("Пароль должен содержать хотя бы одну букву")
         return value
 
 
@@ -81,7 +82,7 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError("Вы не зашли в аккаунт.")
 
         if not user.check_password(data.get('old_password')):
-            raise serializers.ValidationError({"old_password": "Wrong password."})
+            raise serializers.ValidationError({"old_password": "Неправильный пароль."})
 
         old_password = data.get('old_password')
         new_password = data.get('new_password')
@@ -109,20 +110,20 @@ class ChangePasswordSerializer(serializers.Serializer):
 class ChangeNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
-        fields = ['first_name', 'last_name', 'patronymic',]
+        fields = ['first_name', 'last_name', 'patronymic', ]
 
     def validate_first_name(self, value):
         if not value:
-            raise serializers.ValidationError("Имя не может быть пустым")
+            raise serializers.ValidationError("Имя не может быть пустым.")
         if not value.isalpha():
-            raise serializers.ValidationError("Имя должно содержать только буквы")
+            raise serializers.ValidationError("Имя должно содержать только буквы.")
         return value
 
     def validate_last_name(self, value):
         if not value:
-            raise serializers.ValidationError("Фамилия не может быть пустой")
+            raise serializers.ValidationError("Фамилия не может быть пустой.")
         if not value.isalpha():
-            raise serializers.ValidationError("Фамилия должна содержать только буквы")
+            raise serializers.ValidationError("Фамилия должна содержать только буквы.")
         return value
 
     def validate_patronymic(self, value):
@@ -154,12 +155,15 @@ class UserChangeEmailSerializer(serializers.Serializer):
         user = request.user if request else None
 
         if not user:
-            raise serializers.ValidationError("User not authenticated")
+            raise ValidationError("Пользователь не вошёл в систему.")
 
         if not user.check_password(data.get('password')):
-            raise serializers.ValidationError({"password": "Wrong password."})
+            raise ValidationError({"password": "Неправильный пароль."})
 
         new_email = data.get('new_email')
+
+        if user.email == new_email:
+            raise ValidationError({'new_email': 'Новая почта не может быть такая же, как старая.'})
 
         try:
             custom_validate_email(new_email)
@@ -168,7 +172,68 @@ class UserChangeEmailSerializer(serializers.Serializer):
 
         return data
 
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+class UserForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+    def validate_email(self, value):
+        """
+        Проверяем, существует ли пользователь с данным email.
+        """
+        try:
+            user = UserModel.objects.get(email=value)
+        except UserModel.DoesNotExist:
+            raise serializers.ValidationError("Пользователь с таким email не найден.")
+        return value
 
 
+class ForgotPasswordConfirmChangeSerializer(serializers.Serializer):
+    url = serializers.CharField()
+    code = serializers.CharField()
+    new_password = serializers.CharField()
 
+    def validate(self, attrs):
+        url = attrs.get('url')
+        code = attrs.get('code')
 
+        # Проверяем, существует ли токен с данным URL
+        token_exists = PasswordChangeToken.objects.filter(url=url).exists()
+        if not token_exists:
+            raise serializers.ValidationError({"url": "Адрес не существует."})  # Указываем поле 'url'
+
+        # Проверяем, существует ли токен с данным кодом
+        token_with_code = PasswordChangeToken.objects.filter(token=code, url=url).first()
+        if not token_with_code:
+            raise serializers.ValidationError({"code": "Неверный код или адрес."})  # Указываем поле 'code'
+
+        # Проверяем, истек ли токен
+        if token_with_code.has_expired():  # Вызов метода has_expired()
+            raise serializers.ValidationError({"code": "Токен истек."})  # Указываем поле 'code'
+
+        return attrs
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value  # Не забудьте вернуть значение
+
+    def create(self, validated_data):
+        # Логика изменения пароля
+        token = PasswordChangeToken.objects.get(token=validated_data['code'])
+        user = token.user
+        user.password = make_password(validated_data['new_password'])
+        user.save()
+
+        # Удаляем использованный токен
+        token.delete()
+        return user

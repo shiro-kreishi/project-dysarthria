@@ -1,5 +1,4 @@
 import React from "react";
-import './style.css'
 import { Container, Row, Col, Button } from 'react-bootstrap'
 import { getResponseTest } from "./Components/api";
 import Result from "./Components/ResultItem";
@@ -18,10 +17,10 @@ const ResultTest = () => {
 
     return (
         <div>
-            <div className='color-2'>
+            <div className='color'>
                 <Container>
                     <Row>
-                        <Col><h1 className="white-text">Страница просмотра результатов тестирования</h1></Col>
+                        <p className="h-white">Страница просмотра результатов тестирования</p>
                         <Col>
                         </Col>
                     </Row>
@@ -34,15 +33,16 @@ const ResultTest = () => {
                             <Result
                                 key={index}
                                 test={result.test}
-                                user={result.user.first_name}
+                                user={result.user?.first_name}
                                 json_result={result.json_result}
                                 link={`/result-test/test/${result.id}/`}
                             />
                         ))
                     ) : (
                         <div className='text-center'>
-                            <h1 className='text-center'>Тестов нет</h1>
-                            <p>Решенных тестов нет
+                            <h1 className='text-center'>Пройденный тестов нет</h1>
+                            <p>
+                                Ожидайте список результатов тестов. Если тестов нет - обратитесь к администратору
                             </p>
                         </div>
                     )}

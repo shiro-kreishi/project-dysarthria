@@ -16,24 +16,11 @@ const MyTests = () => {
   const [show, setShow] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [testsPerPage] = useState(12); // Количество тестов на странице
 
-  const deleteTestMutation = useMutation(deleteTest, {
-    onSuccess: () => {
-      queryClient.invalidateQueries('tests');
-    },
-  });
-
+ 
   const navigate = useNavigate();
-  const handleDeleteTest = (testId) => {
-    setTestToDelete(testId);
-    openModal();
-  };
-
-  const confirmDeleteTest = () => {
-    deleteTestMutation.mutate(testToDelete);
-    setTestToDelete(null);
-    closeModal();
-  };
 
   useEffect(() => {
     const testCreated = localStorage.getItem('testCreated');
@@ -80,13 +67,20 @@ const MyTests = () => {
   if (isLoading) return <p>Загрузка...</p>;
   if (error) return <p>Ошибка: {error.message}</p>;
 
+  
+  const indexOfLastTest = currentPage * testsPerPage;
+  const indexOfFirstTest = indexOfLastTest - testsPerPage;
+  const currentTests = filteredTests?.slice(indexOfFirstTest, indexOfLastTest);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div>
       <div className='color'>
         <Container className="h-100">
           <Row className="h-100 align-items-center justify-content-between">
             <Col className='aling-items-center justify-content-'>
-              <h1 className="h-white ml-100">Мои тесты</h1>
+              <h1 className=" ml-100 h-white">Мои тесты</h1>
             </Col>
             <Col>
               <Form inline>
@@ -112,29 +106,24 @@ const MyTests = () => {
                 )}
               </Form>
             </Col>
-            <Col lg={2} sm={3} className="d-flex justify-content-end">
-              <Button variant='outline-info'>Поиск</Button>
-            </Col>
-            <Col lg={2} className="d-flex justify-content-end">
-              <Link to='/my-tests/add-test' className='btn btn-red '>Добавить тест</Link>
-            </Col>
-            <Col lg={2} className="d-flex justify-content-end">
-              <Link to='/my-tests/add-exercise' className='btn btn-red'>Добавить упражнение</Link>
+            <Col lg={3} className="d-flex ">
+              <Link to='/my-tests/add-test' className='btn'>Добавить тест</Link>
+              <Link to='/library/' className='btn'>Библиотека упражнений</Link>
+
             </Col>
           </Row>
         </Container>
       </div>
       <Container>
-        <Row clas>
-          {filteredTests?.length > 0 ? (
-            filteredTests.map((test, index) => (
-              <Col key={index} sm={12} md={6} lg={2}>
+        <Row>
+          {currentTests?.length > 0 ? (
+            currentTests.map((test, index) => (
+              <Col key={index} sm={12} md={6} lg={4}>
                 <Test 
                   name={test.name} 
                   description={test.description} 
                   id={test.id} 
                   link={`/my-tests/test/${test.id}`} 
-                  onDelete={() => handleDeleteTest(test.id)}
                   onEdit={() => navigate(`/my-tests/edit-test/test/${test.id}`)}
                 />
               </Col>
@@ -148,14 +137,17 @@ const MyTests = () => {
             </div>
           )}
         </Row>
+        <Row className="mt-4">
+          <Col className="d-flex justify-content-center">
+            <Pagination
+              testsPerPage={testsPerPage}
+              totalTests={filteredTests?.length}
+              paginate={paginate}
+              currentPage={currentPage}
+            />
+          </Col>
+        </Row>
       </Container>
-      <Modal isActive={isActive} closeModal={closeModal}>
-        <h1>Удалить выбранный тест?</h1>
-        <p>
-          <Button onClick={confirmDeleteTest}>Да</Button>
-          <Button onClick={closeModal}>Нет</Button>
-        </p>
-      </Modal>
 
       <div className="toast-container">
         <Toast onClose={() => setShow(false)} show={show} delay={3000} autohide bg='success'>
@@ -170,3 +162,26 @@ const MyTests = () => {
 };
 
 export default MyTests;
+
+// Компонент Pagination
+const Pagination = ({ testsPerPage, totalTests, paginate, currentPage }) => {
+  const pageNumbers = [];
+
+  for (let i = 1; i <= Math.ceil(totalTests / testsPerPage); i++) {
+    pageNumbers.push(i);
+  }
+
+  return (
+    <nav>
+      <ul className="pagination">
+        {pageNumbers.map(number => (
+          <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+            <Button onClick={() => paginate(number)} className="page-link">
+              {number}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};

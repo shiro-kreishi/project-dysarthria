@@ -62,8 +62,8 @@ class UserModelViewSet(mixins.CreateModelMixin,
         banned_user.save()
         return Response({'detail': f'User: {banned_user.email} has been unbanned.'}, status=status.HTTP_200_OK)
 
-    def list(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    # def list(self, request, *args, **kwargs):
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
