@@ -24,7 +24,7 @@ const PasswordConfirmation = () => {
   const [showPassword1, setShowPassword1] = useState(false);
   const [showPassword2, setShowPassword2] = useState(false);
   const [error, setError] = useState('');
-  const url = "/api/user/confirm-password/";
+  const url = "/api/user/forgot-password-change/";
   let { passwordConfirmKey } = useParams();
   const navigate = useNavigate();
 
