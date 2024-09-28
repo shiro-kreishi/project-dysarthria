@@ -30,9 +30,9 @@ def send_confirmation_password(user, url, code):
         confirmation_url = f"{settings.SITE_URL}/profile/confirm-password/{url}/"
 
         # Изменяем заголовок, убираем \n
-        email_subject = f"Для смены пароля перейдите по ссылке и введите следующий код: {confirmation_url}"
+        email_subject = f"Для смены пароля перейдите по ссылке и введите следующий код: {str_code}"
 
-        email_message = f"Для перехода кликните по следующей ссылке: {str_code}"
+        email_message = f"Для перехода кликните по следующей ссылке: {confirmation_url}"
 
         # Отправка письма
         send_mail(email_subject, email_message, settings.DEFAULT_FROM_EMAIL, [user.email])

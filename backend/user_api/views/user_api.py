@@ -356,7 +356,7 @@ class UserForgotPasswordModelViewSet(viewsets.ModelViewSet):
 
         # Отправляем письмо с подтверждением
         try:
-            send_confirmation_password(user, token.token, code)
+            send_confirmation_password(user, token.url, code)
         except ValidationError as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
