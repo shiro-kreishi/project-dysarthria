@@ -70,7 +70,7 @@ const FinallResult = () => {
                     <strong>Упражнение {index + 1}:</strong>
                   </div>
                   <div>
-                    <span>Ответ {data.user.email}: {JSON.stringify(result.user_answer)}</span>
+                    <span>Ответ {data.user?.email}: {JSON.stringify(result.user_answer)}</span>
                   </div>
                   <div>
                     <span>Правильный ответ: {JSON.stringify(result.correct_answer)}</span>
