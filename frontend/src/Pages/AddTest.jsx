@@ -303,7 +303,7 @@ const AddTest = () => {
   const handleCorrectOrderChange = (index, value) => {
     if (!selectedExercise) return;
     const updatedOrder = { ...selectedExercise.correctOrder };
-    updatedOrder[`img${index + 1}`] = parseInt(value);
+    updatedOrder[`img${index + 1}`] = value.toString(); // Сохраняем строковое значение
     const updatedExercise = { ...selectedExercise, correctOrder: updatedOrder };
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise);

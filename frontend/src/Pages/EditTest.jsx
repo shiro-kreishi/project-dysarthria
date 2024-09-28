@@ -11,8 +11,9 @@ import {
   fetchExercises, fetchTestById, fetchPublicTests, updateExercise,
   updateTest,
   unLinkExerciseToTest,
-  deleteTest // Добавьте это
+  deleteTest
 } from './Components/api';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const EditTest = () => {
   const { id } = useParams();
@@ -151,6 +152,8 @@ const EditTest = () => {
       newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', answers: [] }, answers: [], correctAnswer: '', name: '', description: '' };
     } else if (type === '3') {
       newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', missing_letters: [] }, name: '', description: '', answers: [] };
+    } else if (type === '4') {
+      newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', images: [], correct_order: {} }, name: '', description: '' };
     }
     setExercises([...exercises, newExercise]);
     setSelectedExercise(newExercise);
@@ -316,6 +319,34 @@ const EditTest = () => {
   };
 
   const { data: libraryExercises } = useQuery('exercises', fetchExercises);
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const updatedImages = [...(selectedExercise.king_json.images || [])];
+    const [reorderedImage] = updatedImages.splice(result.source.index, 1);
+    updatedImages.splice(result.destination.index, 0, reorderedImage);
+
+    const updatedExercise = { ...selectedExercise, king_json: { ...selectedExercise.king_json, images: updatedImages } };
+    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
+  };
+
+  const handleRemoveImage = (index) => {
+    const updatedImages = (selectedExercise.king_json.images || []).filter((_, i) => i !== index);
+    const updatedExercise = { ...selectedExercise, king_json: { ...selectedExercise.king_json, images: updatedImages } };
+    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
+  };
+
+  const handleCorrectOrderChange = (index, value) => {
+    if (!selectedExercise) return;
+    const updatedOrder = { ...selectedExercise.king_json.correct_order };
+    updatedOrder[`img${index + 1}`] = value.toString(); // Сохраняем строковое значение
+    const updatedExercise = { ...selectedExercise, king_json: { ...selectedExercise.king_json, correct_order: updatedOrder } };
+    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
+  };
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
@@ -536,6 +567,105 @@ const EditTest = () => {
                   )}
 
                 </div>
+              ) : parseInt(selectedExercise.type) === 4 ? (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <h3>Редактор упражнения {selectedExercise.id}</h3>
+                    <Button
+                      variant="danger"
+                      onClick={() => removeExercise(selectedExercise.id)}
+                      className="delete-btn"
+                      style={{ marginLeft: '10px' }}
+                    >
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={handleSaveExercise}
+                      className="save-btn"
+                      style={{ marginLeft: '10px' }}
+                    >
+                    </Button>
+                  </div>
+                  <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} className='input-exercise' /></p>
+                  <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} className='input-exercise' /></p>
+                  <div>
+                    <h3>Добавить изображения</h3>
+                    <input
+                      type="file"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        const readerPromises = Array.from(files).map(file => {
+                          return new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                          });
+                        });
+                        Promise.all(readerPromises).then(images => {
+                          const updatedExercise = { ...selectedExercise, king_json: { ...selectedExercise.king_json, images: [...(selectedExercise.king_json.images || []), ...images] } };
+                          setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+                          setSelectedExercise(updatedExercise);
+                        });
+                      }}
+                    />
+                    <div className="image-container">
+                      <DragDropContext onDragEnd={handleDragEnd}>
+                        <Droppable droppableId="images">
+                          {(provided) => (
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                              className="image-container"
+                            >
+                              {(selectedExercise.king_json.images || []).map((image, index) => (
+                                <Draggable key={index} draggableId={`image-${index}`} index={index}>
+                                  {(provided) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className="image-item"
+                                    >
+                                      <img
+                                        src={image}
+                                        alt={`Image ${index}`}
+                                        className="image-item"
+                                      />
+                                      <Button
+                                        variant="danger"
+                                        onClick={() => handleRemoveImage(index)}
+                                        className="delete-btn"
+                                      >
+                                        Удалить
+                                      </Button>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
+
+                    </div>
+                    <h3>Правильный порядок</h3>
+                    <div>
+                      {(selectedExercise.king_json.images || []).map((image, index) => (
+                        <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+                          <img src={image} alt={`Image ${index}`} className="image-item" />
+                          <input
+                            type="text"
+                            value={selectedExercise.king_json.correct_order[`img${index + 1}`] || ''}
+                            onChange={(e) => handleCorrectOrderChange(index, e.target.value)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               ) : null
             ) : (
               <p>Выберите упражнение для редактирования</p>
@@ -557,6 +687,7 @@ const EditTest = () => {
                 <Dropdown.Item onClick={() => handleSelectType('1')} className='btn-blue'>Пропущенные слова</Dropdown.Item>
                 <Dropdown.Item onClick={() => handleSelectType('2')} className='btn-blue'>Что на изображении</Dropdown.Item>
                 <Dropdown.Item onClick={() => handleSelectType('3')} className='btn-blue'>Пропущенные буквы</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('4')} className='btn-blue'>Расположить изображения</Dropdown.Item>
               </DropdownButton>
             </Col>
             <Col>

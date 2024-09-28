@@ -35,16 +35,26 @@ const TestPassing = () => {
 
   useEffect(() => {
     if (selectedExercise && selectedExercise.type === 4) {
-      const images = shuffle(selectedExercise.king_json.images);
-      console.log('Shuffled images:', images);
-      setShuffledImages(images);
-      const ids = images.map((_, index) => `img${index + 1}`);
-      setImageIds(ids);
-      console.log('Generated image IDs:', ids);
+      const images = selectedExercise.king_json.images;
+      if (Array.isArray(images)) {
+        const shuffled = shuffle(images);
+        console.log('Shuffled images:', shuffled);
+        setShuffledImages(shuffled);
+        const ids = shuffled.map((_, index) => `img${index + 1}`);
+        setImageIds(ids);
+        console.log('Generated image IDs:', ids);
+      } else {
+        console.error('selectedExercise.king_json.images is not an array');
+      }
     }
   }, [selectedExercise]);
 
   const shuffle = (array) => {
+    if (!Array.isArray(array)) {
+      console.error('shuffle: array is not defined or not an array');
+      return array;
+    }
+
     let currentIndex = array.length, randomIndex;
     while (currentIndex !== 0) {
       randomIndex = Math.floor(Math.random() * currentIndex);
@@ -64,7 +74,7 @@ const TestPassing = () => {
       const updatedAnswers = [...answers];
       const answerObj = updatedAnswers.find(a => a.id === selectedExercise.id);
       if (answerObj) {
-        answerObj.answer[key] = parseInt(event.target.value, 10); // Преобразуем строку в число
+        answerObj.answer[key] = event.target.value; 
         setAnswers(updatedAnswers);
         console.log('Updated answers:', updatedAnswers);
       }
