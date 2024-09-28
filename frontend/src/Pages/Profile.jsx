@@ -9,6 +9,8 @@ import Confirmation from './Components/Confirmation';
 import axiosConfig from './Components/AxiosConfig';
 import EmailConfirmation from "./Components/EmailConfirmation";
 import ChangeData from "./Components/ChangeData";
+import RestorePassword from "./Components/RestorePassword"
+import PasswordConfirmation from "./Components/PasswordConfirmation"
 
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
@@ -85,6 +87,8 @@ function Profile() {
           <Route path="/register" element={<Register />} />
           <Route path="/confirmation" element={<Confirmation/>} />
           <Route path="/change-data" element={<ChangeData currentUser={currentUser} client={axiosConfig}/>} />
+          <Route path="/restore-password" element={<RestorePassword client={axiosConfig}/>} />
+          <Route path="/password-confirmation" element={<PasswordConfirmation/>} />
         </Routes>
       </Box>
     </ChakraProvider>

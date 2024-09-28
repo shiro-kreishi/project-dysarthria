@@ -5,7 +5,8 @@ from user_api.views.user import DoctorToTestModelViewSet, UserModelViewSet, Chec
 from user_api.views.user_api import \
     UserRegistrationModelViewSet, UserLoginModelViewSet, \
     UserLogoutViewSet, CurrentUserViewSet, UserChangePasswordModelViewSet, AssignDoctorGroupModelViewSet, \
-    UpdateNameModelViewSet, ConfirmEmailView, UserChangeEmailModelViewSet, AssignAdministratorGroupModelViewSet
+    UpdateNameModelViewSet, ConfirmEmailView, UserChangeEmailModelViewSet, AssignAdministratorGroupModelViewSet, \
+    UserForgotPasswordModelViewSet, ForgotPasswordConfirmChangeView
 
 router = routers.DefaultRouter()
 router.register(r'register', UserRegistrationModelViewSet, basename='register')
@@ -21,6 +22,9 @@ router.register(r'users', UserModelViewSet, basename='users')
 router.register(r'check-user-permissions', CheckUserPermissions, basename='check-user-permissions')
 router.register(r'confirm-email', ConfirmEmailView, basename='user-confirm-email')
 router.register(r'change-email', UserChangeEmailModelViewSet, basename='change-email')
+router.register(r'forgot-password', UserForgotPasswordModelViewSet, basename='forgot-password')
+router.register(r'forgot-password-change', ForgotPasswordConfirmChangeView, basename='forgot-password-change')
+
 
 urlpatterns = [
     path('', include(router.urls)),

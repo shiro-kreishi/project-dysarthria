@@ -72,6 +72,7 @@ EMAIL_HOST_PASSWORD=password
 EMAIL_CONFIRMATION_TOKEN_LIFETIME=15
 ADMIN_EMAIL=vadas25@yandex.ru
 ADMIN_PASSWORD=password
+PASSWORD_RESET_TOKEN_LIFETIME=15
 ```
 ### .env.docker
 file location: ./.env.docker
@@ -93,6 +94,7 @@ EMAIL_HOST_PASSWORD=password
 EMAIL_CONFIRMATION_TOKEN_LIFETIME=15
 ADMIN_EMAIL=vadas25@yandex.ru
 ADMIN_PASSWORD=password
+PASSWORD_RESET_TOKEN_LIFETIME=15
 ```
 ## .env file for frontend
 file location: frontend/

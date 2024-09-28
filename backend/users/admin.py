@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from users.models.users import EmailConfirmationToken
+from users.models.users import PasswordChangeToken
 
 
 # Register your models here.
@@ -24,3 +25,11 @@ class EmailToken(admin.ModelAdmin):
     search_fields = ('user__email', 'token','is_changing_email')
     list_filter = ('created_at','is_changing_email')
     readonly_fields = ('created_at','token','is_changing_email','user',)
+
+
+@admin.register(PasswordChangeToken)
+class PasswordToken(admin.ModelAdmin):
+    list_display = ('user', 'token', 'created_at')
+    search_fields = ('user', 'token',)
+    list_filter = ('user', 'created_at')
+    readonly_fields = ('user', 'token', 'url')
