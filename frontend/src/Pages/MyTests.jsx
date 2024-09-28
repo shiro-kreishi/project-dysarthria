@@ -108,7 +108,8 @@ const MyTests = () => {
             </Col>
             <Col lg={3} className="d-flex ">
               <Link to='/my-tests/add-test' className='btn'>Добавить тест</Link>
-              <Link to='/my-tests/add-exercise' className='btn'>Добавить упр.</Link>
+              <Link to='/library/' className='btn'>Библиотека упражнений</Link>
+
             </Col>
           </Row>
         </Container>

@@ -11,9 +11,10 @@ import {
   fetchExercises, fetchTestById, fetchPublicTests, updateExercise,
   updateTest,
   unLinkExerciseToTest,
-  deleteTest
+    deleteTest
 } from './Components/api';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { v4 as uuidv4 } from 'uuid';
 
 const EditTest = () => {
   const { id } = useParams();
@@ -47,67 +48,62 @@ const EditTest = () => {
     const testId = updatedTest.id;
 
     const exercisePromises = exercises.map(async (exercise) => {
-      const existingExercise = await findExerciseByName(exercise.name);
+      const existingExercise = test.exercises.find(ex => ex.id === exercise.id);
       if (existingExercise) {
         const exerciseData = {
           name: exercise.name,
           type: exercise.type,
           description: exercise.description,
-          king_json: {
+          king_json: exercise.type === '1' || exercise.type === '3' ? {
             content: exercise.king_json.content,
-            ...(parseInt(exercise.type) === 1 ? { missing_words: exercise.king_json.missing_words } :
-              parseInt(exercise.type) === 3 ? { missing_letters: exercise.king_json.missing_letters } :
-                { answers: exercise.king_json.answers, correct_answer: exercise.correctAnswer })
+            missing_words: exercise.king_json.missing_words || [] // Проверка и инициализация
+          } : parseInt(exercise.type) === 4 ? {
+            images:exercise.king_json.images || [],
+            correct_order: exercise.king_json.correct_order || []
+          } : {
+            content: exercise.king_json.content,
+            answers: exercise.king_json.answers || [],
+            correct_answer: exercise.correctAnswer
           },
-          correct_answer: parseInt(exercise.type) === 1 ? (
+          correct_answers: parseInt(exercise.type) === 1 ? (
             exercise.king_json.missing_words?.map(missingWord => missingWord.word) || []
-          ) : parseInt(exercise.type) === 3 ? (
-            exercise.king_json.missing_letters?.map(missingLetter => missingLetter.word) || []
           ) : (
             [exercise.correctAnswer]
           )
         };
-        await updateExercise(existingExercise.id, exerciseData);
+        await updateExercise(exercise.id, exerciseData);
       } else {
         const exerciseData = {
           name: exercise.name,
           type: exercise.type,
           description: exercise.description,
-          king_json: {
+          king_json: exercise.type === '1' || exercise.type === '3' ? {
             content: exercise.king_json.content,
-            ...(exercise.type === '1' ? { missing_words: exercise.king_json.missing_words } :
-              exercise.type === '3' ? { missing_letters: exercise.king_json.missing_letters } :
-                { answers: exercise.king_json.answers, correct_answer: exercise.correctAnswer })
+            missing_words: exercise.king_json.missing_words || [] // Проверка и инициализация
+          } : {
+            content: exercise.king_json.content,
+            answers: exercise.king_json.answers || [],
+            correct_answer: exercise.correctAnswer
           },
-          correct_answers: exercise.type === '1' ? (
+          correct_answers: parseInt(exercise.type) === 1 ? (
             exercise.king_json.missing_words?.map(missingWord => missingWord.word) || []
-          ) : exercise.type === '3' ? (
-            exercise.king_json.missing_letters?.map(missingLetter => missingLetter.word) || []
           ) : (
             [exercise.correctAnswer]
           )
         };
         const createdExercise = await createExercise(exerciseData);
+        console.log(createExercise);
         await linkExerciseToTest(createdExercise.id, testId);
       }
     });
+
     await Promise.all(exercisePromises);
     if (isChecked) {
-      await addPublicTest(updatedTest.id);
+      await addPublicTest(testId);
     }
 
     console.log('Тест и упражнения успешно сохранены');
-    localStorage.setItem('testCreated', 'true');
     navigate(`/my-tests/`);
-  }, {
-    onSuccess: () => {
-      queryClient.invalidateQueries('tests');
-    }
-  });
-
-  const deleteTestMutation = useMutation(async () => {
-    await deleteTest(id);
-    navigate('/my-tests/');
   }, {
     onSuccess: () => {
       queryClient.invalidateQueries('tests');
@@ -123,8 +119,6 @@ const EditTest = () => {
         const firstExercise = test.exercises[0];
         if (firstExercise.type === '1' && !firstExercise.king_json.missing_words) {
           firstExercise.king_json.missing_words = [];
-        } else if (firstExercise.type === '3' && !firstExercise.king_json.missing_letters) {
-          firstExercise.king_json.missing_letters = [];
         }
         setSelectedExercise(firstExercise);
       }
@@ -139,7 +133,7 @@ const EditTest = () => {
     let newExercise;
     if (type === '1') {
       newExercise = {
-        id: exercises.length + 1,
+        id: uuidv4(),
         type: type,
         king_json: {
           content: '',
@@ -149,11 +143,11 @@ const EditTest = () => {
         description: ''
       };
     } else if (type === '2') {
-      newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', answers: [] }, answers: [], correctAnswer: '', name: '', description: '' };
+      newExercise = { id: uuidv4(), type: type, king_json: { content: '', answers: [] }, answers: [], correctAnswer: '', name: '', description: '' };
     } else if (type === '3') {
-      newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', missing_letters: [] }, name: '', description: '', answers: [] };
+      newExercise = { id: uuidv4(), type: type, king_json: { content: '', missing_words: [] }, name: '', description: '', answers: [] };
     } else if (type === '4') {
-      newExercise = { id: exercises.length + 1, type: type, king_json: { content: '', images: [], correct_order: {} }, name: '', description: '' };
+      newExercise = { id: uuidv4(), type: type, king_json: { content: '', images: [], correct_order: {} }, name: '', description: '' };
     }
     setExercises([...exercises, newExercise]);
     setSelectedExercise(newExercise);
@@ -176,30 +170,18 @@ const EditTest = () => {
     // Обновляем контент, заменяя выбранное слово подчеркиваниями
     const updatedContent = selectedExercise.king_json.content.replace(word, '_'.repeat(word.length));
 
-    // Убеждаемся, что поле missing_words или missing_letters не пропадает
+    // Убеждаемся, что поле missing_words не пропадает
     const updatedExercise = {
       ...selectedExercise,
       king_json: {
         ...selectedExercise.king_json,
         content: updatedContent,
-        ...(parseInt(selectedExercise.type) === 1 ? {
-          missing_words: selectedExercise.king_json.missing_words.map(missingWord =>
-            missingWord.index === index ? { word, index } : missingWord
-          ).filter(missingWord => missingWord.index !== index).concat({ word, index })
-        } : {
-          missing_letters: selectedExercise.king_json.missing_letters.map(missingLetter =>
-            missingLetter.index === index ? { word, index } : missingLetter
-          ).filter(missingLetter => missingLetter.index !== index).concat({ word, index })
-        })
+        missing_words: [...(selectedExercise.king_json.missing_words || []), { word, index }]
       }
     };
 
     setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise);
-
-    // Вывод в консоль для отладки
-    console.log('Exercises:', exercises);
-    console.log('Selected Exercise:', selectedExercise);
   };
 
   const renderContentWithButtonsType1 = (content) => {
@@ -281,9 +263,21 @@ const EditTest = () => {
   };
 
   const addExerciseFromLibrary = (exercise) => {
-    setExercises([...exercises, exercise]);
-    setSelectedExercise(exercise);
-    setSelectedType(exercise.type);
+    const convertedExercise = {
+      id: exercise.id,
+      type: exercise.type,
+      king_json: {
+        content: exercise.king_json.content,
+        missing_words: exercise.king_json.missing_words || [],
+        answers: exercise.king_json.answers || []
+      },
+      correctAnswer: exercise.king_json.correct_answer || '',
+      name: exercise.name,
+      description: exercise.description
+    };
+    setExercises([...exercises, convertedExercise]);
+    setSelectedExercise(convertedExercise);
+    setSelectedType(convertedExercise.type);
     closeModal();
   };
 
@@ -294,8 +288,7 @@ const EditTest = () => {
       type: selectedExercise.type,
       king_json: selectedExercise.type === '1' || selectedExercise.type === '3' ? {
         content: selectedExercise.king_json.content,
-        missing_words: selectedExercise.king_json.missing_words || [],
-        missing_letters: selectedExercise.king_json.missing_letters || []
+        missing_words: selectedExercise.king_json.missing_words || []
       } : {
         content: selectedExercise.king_json.content,
         answers: selectedExercise.king_json.answers || [],
@@ -303,8 +296,6 @@ const EditTest = () => {
       },
       correct_answers: selectedExercise.type === '1' ? (
         selectedExercise.king_json.missing_words?.map(missingWord => missingWord.word) || []
-      ) : selectedExercise.type === '3' ? (
-        selectedExercise.king_json.missing_letters?.map(missingLetter => missingLetter.word) || []
       ) : (
         [selectedExercise.correctAnswer]
       )
@@ -348,41 +339,51 @@ const EditTest = () => {
     setSelectedExercise(updatedExercise);
   };
 
+  const handleDeleteTest = async (testId) => {
+    if (!testId) return;
+    try{
+      await deleteTest(testId)
+      navigate('/my-tests/')
+    } catch (error){
+      throw error;
+    }
+  }
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
     <div>
-      <Container className='tale'>
-        <Container >
-          <Row>
-            <h3>Название теста</h3>
-            <input
-              className='title-test'
-              placeholder='введите название теста'
-              value={testTitle}
-              onChange={(e) => setTestTitle(e.target.value)}
-            />
-            <h3>Описание теста</h3>
-            <textarea
-              className='description-test'
-              placeholder='Введите описание теста'
-              value={testDescription}
-              onChange={(e) => setTestDescription(e.target.value)}
-            >
-            </textarea>
-            <div className='checkbox'>
-              <Form.Check
-                type={'checkbox'}
-                id={'default-chekbox'}
-                label={'Сделать публичным'}
-                checked={isChecked}
-                onChange={handleCheckboxChange}
-              />
-            </div>
+      <div>
 
-          </Row>
-          <Row>
+        <Container>
+          <div className='tale'>
+              <h3>Название упражнения</h3>
+              <input
+                className='title-test'
+                placeholder='введите название теста'
+                value={testTitle}
+                onChange={(e) => setTestTitle(e.target.value)}
+              />
+              <h3>Описание упражнения</h3>
+              <textarea
+                className='description-test'
+                placeholder='Введите описание теста'
+                value={testDescription}
+                onChange={(e) => setTestDescription(e.target.value)}
+                >
+              </textarea>
+
+              <div className='checkbox'>
+                <Form.Check
+                  type={'checkbox'}
+                  id={'default-chekbox'}
+                  label={'Сделать публичным'}
+                  checked={isChecked}
+                  onChange={handleCheckboxChange}
+                />
+              </div>
+         <Row>
             <div className="exercise-nav">
               {exercises.map((exercise, index) => (
                 <Button
@@ -396,180 +397,16 @@ const EditTest = () => {
               <Button className='add-btn' onClick={openModal}>Добавить</Button>
             </div>
           </Row>
+            </div>
         </Container>
+      </div>
 
 
-        <div className='exercise-editor'>
-          <Container>
-            {selectedExercise ? (
-              parseInt(selectedExercise.type) === 1 ? (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <h3>Редактор упражнения {selectedExercise.id}</h3>
-                    <Button
-                      variant="danger"
-                      onClick={() => removeExercise(selectedExercise.id)}
-                      className="delete-btn"
-                      style={{ marginLeft: '10px' }}
-                    >
-                    </Button>
-                    <Button
-                      variant="danger"
-                      onClick={handleSaveExercise}
-                      className="save-btn"
-                      style={{ marginLeft: '10px' }} Со
-                    >
-                    </Button>
-                  </div>
-                  <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
-                  <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
-
-                  <textarea
-                    className=' input-style area-1'
-                    value={selectedExercise.king_json.content}
-                    onChange={(e) => {
-                      const updatedExercise = {
-                        ...selectedExercise,
-                        king_json: {
-                          ...selectedExercise.king_json,
-                          content: e.target.value
-                        }
-                      };
-                      setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-                      setSelectedExercise(updatedExercise);
-                    }}
-                  />
-                  <Button onClick={() => setShowWordButtons(!showWordButtons)}>
-                    {showWordButtons ? 'Скрыть' : 'Выбрать пропущенные'}
-                  </Button>
-                  {showWordButtons && (
-                    <div>
-                      {renderContentWithButtonsType1(selectedExercise.king_json.content)}
-                    </div>
-                  )}
-
-                </div>
-              ) : parseInt(selectedExercise.type) == 2 ? (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <h3>Редактор упражнения {selectedExercise.id}</h3>
-                    <Button
-                      variant="danger"
-                      onClick={() => removeExercise(selectedExercise.id)}
-                      className="delete-btn"
-                      style={{ marginLeft: '10px' }}
-                    >
-                    </Button>
-                    <Button
-                      variant="danger"
-                      onClick={handleSaveExercise}
-                      className="save-btn"
-                      style={{ marginLeft: '10px' }} Со
-                    >
-                    </Button>
-                  </div>
-                  <p>Название упражнения <input value={selectedExercise.name} onChange={e => handleExerciseFieldChange(e, "name")} /></p>
-                  <p>Описание упражнения <input value={selectedExercise.description} onChange={e => handleExerciseFieldChange(e, "description")} /></p>
-                  
-                  <Row className="align-items-center">
-                    <Col>
-                      {selectedExercise.king_json.content && (
-                        <img src={selectedExercise.king_json.content} alt="Загруженное изображение" className="half-size" />
-                      )}
-                      <input
-                        type="file"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            const updatedExercise = {
-                              ...selectedExercise,
-                              king_json: {
-                                ...selectedExercise.king_json,
-                                content: reader.result
-                              }
-                            };
-                            setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-                            setSelectedExercise(updatedExercise);
-                          };
-                          reader.readAsDataURL(file);
-                        }}
-                      />
-                      <p>
-                        <Button onClick={addAnswer}>Добавить вариант ответа</Button>
-                      </p>
-                      <h3>Варианты ответа</h3>
-                      {selectedExercise.king_json.answers?.map((answer, index) => (
-                        <div key={index} className="answer-option">
-                          <input
-                            className='input-style'
-                            value={answer}
-                            onChange={(e) => AnswerChange(index, e.target.value)}
-                          />
-                          <Button
-                            onClick={() => setCorrectAnswer(answer)}
-                            className={selectedExercise.correctAnswer === answer ? 'correct-answer' : ''}
-                          >
-                            {selectedExercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
-                          </Button>
-                        </div>
-                      ))}
-                     
-                      
-                    </Col>
-                    <Col>
-                    </Col>
-                  </Row>
-                </div>
-              ) : parseInt(selectedExercise.type) === 3 ? (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <h3>Редактор упражнения {selectedExercise.id}</h3>
-                    <Button
-                      variant="danger"
-                      onClick={() => removeExercise(selectedExercise.id)}
-                      className="delete-btn"
-                      style={{ marginLeft: '10px' }}
-                    >
-                    </Button>
-                    <Button
-                      variant="danger"
-                      onClick={handleSaveExercise}
-                      className="save-btn"
-                      style={{ marginLeft: '10px' }} Со
-                    >
-                    </Button>
-                  </div>
-                  <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} /></p>
-                  <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
-                  <textarea
-                    className=' input-style area-1'
-                    value={selectedExercise.king_json.content}
-                    onChange={(e) => {
-                      const updatedExercise = {
-                        ...selectedExercise,
-                        king_json: {
-                          ...selectedExercise.king_json,
-                          content: e.target.value
-                        }
-                      };
-                      setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
-                      setSelectedExercise(updatedExercise);
-                    }}
-                  />
-                  <Button onClick={() => setShowWordButtons(!showWordButtons)}>
-                    {showWordButtons ? 'Скрыть' : 'Выбрать пропущенные'}
-                  </Button>
-                  {showWordButtons && (
-                    <div>
-                      {renderContentWithButtonsType3(selectedExercise.king_json.content)}
-                    </div>
-                  )}
-
-                </div>
-              ) : parseInt(selectedExercise.type) === 4 ? (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div className='exercise-editor '>
+        <Container className='tale'>
+          {selectedExercise ? (
+              <div>
+                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     <h3>Редактор упражнения {selectedExercise.id}</h3>
                     <Button
                       variant="danger"
@@ -586,97 +423,205 @@ const EditTest = () => {
                     >
                     </Button>
                   </div>
-                  <p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} className='input-exercise' /></p>
-                  <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} className='input-exercise' /></p>
+<p>Название упражнения <input value={selectedExercise.name} onChange={(e) => handleExerciseFieldChange(e, "name")} />
+  {}
+</p>
+                <p>Описание упражнения <input value={selectedExercise.description} onChange={(e) => handleExerciseFieldChange(e, "description")} /></p>
+
+                {parseInt(selectedExercise.type) === 1 ? (
+              <div>
+                <textarea
+                  className=' input-style area-1'
+                  value={selectedExercise.king_json.content}
+                  onChange={(e) => {
+                    const updatedExercise = {
+                      ...selectedExercise,
+                      king_json: {
+                        ...selectedExercise.king_json,
+                        content: e.target.value
+                      }
+                    };
+                    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+                    setSelectedExercise(updatedExercise);
+                  }}
+                />
+                <Button onClick={() => setShowWordButtons(!showWordButtons)}>
+                  {showWordButtons ? 'Скрыть' : 'Выбрать пропущенные'}
+                </Button>
+                {showWordButtons && (
                   <div>
-                    <h3>Добавить изображения</h3>
+                    {renderContentWithButtonsType1(selectedExercise.king_json.content)}
+                  </div>
+                )}
+                <Row>
+                  <Col>
+
+
+                  </Col>
+                </Row>
+              </div>
+            ) : parseInt(selectedExercise.type) == 2 ? (
+              <div>
+                <Row className="align-items-center">
+                  <Col>
+                    {selectedExercise.king_json.content && (
+                      <img src={selectedExercise.king_json.content} alt="Загруженное изображение" className="half-size" />
+                    )}
                     <input
                       type="file"
-                      multiple
                       onChange={(e) => {
-                        const files = e.target.files;
-                        const readerPromises = Array.from(files).map(file => {
-                          return new Promise((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onloadend = () => resolve(reader.result);
-                            reader.onerror = reject;
-                            reader.readAsDataURL(file);
-                          });
-                        });
-                        Promise.all(readerPromises).then(images => {
-                          const updatedExercise = { ...selectedExercise, king_json: { ...selectedExercise.king_json, images: [...(selectedExercise.king_json.images || []), ...images] } };
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const updatedExercise = {
+                            ...selectedExercise,
+                            king_json: {
+                              ...selectedExercise.king_json,
+                              content: reader.result
+                            }
+                          };
                           setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
                           setSelectedExercise(updatedExercise);
-                        });
+                        };
+                        reader.readAsDataURL(file);
                       }}
                     />
-                    <div className="image-container">
-                      <DragDropContext onDragEnd={handleDragEnd}>
-                        <Droppable droppableId="images">
-                          {(provided) => (
-                            <div
-                              {...provided.droppableProps}
-                              ref={provided.innerRef}
-                              className="image-container"
-                            >
-                              {(selectedExercise.king_json.images || []).map((image, index) => (
-                                <Draggable key={index} draggableId={`image-${index}`} index={index}>
-                                  {(provided) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
+                    <p>
+                      <Button onClick={addAnswer}>Добавить вариант ответа</Button>
+                    </p>
+                    <h3>Варианты ответа</h3>
+                    {selectedExercise.king_json.answers?.map((answer, index) => (
+                      <div key={index} className="answer-option">
+                        <input
+                          className='input-style'
+                          value={answer}
+                          onChange={(e) => AnswerChange(index, e.target.value)}
+                        />
+                        <Button
+                          onClick={() => setCorrectAnswer(answer)}
+                          className={selectedExercise.correctAnswer === answer ? 'correct-answer' : ''}
+                        >
+                          {selectedExercise.correctAnswer === answer ? 'Правильный ответ' : 'Выбрать правильный'}
+                        </Button>
+                      </div>
+                    ))}
+                  </Col>
+                  <Col>
+                  </Col>
+                </Row>
+              </div>
+            ) : parseInt(selectedExercise.type) === 3 ? (
+              <div>
+                <textarea
+                  className=' input-style area-1'
+                  value={selectedExercise.king_json.content}
+                  onChange={(e) => {
+                    const updatedExercise = {
+                      ...selectedExercise,
+                      king_json: {
+                        ...selectedExercise.king_json,
+                        content: e.target.value
+                      }
+                    };
+                    setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+                    setSelectedExercise(updatedExercise);
+                  }}
+                />
+                <Button onClick={() => setShowWordButtons(!showWordButtons)}>
+                  {showWordButtons ? 'Скрыть' : 'Выбрать пропущенные'}
+                </Button>
+                {showWordButtons && (
+                  <div>
+                    {renderContentWithButtonsType3(selectedExercise.king_json.content)}
+                  </div>
+                )}
+              </div>
+            ) : parseInt(selectedExercise.type) === 4 ? (
+              <div>
+                <div>
+                  <h3>Добавить изображения</h3>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(e) => {
+                      const files = e.target.files;
+                      const readerPromises = Array.from(files).map(file => {
+                        return new Promise((resolve, reject) => {
+                          const reader = new FileReader();
+                          reader.onloadend = () => resolve(reader.result);
+                          reader.onerror = reject;
+                          reader.readAsDataURL(file);
+                        });
+                      });
+                      Promise.all(readerPromises).then(images => {
+                        const updatedExercise = { ...selectedExercise, king_json: { ...selectedExercise.king_json, images: [...(selectedExercise.king_json.images || []), ...images] } };
+                        setExercises(exercises.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+                        setSelectedExercise(updatedExercise);
+                      });
+                    }}
+                  />
+                  <div className="image-container">
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                      <Droppable droppableId="images">
+                        {(provided) => (
+                          <div
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className="image-container"
+                          >
+                            {(selectedExercise.king_json.images || []).map((image, index) => (
+                              <Draggable key={index} draggableId={`image-${index}`} index={index}>
+                                {(provided) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className="image-item"
+                                  >
+                                    <img
+                                      src={image}
+                                      alt={`Image ${index}`}
                                       className="image-item"
+                                    />
+                                    <Button
+                                      variant="danger"
+                                      onClick={() => handleRemoveImage(index)}
+                                      className="delete-btn"
                                     >
-                                      <img
-                                        src={image}
-                                        alt={`Image ${index}`}
-                                        className="image-item"
-                                      />
-                                      <Button
-                                        variant="danger"
-                                        onClick={() => handleRemoveImage(index)}
-                                        className="delete-btn"
-                                      >
-                                        Удалить
-                                      </Button>
-                                    </div>
-                                  )}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
-                      </DragDropContext>
-
-                    </div>
-                    <h3>Правильный порядок</h3>
-                    <div>
-                      {(selectedExercise.king_json.images || []).map((image, index) => (
-                        <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
-                          <img src={image} alt={`Image ${index}`} className="image-item" />
-                          <input
-                            type="text"
-                            value={selectedExercise.king_json.correct_order[`img${index + 1}`] || ''}
-                            onChange={(e) => handleCorrectOrderChange(index, e.target.value)}
-                          />
-                        </div>
-                      ))}
-                    </div>
+                                    </Button>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+                  </div>
+                  <h3>Правильный порядок</h3>
+                  <div>
+                    {(selectedExercise.king_json.images || []).map((image, index) => (
+                      <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+                        <img src={image} alt={`Image ${index}`} className="image-item" />
+                        <input
+                          type="text"
+                          value={selectedExercise.king_json.correct_order[`img${index + 1}`] || ''}
+                          onChange={(e) => handleCorrectOrderChange(index, e.target.value)}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ) : null
-            ) : (
-              <p>Выберите упражнение для редактирования</p>
-            )}
-            <p>
-              <Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить изменения и выйти</Button>
-              <Button className='btn-red' onClick={() => deleteTestMutation.mutate()}>Удалить тест и выйти</Button>
-            </p>
-          </Container>
-        </div>
-      </Container>
+              </div>
+            ) : null}
+                </div>
+          ) : (
+            <p>Выберите упражнение для редактирования</p>
+          )}
+          <p><Button className='btn-blue' onClick={() => saveTestMutation.mutate()}>Сохранить тест и выйти</Button> <Button className='btn-red' onClick={() => handleDeleteTest(test.id)}>Удалить тест и выйти</Button></p>
+        </Container>
+      </div>
 
       <Modal isActive={isActive} closeModal={closeModal}>
         <Container className='text-center'>
@@ -684,16 +629,16 @@ const EditTest = () => {
           <Row>
             <Col>
               <DropdownButton id="dropdown-basic-button" title="Создать">
-                <Dropdown.Item onClick={() => handleSelectType('1')} className='btn-blue'>Пропущенные слова</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleSelectType('2')} className='btn-blue'>Что на изображении</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleSelectType('3')} className='btn-blue'>Пропущенные буквы</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleSelectType('4')} className='btn-blue'>Расположить изображения</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('1')}>Пропущенные слова</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('2')}>Что на изображении</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('3')}>Пропущенные буквы</Dropdown.Item>
+                <Dropdown.Item onClick={() => handleSelectType('4')}>Расположить изображения</Dropdown.Item>
               </DropdownButton>
             </Col>
             <Col>
               <DropdownButton id="dropdown-basic-button" title="Выбрать из библиотеки">
                 {libraryExercises?.map((exercise, index) => (
-                  <Dropdown.Item key={index} onClick={() => addExerciseFromLibrary(exercise)} className='btn-blue'>
+                  <Dropdown.Item key={index} onClick={() => addExerciseFromLibrary(exercise)}>
                     {exercise.name}
                   </Dropdown.Item>
                 ))}
