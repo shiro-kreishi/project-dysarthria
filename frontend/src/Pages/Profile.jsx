@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Route, Routes, Link, useNavigate } from 'react-router-dom';
-import { ChakraProvider, Box, Button, Flex, Heading } from "@chakra-ui/react";
+import {ChakraProvider, Box, Button, Flex, Heading, Wrap, WrapItem} from "@chakra-ui/react";
 import Home from './Components/Home';
 import Login from './Components/Login';
 import Register from './Components/Register';
@@ -19,6 +19,19 @@ axios.defaults.withCredentials = true;
 function Profile() {
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+
+
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    axiosConfig.get('/api/user/check-user-permissions').then(response => {
+      const data = response.data;
+      const userIsAdmin = data.groups.some(group => group.name === 'Administrators');
+      setIsAdmin(userIsAdmin);
+    }).catch(error => {
+      console.error('Ошибка при получении данных:', error);
+    });
+  }, []);
 
   useEffect(() => {
     const user = localStorage.getItem('currentUser');
@@ -65,9 +78,18 @@ function Profile() {
           )}
           <Flex>
             {currentUser ? (
-              <form onSubmit={handleLogout}>
-                <Button type="submit" colorScheme="teal">Выход</Button>
-              </form>
+                <Wrap spacing={2}>
+                  <WrapItem>
+                    {isAdmin ? (
+                      <><Button colorScheme='purple' onClick={() => window.location.href = '/administrator/'}>Админка</Button></>
+                  ) : (<></>)}
+                  </WrapItem>
+                  <WrapItem>
+                    <form onSubmit={handleLogout}>
+                      <Button type="submit" colorScheme="teal">Выход</Button>
+                    </form>
+                  </WrapItem>
+                </Wrap>
             ) : (
               <>
                 <Link to="/profile/login">
