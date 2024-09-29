@@ -2,7 +2,7 @@ services:
   django:
     build: backend
     command: gunicorn project.wsgi:application --bind 0.0.0.0:8001
-    #restart: always
+    restart: unless-stopped
     volumes:
       - ./backend/:/usr/src/app/
       - static_volume:/usr/src/app/static
@@ -18,6 +18,7 @@ services:
 
   postgres:
     image: postgres:16
+    restart: unless-stopped
     environment:
       PGDATA: "/var/lib/postgresql/data/pgdata"
     env_file:
@@ -31,7 +32,7 @@ services:
 
   # nginx with react frontend
   nginx:
-    restart: always
+    restart: unless-stopped
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -45,27 +46,10 @@ services:
     ports:
       - 80:80
 
-#  nginx:
-#    image: nginx:latest
-#    #restart: always
-#    ports:
-#      - 80:80
-#    volumes:
-#      - ./config/docker/nginx/conf.d:/etc/nginx/conf.d
-#      - static_volume:/usr/src/app/static  # <-- bind the static volume
-#      - media_volume:/usr/src/app/media  # <-- bind the media volume
-#      - react_main_front:/usr/src/app/frontend
-#    depends_on:
-#      - django
-#      - react
-#    networks:
-#      - nginx_network
-
 volumes:
   data:
   static_volume:
   media_volume:
-#  react_main_front:
 
 networks:
   nginx_network:
