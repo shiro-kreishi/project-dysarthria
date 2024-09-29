@@ -29,36 +29,43 @@ services:
     networks:
       - nginx_network
 
-  react:
+  # nginx with react frontend
+  nginx:
+    restart: always
     build:
       context: ./frontend
       dockerfile: Dockerfile
     volumes:
-      - react_main_front:/app/build
-    networks:
-      - nginx_network
-
-  nginx:
-    image: nginx:latest
-    #restart: always
-    ports:
-      - 80:80
-    volumes:
-      - ./config/docker/nginx/conf.d:/etc/nginx/conf.d
       - static_volume:/usr/src/app/static  # <-- bind the static volume
       - media_volume:/usr/src/app/media  # <-- bind the media volume
-      - react_main_front:/usr/src/app/frontend
     depends_on:
       - django
-      - react
     networks:
       - nginx_network
+    ports:
+      - 80:80
+
+#  nginx:
+#    image: nginx:latest
+#    #restart: always
+#    ports:
+#      - 80:80
+#    volumes:
+#      - ./config/docker/nginx/conf.d:/etc/nginx/conf.d
+#      - static_volume:/usr/src/app/static  # <-- bind the static volume
+#      - media_volume:/usr/src/app/media  # <-- bind the media volume
+#      - react_main_front:/usr/src/app/frontend
+#    depends_on:
+#      - django
+#      - react
+#    networks:
+#      - nginx_network
 
 volumes:
   data:
   static_volume:
   media_volume:
-  react_main_front:
+#  react_main_front:
 
 networks:
   nginx_network:
