@@ -5,21 +5,20 @@ import {
   Flex,
   FormControl,
   FormLabel,
-  Heading,
   Input,
   Stack,
   Avatar,
   Center,
 } from "@chakra-ui/react";
 import { Link } from 'react-router-dom';
+import Login from './Login';
 import AvatarProfile from './Avatar.jpg';
 
-const Home = ({ currentUser, client }) => {
+const Home = ({ currentUser, setCurrentUser, client }) => {
   const [email, setEmail] = useState('');
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [patronymic, setPatronymic] = useState('');
-  const [admin, setAdmin] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -32,30 +31,13 @@ const Home = ({ currentUser, client }) => {
       }
     };
 
-    const checkAdmin = async () => {
-      if (currentUser) {
-        try {
-          const response = await client.get("/api/user/check-user-permissions/");
-          if (response.data.groups[0].name === "Administrators") {
-            setAdmin(true);
-          }
-        } catch (error) {
-          console.error("Error: ", error.response ? error.response.data : error.message);
-        }
-      }
-    };
-
     fetchUserData();
-    checkAdmin();
   }, [currentUser, client]);
 
   return (
     <Box textAlign="center" mt="10">
-      {!currentUser ? <Heading>Пожалуйста зайдите или зарегистрируйтесь</Heading> : 
+      {!currentUser ? <Login setCurrentUser={setCurrentUser} /> : 
         <>
-          {admin ? (
-            <a href="admin_homepage_page.html"><Button>Панель администратора</Button></a> // На данный момент не работает
-          ) : <></>}
           <Flex minH={'100vh'} align={'center'} justify={'center'}>
             <Stack spacing={4} w={'full'} maxW={'md'} rounded={'xl'} boxShadow={'lg'} p={6} my={12}>
               <FormControl id="userName">

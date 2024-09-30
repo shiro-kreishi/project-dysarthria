@@ -103,7 +103,7 @@ function Profile() {
           </Flex>
         </Flex>
         <Routes>
-          <Route path="/" element={<Home currentUser={currentUser} client={axiosConfig} />} />
+          <Route path="/" element={<Home currentUser={currentUser} setCurrentUser={setCurrentUser} client={axiosConfig} />} />
           <Route path="/confirm-email/:emailConfirmKey" element={<EmailConfirmation client={axiosConfig}/>} />
           <Route path="/login" element={<Login setCurrentUser={setCurrentUser} />} />
           <Route path="/register" element={<Register />} />
