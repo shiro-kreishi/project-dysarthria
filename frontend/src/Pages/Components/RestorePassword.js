@@ -32,7 +32,7 @@ const RestorePassword = () => {
       const response = await axiosConfig.post("/api/user/forgot-password/", { email });
       if (response.status === 201) {
         console.log("User forgot password");
-        navigate('/');
+        navigate('/profile/confirmation');
       } else {
         setError('Пользователь с таким Email не существует');
       }
