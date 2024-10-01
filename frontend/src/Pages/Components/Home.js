@@ -11,7 +11,7 @@ import {
   Center,
 } from "@chakra-ui/react";
 import { Link, useNavigate } from 'react-router-dom';
-import AvatarProfile from './Avatar.jpg';
+import AvatarProfile from './Avatar.png';
 
 const Home = ({ currentUser, client }) => {
   const [email, setEmail] = useState('');
