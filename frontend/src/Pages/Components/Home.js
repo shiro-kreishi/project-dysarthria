@@ -10,15 +10,15 @@ import {
   Avatar,
   Center,
 } from "@chakra-ui/react";
-import { Link } from 'react-router-dom';
-import Login from './Login';
+import { Link, useNavigate } from 'react-router-dom';
 import AvatarProfile from './Avatar.jpg';
 
-const Home = ({ currentUser, setCurrentUser, client }) => {
+const Home = ({ currentUser, client }) => {
   const [email, setEmail] = useState('');
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [patronymic, setPatronymic] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -34,9 +34,13 @@ const Home = ({ currentUser, setCurrentUser, client }) => {
     fetchUserData();
   }, [currentUser, client]);
 
+  const navigateLogin = () => {
+    navigate('/profile/login');
+  }
+
   return (
     <Box textAlign="center" mt="10">
-      {!currentUser ? <Login setCurrentUser={setCurrentUser} /> : 
+      {!currentUser ? navigateLogin() : 
         <>
           <Flex minH={'100vh'} align={'center'} justify={'center'}>
             <Stack spacing={4} w={'full'} maxW={'md'} rounded={'xl'} boxShadow={'lg'} p={6} my={12}>
