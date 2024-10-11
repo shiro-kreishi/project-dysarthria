@@ -57,6 +57,7 @@ const Register = () => {
       });
       navigate('/profile/confirmation');
     } catch (error) {
+      setError('Некорректный Email');
       console.error('Error registering new user: ', error);
     }
   };
